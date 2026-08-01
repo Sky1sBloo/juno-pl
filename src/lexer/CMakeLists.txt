@@ -3,6 +3,7 @@ target_sources(juno-pl-lexer PUBLIC
 FILE_SET CXX_MODULES
 FILES
 Lexer.cppm
+Tokens.cppm
 )
 
 target_include_directories(juno-pl-lexer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
