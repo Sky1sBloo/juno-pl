@@ -15,17 +15,7 @@ class FileReader : public IFileReader {
         return FileReader(path);
     }
 
-    std::expected<char, FileReaderError> read() override {
-        if (!mFileStream.is_open()) {
-            return std::unexpected(FileReaderError::FileNotOpen);
-        }
-        if (mFileStream.eof()) {
-            return std::unexpected(FileReaderError::FileEOF);
-        }
-        char c;
-        mFileStream.get(c);
-        return c;
-    }
+    std::expected<char, FileReaderError> read();
 
   private:
     FileReader(std::filesystem::path path) : mFileStream(path) {}
