@@ -1,7 +1,7 @@
 export module junopl.lexer.statehandler;
 
 namespace JunoPL {
-class LexerStateHandler {
+export class LexerStateHandler {
   public:
     enum class State { START };
 

@@ -5,6 +5,7 @@ module;
 export module junopl.lexer;
 import junopl.ifilereader;
 import junopl.lexer.tokens;
+import junopl.lexer.statehandler;
 import junopl.lexer.error;
 
 export namespace JunoPL {
@@ -12,7 +13,7 @@ export namespace JunoPL {
 class Lexer {
   public:
     Lexer(IFileReader &fileReader)
-        : mFileReader(fileReader) {}
+        : mFileReader(fileReader), mStateHandler() {}
 
     void tokenize();
     void reset();
@@ -22,6 +23,7 @@ class Lexer {
 
   private:
     IFileReader &mFileReader;
+    LexerStateHandler mStateHandler;
     std::vector<Token> mTokens;
 
     int mLine;

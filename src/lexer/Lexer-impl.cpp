@@ -12,6 +12,7 @@ void Lexer::tokenize() {
 }
 
 void Lexer::reset() {
+    mStateHandler.reset();
     mCol = 0;
     mLine = 0;
     mLexeme.clear();
@@ -21,5 +22,6 @@ void Lexer::reset() {
 void Lexer::saveToken(TokenType type) {
     mTokens.push_back(Token{type, mLexeme, mLine, mColStart, mColEnd});
     mCol = 0;
+    mStateHandler.reset();
 }
 }
