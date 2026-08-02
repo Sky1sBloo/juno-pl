@@ -12,11 +12,13 @@ export namespace JunoPL {
 
 class Lexer {
   public:
-    Lexer(IFileReader &fileReader)
-        : mFileReader(fileReader), mStateHandler() {}
+    Lexer(IFileReader &fileReader) : mFileReader(fileReader), mStateHandler() {}
 
     void tokenize();
     void reset();
+
+    const std::vector<Token> &getTokens() const { return mTokens; }
+    const std::vector<LexerError> &getErrors() const { return mErrors; }
 
   private:
     void saveToken(TokenType type);
