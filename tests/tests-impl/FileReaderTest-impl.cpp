@@ -11,14 +11,15 @@ FileReaderTest::FileReaderTest(const std::string &sourceCode)
 
 void FileReaderTest::setSourceCode(const std::string &sourceCode) {
     mSourceCode = sourceCode;
+    charPos = 0;
 }
 
 std::expected<char, FileReaderError> FileReaderTest::read() {
-    char c = mSourceCode.at(c);
-    charPos++;
     if (charPos > mSourceCode.size()) {
         return std::unexpected(FileReaderError::FileEOF);
     }
+    char c = mSourceCode.at(c);
+    charPos++;
     return c;
 }
 }
