@@ -16,6 +16,18 @@ TEST_CASE("Lexer Number Test") {
         CHECK(lexer.getErrors().empty());
         REQUIRE(lexer.getTokens().size() == 1);
         CHECK(lexer.getTokens().at(0).type == JunoPL::TokenType::NUM);
+        CHECK(lexer.getTokens().at(0).value == "1");
+    }
+
+    SUBCASE("Decimal") {
+        fileReader.setSourceCode("1.02");
+        JunoPL::Lexer lexer{fileReader};
+        lexer.tokenize();
+
+        CHECK(lexer.getErrors().empty());
+        REQUIRE(lexer.getTokens().size() == 1);
+        CHECK(lexer.getTokens().at(0).type == JunoPL::TokenType::NUM);
+        CHECK(lexer.getTokens().at(0).value == "1.02");
     }
 }
 
@@ -36,7 +48,7 @@ TEST_CASE("Lexer EOF Test") {
         JunoPL::Lexer lexer{fileReader};
         lexer.tokenize();
 
-        //CHECK(lexer.getErrors().empty());
+        // CHECK(lexer.getErrors().empty());
         for (JunoPL::LexerError error : lexer.getErrors()) {
             std::print("Error: ", error.message());
         }
