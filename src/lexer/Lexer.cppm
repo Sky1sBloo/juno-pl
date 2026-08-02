@@ -8,12 +8,11 @@ import junopl.lexer.tokens;
 import junopl.lexer.error;
 
 export namespace JunoPL {
-enum class LexerState { START };
 
 class Lexer {
   public:
     Lexer(IFileReader &fileReader)
-        : mFileReader(fileReader), mState(LexerState::START) {}
+        : mFileReader(fileReader) {}
 
     void tokenize();
     void reset();
@@ -23,7 +22,6 @@ class Lexer {
 
   private:
     IFileReader &mFileReader;
-    LexerState mState = LexerState::START;
     std::vector<Token> mTokens;
 
     int mLine;

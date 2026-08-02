@@ -1,12 +1,15 @@
 add_library(juno-pl-lexer)
-target_sources(juno-pl-lexer PUBLIC 
+target_sources(juno-pl-lexer 
+PUBLIC 
 FILE_SET CXX_MODULES
 FILES
-Lexer.cppm
-Tokens.cppm
-LexerError.cppm
+    Lexer.cppm
+    Tokens.cppm
+    LexerError.cppm
+    LexerStateHandler.cppm
 PRIVATE
-Lexer-impl.cpp
+    Lexer-impl.cpp
+    LexerStateHandler-impl.cpp
 )
 
 target_include_directories(juno-pl-lexer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
