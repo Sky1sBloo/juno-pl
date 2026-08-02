@@ -1,5 +1,5 @@
 module;
-#include <expected>
+#include <string>
 #include <vector>
 
 export module junopl.lexer;
@@ -29,17 +29,23 @@ class Lexer {
     Lexer(IFileReader &fileReader)
         : mFileReader(fileReader), mState(LexerState::START) {}
 
-    void reset() {}
-    std::vector<Token> tokenize() {}
+    void tokenize();
+    void reset();
+
+    int test;
+  private:
+    void saveToken(TokenType type);
 
   private:
     IFileReader &mFileReader;
     LexerState mState = LexerState::START;
+    std::vector<Token> mTokens;
 
     int mLine;
     int mCol;
     int mColStart;
     int mColEnd;
+    std::string mLexeme;
     std::vector<LexerError> mErrors;
 };
 }

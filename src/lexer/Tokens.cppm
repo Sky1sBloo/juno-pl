@@ -2,13 +2,24 @@ module;
 #include <string>
 export module junopl.lexer.tokens;
 
-enum class TokenType { IDENT, NUM, STR, TRUE, FALSE, K_PROGRAM, OP_SEMICOLON };
+export enum class TokenType {
+    IDENT,
+    NUM,
+    STR,
+    TRUE,
+    FALSE,
+    K_PROGRAM,
+    OP_SEMICOLON,
+    UNKNOWN
+};
 export struct Token {
+    TokenType type;
     std::string value;
     int line;
     int colStart;
     int colEnd;
-
-    TokenType type;
+    Token(TokenType type, const std::string &value = "", int line = -1,
+          int colStart = -1, int colEnd = -1)
+        : type(type), value(value), line(line), colStart(colStart),
+          colEnd(colEnd) {}
 };
-
