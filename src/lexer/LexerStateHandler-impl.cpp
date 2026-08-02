@@ -7,7 +7,7 @@ module junopl.lexer.statehandler;
 namespace JunoPL {
 
 LexerStateHandler::LexerStateHandler()
-    : mState(States::START), mLine(0), mCol(0) {}
+    : mState(States::START), mLine(0), mCol(0), isCharEOF(false) {}
 
 void LexerStateHandler::reset() { mState = States::START; }
 
@@ -30,6 +30,7 @@ LexerStateHandler::Result LexerStateHandler::handle(char c, int line, int col) {
 }
 
 LexerStateHandler::Result LexerStateHandler::handleEOF() {
+    isCharEOF = true;
     return handle(' ', -1, -1);
 }
 

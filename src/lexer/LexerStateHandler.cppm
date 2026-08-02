@@ -44,6 +44,7 @@ export class LexerStateHandler {
     States mState;
     int mLine;
     int mCol;
+    bool isCharEOF;  // used for eof cases
     Result createErrorResult(char c);
 
     Result handleStartState(char c);
