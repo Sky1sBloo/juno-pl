@@ -4,6 +4,7 @@ FILE_SET CXX_MODULES
 FILES
 Lexer.cppm
 Tokens.cppm
+LexerError.cppm
 PRIVATE
 Lexer-impl.cpp
 )

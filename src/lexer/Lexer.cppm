@@ -5,6 +5,7 @@ module;
 export module junopl.lexer;
 import junopl.ifilereader;
 import junopl.lexer.tokens;
+import junopl.lexer.error;
 
 export namespace JunoPL {
 enum class LexerState { START };
@@ -17,7 +18,6 @@ class Lexer {
     void tokenize();
     void reset();
 
-    int test;
   private:
     void saveToken(TokenType type);
 
@@ -31,6 +31,6 @@ class Lexer {
     int mColStart;
     int mColEnd;
     std::string mLexeme;
-    //std::vector<LexerError> mErrors;
+    std::vector<LexerError> mErrors;
 };
 }
