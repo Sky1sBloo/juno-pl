@@ -78,7 +78,9 @@ LexerStateHandler::Result LexerStateHandler::handleUnknownState(char c) {
     case ' ':
     case '\n':
     case '\t':
-        return Result::Continue();
+        reset();
+        break;
     }
+    return Result::Continue();
 }
 }
