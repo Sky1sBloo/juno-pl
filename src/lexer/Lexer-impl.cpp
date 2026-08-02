@@ -1,21 +1,24 @@
 module;
+#include <print>
 #include <stdexcept>
 module junopl.lexer;
 import junopl.lexer.tokens;
 
 namespace JunoPL {
 void Lexer::tokenize() {
+    using StateResult = LexerStateHandler::Result;
+    using StateAction = StateResult::Action;
+
     reset();
     auto c = mFileReader.read();
     if (!c.has_value()) {
         return;
     }
     while (c.has_value()) {
-        using StateResult = LexerStateHandler::Result;
-        using StateAction = StateResult::Action;
 
         StateResult result = mStateHandler.handle(c.value(), mLine, mCol);
         mLexeme.push_back(c.value());
+        // std::print("C: {}\n", c.value());
 
         switch (result.action) {
         case StateAction::CONTINUE:
@@ -46,6 +49,26 @@ void Lexer::tokenize() {
             mCol = 0;
         }
         c = mFileReader.read();
+    }
+    if (mLexeme.empty()) {
+        return;
+    }
+    auto result = mStateHandler.handleEOF();
+    switch (result.action) {
+    case StateAction::ERROR:
+        if (!result.error.has_value()) {
+            throw std::runtime_error(
+                "Lexer state action returns error but no error object has "
+                "been intiailized");
+        }
+        mErrors.push_back(result.error.value());
+        break;
+    case StateAction::SAVE_TOKEN:
+    case StateAction::SAVE_REPLAY:
+        saveToken(result.type);
+        break;
+    default:
+        break;
     }
 }
 

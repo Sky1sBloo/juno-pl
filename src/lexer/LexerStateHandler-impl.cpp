@@ -1,5 +1,6 @@
 module;
 #include <cctype>
+#include <print>
 #include <string>
 module junopl.lexer.statehandler;
 
@@ -26,6 +27,10 @@ LexerStateHandler::Result LexerStateHandler::handle(char c, int line, int col) {
     case States::UNKNOWN:
         return handleUnknownState(c);
     }
+}
+
+LexerStateHandler::Result LexerStateHandler::handleEOF() {
+    return handle(' ', -1, -1);
 }
 
 LexerStateHandler::Result LexerStateHandler::createErrorResult(char c) {

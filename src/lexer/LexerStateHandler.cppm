@@ -34,6 +34,11 @@ export class LexerStateHandler {
      */
     Result handle(char c, int line, int col);
 
+    /**
+    Call this when we reach EOF.
+     */
+    Result handleEOF();
+
   private:
     enum class States { START, IDENT, NUMBER, DECIMAL, UNKNOWN };
     States mState;
