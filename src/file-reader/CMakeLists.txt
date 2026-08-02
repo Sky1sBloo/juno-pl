@@ -6,6 +6,6 @@ target_sources(juno-pl-file-reader
             FileReader.cppm
             IFileReader.cppm
     PRIVATE
-        FileReader.cpp
+        FileReader-impl.cpp
         )
 target_compile_features(juno-pl-file-reader PUBLIC cxx_std_23)

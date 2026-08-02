@@ -3,7 +3,9 @@ module junopl.lexer;
 import junopl.lexer.tokens;
 
 namespace JunoPL {
-void Lexer::tokenize() {}
+void Lexer::tokenize() {
+    reset();
+}
 
 void Lexer::reset() {
     mState = LexerState::START;

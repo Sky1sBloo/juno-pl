@@ -5,7 +5,7 @@ FILES
 Lexer.cppm
 Tokens.cppm
 PRIVATE
-Lexer.cpp
+Lexer-impl.cpp
 )
 
 target_include_directories(juno-pl-lexer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
