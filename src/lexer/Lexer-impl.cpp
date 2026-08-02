@@ -10,6 +10,31 @@ void Lexer::tokenize() {
         return;
     }
     while (c.has_value()) {
+        using StateResult = LexerStateHandler::Result;
+        using StateAction = StateResult::Action;
+
+        StateResult result = mStateHandler.handle(c.value(), mLine, mCol);
+        mLexeme.push_back(c.value());
+
+        switch (result.action) {
+        case StateAction::CONTINUE:
+            break;
+        case StateAction::SAVE_TOKEN:
+            saveToken(result.type);
+            break;
+        case StateAction::SAVE_REPLAY:
+            saveToken(result.type);
+            continue;
+        case StateAction::ERROR:
+            saveToken(result.type);
+            break;
+        }
+
+        mCol++;
+        if (c.value() == '\n') {
+            mLine++;
+            mCol = 0;
+        }
         c = mFileReader.read();
     }
 }

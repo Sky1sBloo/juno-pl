@@ -36,13 +36,14 @@ export class LexerStateHandler {
     Result handle(char c, int line, int col);
 
   private:
-    enum class States { START, IDENT, NUMBER, UNKNOWN };
+    enum class States { START, IDENT, NUMBER, DECIMAL, UNKNOWN };
     States mState;
     int mLine;
     int mCol;
 
     Result handleStartState(char c);
     Result handleIdentState(char c);
+    Result handleDecimalState(char c);
     Result handleNumberState(char c);
     Result handleUnknownState(char c);
     Result createErrorResult(const std::string &message);

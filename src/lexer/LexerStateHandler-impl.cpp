@@ -36,9 +36,40 @@ LexerStateHandler::Result LexerStateHandler::handleStartState(char c) {
     }
 }
 
-LexerStateHandler::Result LexerStateHandler::handleIdentState(char c) {}
+LexerStateHandler::Result LexerStateHandler::handleIdentState(char c) {
+    if (std::isalnum(c) || c == '_') {
+        return Result::Continue();
+    }
 
-LexerStateHandler::Result LexerStateHandler::handleNumberState(char c) {}
+    return Result::SaveReplay(TokenType::IDENT);
+}
 
-LexerStateHandler::Result LexerStateHandler::handleUnknownState(char c) {}
+LexerStateHandler::Result LexerStateHandler::handleNumberState(char c) {
+    if (std::isdigit(c)) {
+        return Result::Continue();
+    }
+    if (c == '.') {
+        mState = States::DECIMAL;
+        return Result::Continue();
+    }
+    return Result::SaveReplay(TokenType::NUM);
+}
+
+LexerStateHandler::Result LexerStateHandler::handleDecimalState(char c) {
+    if (std::isdigit(c)) {
+        return Result::Continue();
+    }
+    return Result::SaveReplay(TokenType::NUM);
+}
+
+LexerStateHandler::Result LexerStateHandler::handleUnknownState(char c) {
+    switch (c) {
+    case ' ':
+    case '\n':
+    case '\t':
+    // todo, make it such that it keeps the message
+        return Result::Error(LexerError{LexerError::Type::InvalidCharacter,
+                                        mLine, mCol, "Unknown state"});
+    }
+}
 }
