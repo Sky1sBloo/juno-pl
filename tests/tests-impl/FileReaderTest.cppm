@@ -11,12 +11,10 @@ For intializing with string rather than reading a file directly
  */
 export class FileReaderTest : public IFileReader {
   public:
-    FileReaderTest() : mSourceCode() {}
-    FileReaderTest(const std::string &sourceCode) : mSourceCode(sourceCode) {}
+    FileReaderTest();
+    FileReaderTest(const std::string &sourceCode);
 
-    void setSourceCode(const std::string &sourceCode) {
-        mSourceCode = sourceCode;
-    }
+    void setSourceCode(const std::string &sourceCode); 
 
     std::expected<char, FileReaderError> read() override;
 
