@@ -18,7 +18,7 @@ std::expected<char, FileReaderError> FileReaderTest::read() {
     if (charPos > mSourceCode.size()) {
         return std::unexpected(FileReaderError::FileEOF);
     }
-    char c = mSourceCode.at(c);
+    char c = mSourceCode.at(charPos);
     charPos++;
     return c;
 }
