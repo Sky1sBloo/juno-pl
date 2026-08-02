@@ -1,5 +1,4 @@
 module;
-#include <print>
 #include <stdexcept>
 module junopl.lexer;
 import junopl.lexer.tokens;
@@ -15,10 +14,8 @@ void Lexer::tokenize() {
         return;
     }
     while (c.has_value()) {
-
         StateResult result = mStateHandler.handle(c.value(), mLine, mCol);
         mLexeme.push_back(c.value());
-        // std::print("C: {}\n", c.value());
 
         switch (result.action) {
         case StateAction::CONTINUE:
@@ -75,14 +72,15 @@ void Lexer::tokenize() {
 void Lexer::reset() {
     mStateHandler.reset();
     mCol = 0;
+    mColStart = 0;
     mLine = 0;
     mLexeme.clear();
     mTokens.clear();
 }
 
 void Lexer::saveToken(TokenType type) {
-    mTokens.push_back(Token{type, mLexeme, mLine, mColStart, mColEnd});
-    mCol = 0;
+    mTokens.push_back(Token{type, mLexeme, mLine, mColStart, mCol});
+    mColStart = mCol;
     mStateHandler.reset();
     mLexeme.clear();
 }

@@ -31,7 +31,6 @@ class Lexer {
     int mLine;
     int mCol;
     int mColStart;
-    int mColEnd;
     std::string mLexeme;
     std::vector<LexerError> mErrors;
 };
