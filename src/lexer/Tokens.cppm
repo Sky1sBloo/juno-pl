@@ -2,6 +2,7 @@ module;
 #include <string>
 export module junopl.lexer.tokens;
 
+namespace JunoPL {
 export enum class TokenType {
     IDENT,
     NUM,
@@ -23,3 +24,5 @@ export struct Token {
         : type(type), value(value), line(line), colStart(colStart),
           colEnd(colEnd) {}
 };
+
+}
