@@ -20,12 +20,15 @@ void Lexer::tokenize() {
         case StateAction::CONTINUE:
             break;
         case StateAction::SAVE_TOKEN:
+            mStateHandler.reset();
             saveToken(result.type);
             break;
         case StateAction::SAVE_REPLAY:
+            mStateHandler.reset();
             saveToken(result.type);
             continue;
         case StateAction::ERROR:
+            mStateHandler.reset();
             saveToken(result.type);
             break;
         }

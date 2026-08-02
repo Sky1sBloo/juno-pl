@@ -40,12 +40,12 @@ export class LexerStateHandler {
     States mState;
     int mLine;
     int mCol;
+    Result createErrorResult(char c);
 
     Result handleStartState(char c);
     Result handleIdentState(char c);
     Result handleDecimalState(char c);
     Result handleNumberState(char c);
     Result handleUnknownState(char c);
-    Result createErrorResult(const std::string &message);
 };
 }

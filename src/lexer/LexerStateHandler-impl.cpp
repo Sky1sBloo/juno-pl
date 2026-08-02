@@ -1,5 +1,6 @@
 module;
 #include <cctype>
+#include <string>
 module junopl.lexer.statehandler;
 
 namespace JunoPL {
@@ -20,9 +21,17 @@ LexerStateHandler::Result LexerStateHandler::handle(char c, int line, int col) {
         return handleIdentState(c);
     case States::NUMBER:
         return handleNumberState(c);
+    case States::DECIMAL:
+        return handleDecimalState(c);
     case States::UNKNOWN:
         return handleUnknownState(c);
     }
+}
+
+LexerStateHandler::Result LexerStateHandler::createErrorResult(char c) {
+    return Result::Error(LexerError{LexerError::Type::InvalidCharacter, mLine,
+                                    mCol,
+                                    "Invalid character: " + std::string{c}});
 }
 
 LexerStateHandler::Result LexerStateHandler::handleStartState(char c) {
@@ -34,6 +43,7 @@ LexerStateHandler::Result LexerStateHandler::handleStartState(char c) {
         mState = States::NUMBER;
         return Result::Continue();
     }
+    return createErrorResult(c);
 }
 
 LexerStateHandler::Result LexerStateHandler::handleIdentState(char c) {
@@ -63,13 +73,12 @@ LexerStateHandler::Result LexerStateHandler::handleDecimalState(char c) {
 }
 
 LexerStateHandler::Result LexerStateHandler::handleUnknownState(char c) {
+    // continue until next viable token
     switch (c) {
     case ' ':
     case '\n':
     case '\t':
-    // todo, make it such that it keeps the message
-        return Result::Error(LexerError{LexerError::Type::InvalidCharacter,
-                                        mLine, mCol, "Unknown state"});
+        return Result::Continue();
     }
 }
 }
