@@ -9,7 +9,7 @@ namespace JunoPL::Tests {
 /**
 For intializing with string rather than reading a file directly
  */
-export class FileReaderTest : IFileReader {
+export class FileReaderTest : public IFileReader {
   public:
     FileReaderTest() : mSourceCode() {}
     FileReaderTest(const std::string &sourceCode) : mSourceCode(sourceCode) {}
