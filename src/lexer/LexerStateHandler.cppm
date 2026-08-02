@@ -1,6 +1,5 @@
 module;
 #include <optional>
-#include <string>
 export module junopl.lexer.statehandler;
 import junopl.lexer.error;
 import junopl.lexer.tokens;

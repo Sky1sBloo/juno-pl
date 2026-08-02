@@ -1,4 +1,5 @@
 module;
+#include <stdexcept>
 module junopl.lexer;
 import junopl.lexer.tokens;
 
@@ -28,7 +29,13 @@ void Lexer::tokenize() {
             saveToken(result.type);
             continue;
         case StateAction::ERROR:
+            if (!result.error.has_value()) {
+                throw std::runtime_error(
+                    "Lexer state action returns error but no error object has "
+                    "been intiailized");
+            }
             mStateHandler.reset();
+            mErrors.push_back(result.error.value());
             saveToken(result.type);
             break;
         }
