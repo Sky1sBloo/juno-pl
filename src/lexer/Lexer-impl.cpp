@@ -9,6 +9,9 @@ void Lexer::tokenize() {
     if (!c.has_value()) {
         return;
     }
+    while (c.has_value()) {
+        c = mFileReader.read();
+    }
 }
 
 void Lexer::reset() {
@@ -23,5 +26,6 @@ void Lexer::saveToken(TokenType type) {
     mTokens.push_back(Token{type, mLexeme, mLine, mColStart, mColEnd});
     mCol = 0;
     mStateHandler.reset();
+    mLexeme.clear();
 }
 }

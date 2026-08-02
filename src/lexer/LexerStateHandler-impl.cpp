@@ -1,7 +1,44 @@
+module;
+#include <cctype>
 module junopl.lexer.statehandler;
 
 namespace JunoPL {
-    void LexerStateHandler::reset() {
-        mState = State::START;
+
+LexerStateHandler::LexerStateHandler()
+    : mState(States::START), mLine(0), mCol(0) {}
+
+void LexerStateHandler::reset() { mState = States::START; }
+
+LexerStateHandler::Result LexerStateHandler::handle(char c, int line, int col) {
+    mLine = line;
+    mCol = col;
+
+    switch (mState) {
+    case States::START:
+        return handleStartState(c);
+    case States::IDENT:
+        return handleIdentState(c);
+    case States::NUMBER:
+        return handleNumberState(c);
+    case States::UNKNOWN:
+        return handleUnknownState(c);
     }
+}
+
+LexerStateHandler::Result LexerStateHandler::handleStartState(char c) {
+    if (std::isalpha(c) || c == '_') {
+        mState = States::IDENT;
+        return Result::Continue();
+    }
+    if (std::isdigit(c)) {
+        mState = States::NUMBER;
+        return Result::Continue();
+    }
+}
+
+LexerStateHandler::Result LexerStateHandler::handleIdentState(char c) {}
+
+LexerStateHandler::Result LexerStateHandler::handleNumberState(char c) {}
+
+LexerStateHandler::Result LexerStateHandler::handleUnknownState(char c) {}
 }

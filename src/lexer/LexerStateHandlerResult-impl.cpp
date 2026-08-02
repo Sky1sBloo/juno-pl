@@ -1,0 +1,31 @@
+module;
+#include <optional>
+module junopl.lexer.statehandler;
+import junopl.lexer.tokens;
+
+namespace JunoPL {
+LexerStateHandler::Result::Result(Action action, TokenType type)
+    : action(action), type(type), error(std::nullopt) {}
+
+LexerStateHandler::Result::Result(LexerError error)
+    : action(Action::ERROR), type(TokenType::UNKNOWN), error(std::move(error)) {
+}
+
+LexerStateHandler::Result LexerStateHandler::Result::Continue() {
+    return Result{Action::CONTINUE, TokenType::UNKNOWN};
+}
+
+LexerStateHandler::Result LexerStateHandler::Result::Save(TokenType type) {
+    return Result{Action::SAVE_TOKEN, type};
+}
+
+LexerStateHandler::Result
+LexerStateHandler::Result::SaveReplay(TokenType type) {
+    return Result{Action::SAVE_REPLAY, type};
+}
+
+LexerStateHandler::Result
+LexerStateHandler::Result::Error(const LexerError &error) {
+    return Result{error};
+}
+}
