@@ -15,7 +15,7 @@ void FileReaderTest::setSourceCode(const std::string &sourceCode) {
 }
 
 std::expected<char, FileReaderError> FileReaderTest::read() {
-    if (charPos > mSourceCode.size()) {
+    if (charPos >= mSourceCode.size()) {
         return std::unexpected(FileReaderError::FileEOF);
     }
     char c = mSourceCode.at(charPos);
