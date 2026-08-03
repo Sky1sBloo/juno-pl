@@ -24,6 +24,8 @@ LexerStateHandler::Result LexerStateHandler::handle(char c, int line, int col) {
         return handleNumberState(c);
     case States::DECIMAL:
         return handleDecimalState(c);
+    case States::OPERATION:
+        return handleOperationState(c);
     case States::UNKNOWN:
         return handleUnknownState(c);
     }
@@ -90,6 +92,33 @@ LexerStateHandler::Result LexerStateHandler::handleDecimalState(char c) {
         return Result::SaveReplay(TokenType::NUM);
     }
     return createErrorResult(c);
+}
+
+LexerStateHandler::Result LexerStateHandler::handleOperationState(char c) {
+    switch (c) {
+    case '+':
+    case '-':
+    case '*':
+    case '/':
+    case '=':
+    case '<':
+    case '>':
+        mState = States::EXPECT_EQ;
+        return Result::Continue();
+    case '(':
+        return Result::Save(TokenType::OP_PAR_OP);
+    case ')':
+        return Result::Save(TokenType::OP_PAR_CLO);
+    case '{':
+        return Result::Save(TokenType::OP_BRAC_OP);
+    case '}':
+        return Result::Save(TokenType::OP_BRAC_CLO);
+    case '%':
+        return Result::Save(TokenType::OP_MOD);
+    case '.':
+        return Result::Save(TokenType::OP_DOT);
+        break;
+    }
 }
 
 LexerStateHandler::Result LexerStateHandler::handleUnknownState(char c) {

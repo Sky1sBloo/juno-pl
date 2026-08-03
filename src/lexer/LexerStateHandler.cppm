@@ -8,7 +8,7 @@ namespace JunoPL {
 export class LexerStateHandler {
   public:
     struct Result {
-        enum class Action { CONTINUE, IGNORE, SAVE_TOKEN, SAVE_REPLAY, ERROR };
+        enum class Action { CONTINUE, IGNORE, SAVE_TOKEN, SAVE_REPLAY, INFER_TOKEN, INFER_TOKEN_REPLAY, ERROR };
         Action action;
         TokenType type = TokenType::UNKNOWN;
         std::optional<LexerError> error;
@@ -17,6 +17,8 @@ export class LexerStateHandler {
         static Result Ignore();
         static Result Save(TokenType type);
         static Result SaveReplay(TokenType type);
+        static Result InferToken();
+        static Result InferTokenReplay();
         static Result Error(const LexerError &error);
 
       private:
@@ -41,7 +43,7 @@ export class LexerStateHandler {
     Result handleEOF();
 
   private:
-    enum class States { START, IDENT, NUMBER, DECIMAL, UNKNOWN };
+    enum class States { START, IDENT, NUMBER, DECIMAL, OPERATION, EXPECT_EQ, UNKNOWN };
     States mState;
     int mLine;
     int mCol;
@@ -51,6 +53,7 @@ export class LexerStateHandler {
     Result handleStartState(char c);
     Result handleIdentState(char c);
     Result handleDecimalState(char c);
+    Result handleOperationState(char c);
     Result handleNumberState(char c);
     Result handleUnknownState(char c);
 
