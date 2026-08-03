@@ -2,6 +2,7 @@ module;
 #include <stdexcept>
 module junopl.lexer;
 import junopl.lexer.tokens;
+import junopl.lexer.keywordidentifier;
 
 namespace JunoPL {
 void Lexer::tokenize() {
@@ -23,11 +24,9 @@ void Lexer::tokenize() {
         case StateAction::CONTINUE:
             break;
         case StateAction::SAVE_TOKEN:
-            mStateHandler.reset();
             saveToken(result.type);
             break;
         case StateAction::SAVE_REPLAY:
-            mStateHandler.reset();
             saveToken(result.type);
             continue;
         case StateAction::ERROR:
@@ -86,7 +85,9 @@ void Lexer::reset() {
 }
 
 void Lexer::saveToken(TokenType type) {
-    mTokens.push_back(Token{type, mLexeme, mLine, mColStart, mCol});
+    auto keywordToken = getKeyword(mLexeme);
+    TokenType tokenType = keywordToken.value_or(type);
+    mTokens.push_back(Token{tokenType, mLexeme, mLine, mColStart, mCol});
     mColStart = mCol;
     mStateHandler.reset();
     mLexeme.clear();
