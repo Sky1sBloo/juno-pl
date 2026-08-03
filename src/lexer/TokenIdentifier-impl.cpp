@@ -59,9 +59,12 @@ std::unordered_map<std::string, TokenType, string_hash, std::equal_to<>>
                    {"}", TokenType::OP_BRAC_CLO},
                    {"%", TokenType::OP_MOD},
                    {".", TokenType::OP_DOT},
+                   {"==", TokenType::OP_COMP_EQ},
+                   {"!=", TokenType::OP_COMP_NOT_EQ},
                    {">", TokenType::OP_COMP_GREATER},
                    {"<", TokenType::OP_COMP_LESS},
                    {">=", TokenType::OP_COMP_GREATER_EQ},
                    {"<=", TokenType::OP_COMP_LESS_EQ},
+                   {"!", TokenType::K_NOT},
                    {"?", TokenType::OP_QUESTION}};
 }

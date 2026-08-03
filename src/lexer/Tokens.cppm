@@ -43,6 +43,8 @@ export enum class TokenType {
     OP_BRAC_CLO,
     OP_MOD,
     OP_DOT,
+    OP_COMP_EQ,
+    OP_COMP_NOT_EQ,
     OP_COMP_GREATER,
     OP_COMP_LESS,
     OP_COMP_GREATER_EQ,

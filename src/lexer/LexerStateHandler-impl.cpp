@@ -133,6 +133,7 @@ LexerStateHandler::Result LexerStateHandler::handleOperationState(char c) {
     case '=':
     case '<':
     case '>':
+    case '!':
         mState = States::EXPECT_EQ;
         return Result::Continue();
     case '(':
