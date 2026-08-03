@@ -41,11 +41,11 @@ std::unordered_map<std::string, TokenType, string_hash, std::equal_to<>>
         {"elif", TokenType::K_ELIF},       {"else", TokenType::K_ELSE},
         {"for", TokenType::K_FOR},         {"from", TokenType::K_FROM},
         {"to", TokenType::K_TO},           {"by", TokenType::K_BY},
-        {"while", TokenType::K_WHILE},     {"instr", TokenType::K_INSTR},
-        {"perform", TokenType::K_PERFORM}, {"on", TokenType::K_ON},
-        {"emit", TokenType::K_EMIT},       {"craft", TokenType::K_CRAFT},
-        {"nearby", TokenType::K_NEARBY},   {"var", TokenType::K_VAR},
-        {"list", TokenType::K_LIST}};
+        {"while", TokenType::K_WHILE},     {"break", TokenType::K_BREAK},
+        {"instr", TokenType::K_INSTR},     {"perform", TokenType::K_PERFORM},
+        {"on", TokenType::K_ON},           {"emit", TokenType::K_EMIT},
+        {"craft", TokenType::K_CRAFT},     {"nearby", TokenType::K_NEARBY},
+        {"var", TokenType::K_VAR},         {"list", TokenType::K_LIST}};
 
 std::unordered_map<std::string, TokenType, string_hash, std::equal_to<>>
     operatorMap = {{"+", TokenType::OP_PLUS},
