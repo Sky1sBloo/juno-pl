@@ -63,6 +63,18 @@ TEST_CASE("Identifier Test") {
         CHECK(lexer.getTokens().at(0).type == JunoPL::TokenType::IDENT);
         CHECK(lexer.getTokens().at(1).type == JunoPL::TokenType::IDENT);
     }
+
+    SUBCASE("Keyword") {
+        fileReader.setSourceCode("_identX9 program import");
+        JunoPL::Lexer lexer{fileReader};
+        lexer.tokenize();
+
+        CHECK(lexer.getErrors().empty());
+        REQUIRE(lexer.getTokens().size() == 3);
+        CHECK(lexer.getTokens().at(0).type == JunoPL::TokenType::IDENT);
+        CHECK(lexer.getTokens().at(1).type == JunoPL::TokenType::K_PROGRAM);
+        CHECK(lexer.getTokens().at(2).type == JunoPL::TokenType::K_IMPORT);
+    }
 }
 
 TEST_CASE("Lexer EOF Test") {

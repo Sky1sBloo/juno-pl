@@ -16,14 +16,15 @@ void Lexer::tokenize() {
     }
     while (c.has_value()) {
         StateResult result = mStateHandler.handle(c.value(), mLine, mCol);
-        if (result.action != StateAction::IGNORE) {
-            mLexeme.push_back(c.value());
-        }
 
         switch (result.action) {
         case StateAction::CONTINUE:
+            mLexeme.push_back(c.value());
+            break;
+        case StateAction::IGNORE:
             break;
         case StateAction::SAVE_TOKEN:
+            mLexeme.push_back(c.value());
             saveToken(result.type);
             break;
         case StateAction::SAVE_REPLAY:
@@ -38,8 +39,6 @@ void Lexer::tokenize() {
             mStateHandler.reset();
             mErrors.push_back(result.error.value());
             saveToken(result.type);
-            break;
-        default:
             break;
         }
 
@@ -58,6 +57,7 @@ void Lexer::tokenize() {
     case StateAction::CONTINUE:
         mErrors.push_back(LexerError{LexerError::Type::UnclosedToken, mLine,
                                      mCol, "Unclosed token on EOF"});
+        break;
     case StateAction::ERROR:
         if (!result.error.has_value()) {
             throw std::runtime_error(
