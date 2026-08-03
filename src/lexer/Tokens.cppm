@@ -10,6 +10,7 @@ export enum class TokenType {
     TRUE,
     FALSE,
     K_PROGRAM,
+    K_IMPORT,
     OP_SEMICOLON,
     UNKNOWN
 };

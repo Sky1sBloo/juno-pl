@@ -7,10 +7,12 @@ FILES
     Tokens.cppm
     LexerError.cppm
     LexerStateHandler.cppm
+    KeywordIdentifier.cppm
 PRIVATE
     Lexer-impl.cpp
     LexerStateHandler-impl.cpp
     LexerStateHandlerResult-impl.cpp
+    KeywordIdentifier-impl.cpp
 )
 
 target_include_directories(juno-pl-lexer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
