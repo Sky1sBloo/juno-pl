@@ -56,6 +56,9 @@ void Lexer::tokenize() {
     }
     auto result = mStateHandler.handleEOF();
     switch (result.action) {
+    case StateAction::CONTINUE:
+        mErrors.push_back(LexerError{LexerError::Type::UnclosedToken, mLine,
+                                     mCol, "Unclosed token on EOF"});
     case StateAction::ERROR:
         if (!result.error.has_value()) {
             throw std::runtime_error(

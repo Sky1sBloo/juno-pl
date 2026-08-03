@@ -5,7 +5,7 @@ export module junopl.lexer.error;
 namespace JunoPL {
 export class LexerError {
   public:
-    enum class Type { FileReadError, InvalidCharacter };
+    enum class Type { FileReadError, InvalidCharacter, UnclosedToken };
     LexerError(Type type, int line, int column, const std::string &message)
         : mType(type), mLine(line), mColumn(column), mMessage(message) {}
     Type type() const { return mType; }
