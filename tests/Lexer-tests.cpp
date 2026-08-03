@@ -119,6 +119,43 @@ TEST_CASE("Lexer Operator Test") {
     }
 }
 
+TEST_CASE("Lexer String Test") {
+    JunoPL::Tests::FileReaderTest fileReader;
+
+    SUBCASE("Simple string") {
+        fileReader.setSourceCode("\"hello\"");
+        JunoPL::Lexer lexer{fileReader};
+        lexer.tokenize();
+
+        CHECK(lexer.getErrors().empty());
+        REQUIRE(lexer.getTokens().size() == 1);
+        CHECK(lexer.getTokens().at(0).type == JunoPL::TokenType::STR);
+        CHECK(lexer.getTokens().at(0).value == "hello");
+    }
+
+    SUBCASE("String with spaces and escapes") {
+        fileReader.setSourceCode("\"say \\\"hi\\\" now\"");
+        JunoPL::Lexer lexer{fileReader};
+        lexer.tokenize();
+
+        CHECK(lexer.getErrors().empty());
+        REQUIRE(lexer.getTokens().size() == 1);
+        CHECK(lexer.getTokens().at(0).type == JunoPL::TokenType::STR);
+        CHECK(lexer.getTokens().at(0).value == "say \\\"hi\\\" now");
+    }
+
+    SUBCASE("Unclosed string") {
+        fileReader.setSourceCode("\"missing end");
+        JunoPL::Lexer lexer{fileReader};
+        lexer.tokenize();
+
+        CHECK_FALSE(lexer.getErrors().empty());
+        REQUIRE(lexer.getTokens().empty());
+        CHECK(lexer.getErrors().at(0).type() ==
+              JunoPL::LexerError::Type::UnclosedToken);
+    }
+}
+
 TEST_CASE("Lexer EOF Test") {
     JunoPL::Tests::FileReaderTest fileReader;
     SUBCASE("No whitespace") {
