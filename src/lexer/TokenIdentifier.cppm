@@ -25,6 +25,10 @@ struct string_hash {
 };
 
 namespace JunoPL {
+/**
+Used to infer token type by string
+ */
+export TokenType inferToken(const std::string &lexeme);
 export std::optional<TokenType> getKeyword(const std::string &lexeme);
 extern std::unordered_map<std::string, TokenType, string_hash, std::equal_to<>>
     keywordMap;

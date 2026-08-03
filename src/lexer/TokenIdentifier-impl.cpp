@@ -5,6 +5,18 @@ module;
 module junopl.lexer.tokens.identifier;
 
 namespace JunoPL {
+TokenType inferToken(const std::string &lexeme) {
+    auto keyword = getKeyword(lexeme);
+    if (keyword.has_value()) {
+        return keyword.value();
+    }
+    keyword = getOperator(lexeme);
+    if (keyword.has_value()) {
+        return keyword.value();
+    }
+    return TokenType::UNKNOWN;
+}
+
 std::optional<TokenType> getKeyword(const std::string &lexeme) {
     const auto &keyword = keywordMap.find(lexeme);
     if (keyword == keywordMap.end()) {

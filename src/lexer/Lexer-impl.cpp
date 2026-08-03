@@ -30,6 +30,13 @@ void Lexer::tokenize() {
         case StateAction::SAVE_REPLAY:
             saveToken(result.type);
             continue;
+        case StateAction::INFER_TOKEN:
+            mLexeme.push_back(c.value());
+            saveToken(inferToken(mLexeme));
+            break;
+        case StateAction::INFER_TOKEN_REPLAY:
+            saveToken(inferToken(mLexeme));
+            break;
         case StateAction::ERROR:
             if (!result.error.has_value()) {
                 throw std::runtime_error(
