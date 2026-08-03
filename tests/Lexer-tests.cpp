@@ -31,6 +31,40 @@ TEST_CASE("Lexer Number Test") {
     }
 }
 
+TEST_CASE("Identifier Test") {
+    JunoPL::Tests::FileReaderTest fileReader;
+    SUBCASE("Character start") {
+        fileReader.setSourceCode("random9vValue");
+        JunoPL::Lexer lexer{fileReader};
+        lexer.tokenize();
+
+        CHECK(lexer.getErrors().empty());
+        REQUIRE(lexer.getTokens().size() == 1);
+        CHECK(lexer.getTokens().at(0).type == JunoPL::TokenType::IDENT);
+    }
+
+    SUBCASE("Underscore start") {
+        fileReader.setSourceCode("_identX");
+        JunoPL::Lexer lexer{fileReader};
+        lexer.tokenize();
+
+        CHECK(lexer.getErrors().empty());
+        REQUIRE(lexer.getTokens().size() == 1);
+        CHECK(lexer.getTokens().at(0).type == JunoPL::TokenType::IDENT);
+    }
+
+    SUBCASE("Multi") {
+        fileReader.setSourceCode("_identX9 r9");
+        JunoPL::Lexer lexer{fileReader};
+        lexer.tokenize();
+
+        CHECK(lexer.getErrors().empty());
+        REQUIRE(lexer.getTokens().size() == 2);
+        CHECK(lexer.getTokens().at(0).type == JunoPL::TokenType::IDENT);
+        CHECK(lexer.getTokens().at(1).type == JunoPL::TokenType::IDENT);
+    }
+}
+
 TEST_CASE("Lexer EOF Test") {
     JunoPL::Tests::FileReaderTest fileReader;
     SUBCASE("No whitespace") {
