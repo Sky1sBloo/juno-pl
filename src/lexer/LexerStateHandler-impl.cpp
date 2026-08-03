@@ -57,6 +57,10 @@ LexerStateHandler::Result LexerStateHandler::handleStartState(char c) {
     if (std::isspace(c)) {
         return Result::Ignore();
     }
+    if (isOpSymbol(c)) {
+        mState = States::OPERATION;
+        return Result::Replay();
+    }
     return createErrorResult(c);
 }
 

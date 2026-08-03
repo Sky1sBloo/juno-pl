@@ -8,13 +8,14 @@ namespace JunoPL {
 export class LexerStateHandler {
   public:
     struct Result {
-        enum class Action { CONTINUE, IGNORE, SAVE_TOKEN, SAVE_REPLAY, INFER_TOKEN, INFER_TOKEN_REPLAY, ERROR };
+        enum class Action { CONTINUE, IGNORE, REPLAY, SAVE_TOKEN, SAVE_REPLAY, INFER_TOKEN, INFER_TOKEN_REPLAY, ERROR };
         Action action;
         TokenType type = TokenType::UNKNOWN;
         std::optional<LexerError> error;
 
         static Result Continue();
         static Result Ignore();
+        static Result Replay();
         static Result Save(TokenType type);
         static Result SaveReplay(TokenType type);
         static Result InferToken();

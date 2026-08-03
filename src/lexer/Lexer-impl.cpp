@@ -23,6 +23,8 @@ void Lexer::tokenize() {
             break;
         case StateAction::IGNORE:
             break;
+        case StateAction::REPLAY:
+            continue;
         case StateAction::SAVE_TOKEN:
             mLexeme.push_back(c.value());
             saveToken(result.type);
@@ -36,7 +38,7 @@ void Lexer::tokenize() {
             break;
         case StateAction::INFER_TOKEN_REPLAY:
             saveToken(inferToken(mLexeme));
-            break;
+            continue;
         case StateAction::ERROR:
             if (!result.error.has_value()) {
                 throw std::runtime_error(

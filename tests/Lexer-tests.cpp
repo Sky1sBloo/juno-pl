@@ -77,6 +77,48 @@ TEST_CASE("Identifier Test") {
     }
 }
 
+TEST_CASE("Lexer Operator Test") {
+    JunoPL::Tests::FileReaderTest fileReader;
+
+    SUBCASE("Single character operators") {
+        fileReader.setSourceCode("+ - * / = ( ) { } % .");
+        JunoPL::Lexer lexer{fileReader};
+        lexer.tokenize();
+
+        CHECK(lexer.getErrors().empty());
+        REQUIRE(lexer.getTokens().size() == 11);
+        CHECK(lexer.getTokens().at(0).type == JunoPL::TokenType::OP_PLUS);
+        CHECK(lexer.getTokens().at(1).type == JunoPL::TokenType::OP_MINUS);
+        CHECK(lexer.getTokens().at(2).type == JunoPL::TokenType::OP_MULT);
+        CHECK(lexer.getTokens().at(3).type == JunoPL::TokenType::OP_DIVIDE);
+        CHECK(lexer.getTokens().at(4).type == JunoPL::TokenType::OP_EQUAL);
+        CHECK(lexer.getTokens().at(5).type == JunoPL::TokenType::OP_PAR_OP);
+        CHECK(lexer.getTokens().at(6).type == JunoPL::TokenType::OP_PAR_CLO);
+        CHECK(lexer.getTokens().at(7).type == JunoPL::TokenType::OP_BRAC_OP);
+        CHECK(lexer.getTokens().at(8).type == JunoPL::TokenType::OP_BRAC_CLO);
+        CHECK(lexer.getTokens().at(9).type == JunoPL::TokenType::OP_MOD);
+        CHECK(lexer.getTokens().at(10).type == JunoPL::TokenType::OP_DOT);
+    }
+
+    SUBCASE("Comparison operators") {
+        fileReader.setSourceCode("a<=b>=c<d>e");
+        JunoPL::Lexer lexer{fileReader};
+        lexer.tokenize();
+
+        CHECK(lexer.getErrors().empty());
+        REQUIRE(lexer.getTokens().size() == 9);
+        CHECK(lexer.getTokens().at(0).type == JunoPL::TokenType::IDENT);
+        CHECK(lexer.getTokens().at(1).type == JunoPL::TokenType::OP_COMP_LESS_EQ);
+        CHECK(lexer.getTokens().at(2).type == JunoPL::TokenType::IDENT);
+        CHECK(lexer.getTokens().at(3).type == JunoPL::TokenType::OP_COMP_GREATER_EQ);
+        CHECK(lexer.getTokens().at(4).type == JunoPL::TokenType::IDENT);
+        CHECK(lexer.getTokens().at(5).type == JunoPL::TokenType::OP_COMP_LESS);
+        CHECK(lexer.getTokens().at(6).type == JunoPL::TokenType::IDENT);
+        CHECK(lexer.getTokens().at(7).type == JunoPL::TokenType::OP_COMP_GREATER);
+        CHECK(lexer.getTokens().at(8).type == JunoPL::TokenType::IDENT);
+    }
+}
+
 TEST_CASE("Lexer EOF Test") {
     JunoPL::Tests::FileReaderTest fileReader;
     SUBCASE("No whitespace") {
