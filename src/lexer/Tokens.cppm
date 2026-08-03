@@ -12,6 +12,11 @@ export enum class TokenType {
     K_PROGRAM,
     K_IMPORT,
     OP_SEMICOLON,
+    OP_PLUS,
+    OP_MINUS,
+    OP_MULT,
+    OP_DIVIDE,
+    OP_EQUAL,
     UNKNOWN
 };
 export struct Token {

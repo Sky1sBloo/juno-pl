@@ -26,7 +26,10 @@ struct string_hash {
 
 namespace JunoPL {
 export std::optional<TokenType> getKeyword(const std::string &lexeme);
-
 extern std::unordered_map<std::string, TokenType, string_hash, std::equal_to<>>
     keywordMap;
+
+export std::optional<TokenType> getOperator(const std::string &lexeme);
+extern std::unordered_map<std::string, TokenType, string_hash, std::equal_to<>>
+    operatorMap;
 }
