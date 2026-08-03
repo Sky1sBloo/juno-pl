@@ -54,6 +54,7 @@ export class LexerStateHandler {
     Result handleIdentState(char c);
     Result handleDecimalState(char c);
     Result handleOperationState(char c);
+    Result handleExpectEqState(char c);
     Result handleNumberState(char c);
     Result handleUnknownState(char c);
 

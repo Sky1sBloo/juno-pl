@@ -26,6 +26,8 @@ LexerStateHandler::Result LexerStateHandler::handle(char c, int line, int col) {
         return handleDecimalState(c);
     case States::OPERATION:
         return handleOperationState(c);
+    case States::EXPECT_EQ:
+        return handleExpectEqState(c);
     case States::UNKNOWN:
         return handleUnknownState(c);
     }
@@ -119,6 +121,13 @@ LexerStateHandler::Result LexerStateHandler::handleOperationState(char c) {
         return Result::Save(TokenType::OP_DOT);
         break;
     }
+}
+
+LexerStateHandler::Result LexerStateHandler::handleExpectEqState(char c) {
+    if (c == '=') {
+        return Result::InferToken();
+    }
+    return Result::InferTokenReplay();
 }
 
 LexerStateHandler::Result LexerStateHandler::handleUnknownState(char c) {
