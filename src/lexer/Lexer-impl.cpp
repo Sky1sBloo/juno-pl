@@ -2,7 +2,7 @@ module;
 #include <stdexcept>
 module junopl.lexer;
 import junopl.lexer.tokens;
-import junopl.lexer.keywordidentifier;
+import junopl.lexer.tokens.identifier;
 
 namespace JunoPL {
 void Lexer::tokenize() {

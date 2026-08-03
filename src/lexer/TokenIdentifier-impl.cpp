@@ -2,7 +2,7 @@ module;
 #include <optional>
 #include <string>
 #include <unordered_map>
-module junopl.lexer.keywordidentifier;
+module junopl.lexer.tokens.identifier;
 
 namespace JunoPL {
 std::optional<TokenType> getKeyword(const std::string &lexeme) {
