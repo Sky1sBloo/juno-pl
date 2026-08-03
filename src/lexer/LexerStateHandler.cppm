@@ -53,5 +53,7 @@ export class LexerStateHandler {
     Result handleDecimalState(char c);
     Result handleNumberState(char c);
     Result handleUnknownState(char c);
+
+    bool isOpSymbol(char c);
 };
 }

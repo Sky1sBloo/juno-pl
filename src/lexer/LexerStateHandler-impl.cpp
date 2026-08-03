@@ -1,8 +1,8 @@
 module;
 #include <cctype>
-#include <print>
 #include <string>
 module junopl.lexer.statehandler;
+import junopl.lexer.tokens.identifier;
 
 namespace JunoPL {
 
@@ -61,7 +61,10 @@ LexerStateHandler::Result LexerStateHandler::handleIdentState(char c) {
         return Result::Continue();
     }
 
-    return Result::SaveReplay(TokenType::IDENT);
+    if (std::isspace(c) || isOpSymbol(c)) {
+        return Result::SaveReplay(TokenType::IDENT);
+    }
+    return createErrorResult(c);
 }
 
 LexerStateHandler::Result LexerStateHandler::handleNumberState(char c) {
@@ -72,14 +75,21 @@ LexerStateHandler::Result LexerStateHandler::handleNumberState(char c) {
         mState = States::DECIMAL;
         return Result::Continue();
     }
-    return Result::SaveReplay(TokenType::NUM);
+    if (std::isspace(c) || isOpSymbol(c)) {
+        return Result::SaveReplay(TokenType::NUM);
+    }
+    return createErrorResult(c);
 }
 
 LexerStateHandler::Result LexerStateHandler::handleDecimalState(char c) {
     if (std::isdigit(c)) {
         return Result::Continue();
     }
-    return Result::SaveReplay(TokenType::NUM);
+
+    if (std::isspace(c) || isOpSymbol(c)) {
+        return Result::SaveReplay(TokenType::NUM);
+    }
+    return createErrorResult(c);
 }
 
 LexerStateHandler::Result LexerStateHandler::handleUnknownState(char c) {
@@ -89,4 +99,25 @@ LexerStateHandler::Result LexerStateHandler::handleUnknownState(char c) {
     }
     return Result::Continue();
 }
+
+bool LexerStateHandler::isOpSymbol(char c) {
+    switch (c) {
+    case '+':
+    case '-':
+    case '*':
+    case '/':
+    case '=':
+    case '(':
+    case ')':
+    case '&':
+    case '|':
+    case '<':
+    case '>':
+    case '%':
+    case '.':
+        return true;
+    }
+    return false;
+}
+
 }
