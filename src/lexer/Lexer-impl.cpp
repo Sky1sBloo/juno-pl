@@ -15,7 +15,9 @@ void Lexer::tokenize() {
     }
     while (c.has_value()) {
         StateResult result = mStateHandler.handle(c.value(), mLine, mCol);
-        mLexeme.push_back(c.value());
+        if (result.action != StateAction::IGNORE) {
+            mLexeme.push_back(c.value());
+        }
 
         switch (result.action) {
         case StateAction::CONTINUE:
@@ -37,6 +39,8 @@ void Lexer::tokenize() {
             mStateHandler.reset();
             mErrors.push_back(result.error.value());
             saveToken(result.type);
+            break;
+        default:
             break;
         }
 

@@ -51,7 +51,7 @@ LexerStateHandler::Result LexerStateHandler::handleStartState(char c) {
         return Result::Continue();
     }
     if (std::isspace(c)) {
-        return Result::Continue();
+        return Result::Ignore();
     }
     return createErrorResult(c);
 }

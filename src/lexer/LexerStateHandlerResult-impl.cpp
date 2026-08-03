@@ -15,6 +15,10 @@ LexerStateHandler::Result LexerStateHandler::Result::Continue() {
     return Result{Action::CONTINUE, TokenType::UNKNOWN};
 }
 
+LexerStateHandler::Result LexerStateHandler::Result::Ignore() {
+    return Result{Action::IGNORE, TokenType::UNKNOWN};
+}
+
 LexerStateHandler::Result LexerStateHandler::Result::Save(TokenType type) {
     return Result{Action::SAVE_TOKEN, type};
 }
