@@ -32,6 +32,11 @@ LexerStateHandler::Result::SaveReplay(TokenType type) {
     return Result{Action::SAVE_REPLAY, type};
 }
 
+LexerStateHandler::Result
+LexerStateHandler::Result::SaveIgnore(TokenType type) {
+    return Result{Action::SAVE_IGNORE, type};
+}
+
 LexerStateHandler::Result LexerStateHandler::Result::InferToken() {
     return Result{Action::INFER_TOKEN, TokenType::UNKNOWN};
 }

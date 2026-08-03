@@ -32,6 +32,9 @@ void Lexer::tokenize() {
         case StateAction::SAVE_REPLAY:
             saveToken(result.type);
             continue;
+        case StateAction::SAVE_IGNORE:
+            saveToken(result.type);
+            break;
         case StateAction::INFER_TOKEN:
             mLexeme.push_back(c.value());
             saveToken(inferToken(mLexeme));

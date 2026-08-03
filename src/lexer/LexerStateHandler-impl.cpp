@@ -24,6 +24,10 @@ LexerStateHandler::Result LexerStateHandler::handle(char c, int line, int col) {
         return handleNumberState(c);
     case States::DECIMAL:
         return handleDecimalState(c);
+    case States::STRING:
+        return handleStringState(c);
+    case States::STRING_ESCAPE:
+        return handleStringEscapeState(c);
     case States::OPERATION:
         return handleOperationState(c);
     case States::EXPECT_EQ:
@@ -54,12 +58,16 @@ LexerStateHandler::Result LexerStateHandler::handleStartState(char c) {
         mState = States::NUMBER;
         return Result::Continue();
     }
-    if (std::isspace(c)) {
+    if (c == '"') {
+        mState = States::STRING;
         return Result::Ignore();
     }
     if (isOpSymbol(c)) {
         mState = States::OPERATION;
         return Result::Replay();
+    }
+    if (std::isspace(c)) {
+        return Result::Ignore();
     }
     return createErrorResult(c);
 }
@@ -100,6 +108,22 @@ LexerStateHandler::Result LexerStateHandler::handleDecimalState(char c) {
     return createErrorResult(c);
 }
 
+LexerStateHandler::Result LexerStateHandler::handleStringState(char c) {
+    if (c == '\\') {
+        mState = States::STRING_ESCAPE;
+        return Result::Continue();
+    }
+    if (c == '"') {
+        return Result::SaveIgnore(TokenType::STR);
+    }
+    return Result::Continue();
+}
+
+LexerStateHandler::Result LexerStateHandler::handleStringEscapeState(char c) {
+    // current allows all escape characters
+    mState = States::STRING;
+    return Result::Continue();
+}
 LexerStateHandler::Result LexerStateHandler::handleOperationState(char c) {
     switch (c) {
     case '+':
