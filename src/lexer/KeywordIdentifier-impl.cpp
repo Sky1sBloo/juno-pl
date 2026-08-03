@@ -1,11 +1,11 @@
 module;
 #include <optional>
-#include <string_view>
+#include <string>
 #include <unordered_map>
 module junopl.lexer.keywordidentifier;
 
 namespace JunoPL {
-std::optional<TokenType> getKeyword(std::string_view lexeme) {
+std::optional<TokenType> getKeyword(const std::string &lexeme) {
     const auto &keyword = keywordMap.find(lexeme);
     if (keyword == keywordMap.end()) {
         return std::nullopt;
