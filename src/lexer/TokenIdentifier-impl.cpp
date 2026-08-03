@@ -34,10 +34,18 @@ std::optional<TokenType> getOperator(const std::string &lexeme) {
 }
 
 std::unordered_map<std::string, TokenType, string_hash, std::equal_to<>>
-    keywordMap = {{"program", TokenType::K_PROGRAM},
-                  {"import", TokenType::K_IMPORT},
-                  {"and", TokenType::K_AND},
-                  {"or", TokenType::K_OR}};
+    keywordMap = {
+        {"program", TokenType::K_PROGRAM}, {"import", TokenType::K_IMPORT},
+        {"and", TokenType::K_AND},         {"or", TokenType::K_OR},
+        {"not", TokenType::K_NOT},         {"if", TokenType::K_IF},
+        {"elif", TokenType::K_ELIF},       {"else", TokenType::K_ELSE},
+        {"for", TokenType::K_FOR},         {"from", TokenType::K_FROM},
+        {"to", TokenType::K_TO},           {"by", TokenType::K_BY},
+        {"while", TokenType::K_WHILE},     {"instr", TokenType::K_INSTR},
+        {"perform", TokenType::K_PERFORM}, {"on", TokenType::K_ON},
+        {"emit", TokenType::K_EMIT},       {"craft", TokenType::K_CRAFT},
+        {"nearby", TokenType::K_NEARBY},   {"var", TokenType::K_VAR},
+        {"list", TokenType::K_LIST}};
 
 std::unordered_map<std::string, TokenType, string_hash, std::equal_to<>>
     operatorMap = {{"+", TokenType::OP_PLUS},
