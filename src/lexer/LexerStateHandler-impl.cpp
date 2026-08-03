@@ -121,6 +121,7 @@ LexerStateHandler::Result LexerStateHandler::handleOperationState(char c) {
         return Result::Save(TokenType::OP_DOT);
         break;
     }
+    return createErrorResult(c);
 }
 
 LexerStateHandler::Result LexerStateHandler::handleExpectEqState(char c) {
