@@ -46,6 +46,7 @@ export enum class TokenType {
     OP_COMP_LESS,
     OP_COMP_GREATER_EQ,
     OP_COMP_LESS_EQ,
+    OP_QUESTION,
     UNKNOWN
 };
 export struct Token {

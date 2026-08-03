@@ -123,7 +123,8 @@ LexerStateHandler::Result LexerStateHandler::handleOperationState(char c) {
         return Result::Save(TokenType::OP_MOD);
     case '.':
         return Result::Save(TokenType::OP_DOT);
-        break;
+    case '?':
+        return Result::Save(TokenType::OP_QUESTION);
     }
     return createErrorResult(c);
 }
@@ -158,6 +159,7 @@ bool LexerStateHandler::isOpSymbol(char c) {
     case '>':
     case '%':
     case '.':
+    case '?':
         return true;
     }
     return false;
