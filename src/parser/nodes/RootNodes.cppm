@@ -14,13 +14,13 @@ export struct ImportNode {
 export struct EventNode {
     std::string identifier;
     std::vector<std::string> params;
-    std::vector<std::unique_ptr<Statements>> body;
+    std::unique_ptr<Body> body;
 };
 
 export struct FunctionNode {
     std::string identifier;
     std::vector<std::string> params;
-    std::vector<std::unique_ptr<Statements>> body;
+    std::unique_ptr<Body> body;
 };
 
 using RootNodes = std::variant<ImportNode, EventNode, FunctionNode, VarDeclaration, ListDeclaration>;

@@ -61,6 +61,13 @@ export struct WhileLoop {
     std::unique_ptr<Body> body;
 };
 
+export struct ForLoop {
+    ExpressionHandle start;
+    ExpressionHandle end;
+    ExpressionHandle by;
+    std::unique_ptr<Body> body;
+};
+
 export struct Statements {
     std::variant<VarDeclaration, ListDeclaration, ConditionalStatement>
         statement;
