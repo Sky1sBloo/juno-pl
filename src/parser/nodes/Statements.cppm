@@ -9,6 +9,10 @@ import junopl.parser.nodes.expressions;
 namespace JunoPL {
 export struct Statements;
 using StatementsHandle = std::unique_ptr<Statements>;
+export struct Body {
+    std::vector<ExpressionHandle> body;
+};
+
 export struct VarDeclaration {
     std::string identifier;
     ExpressionHandle value;
@@ -26,22 +30,40 @@ export struct PerformInstruction {
 
 export struct IfStatement {
     ExpressionHandle condition;
-    std::vector<StatementsHandle> body;
+    std::unique_ptr<Body> body;
 };
 
 export struct ElifStatement {
     ExpressionHandle condition;
-    std::vector<StatementsHandle> body;
+    std::unique_ptr<Body> body;
 };
 
-export struct IfChain {
+export struct ConditionalStatement {
     IfStatement ifStatement;
     std::vector<std::unique_ptr<ElifStatement>> elifStatements;
-    std::vector<ExpressionHandle> elseStatement;
+    std::unique_ptr<Body> elseStatement;
+};
+
+export struct EmitEvent {
+    enum Options { TO_SCRIPT, TO_CRAFT, TO_NEARBY_CRAFTS };
+    std::string identifier;
+    std::vector<ExpressionHandle> params;
+    Options option;
+};
+
+export struct RepeatLoop {
+    ExpressionHandle repeatNumber;
+    std::vector<ExpressionHandle> body;
+};
+
+export struct WhileLoop {
+    ExpressionHandle condition;
+    std::unique_ptr<Body> body;
 };
 
 export struct Statements {
-    std::variant<VarDeclaration, ListDeclaration, IfChain> statement;
+    std::variant<VarDeclaration, ListDeclaration, ConditionalStatement>
+        statement;
 };
 
 }
