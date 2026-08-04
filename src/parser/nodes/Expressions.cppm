@@ -23,14 +23,14 @@ export struct Value {
 };
 
 export struct BinaryOp {
-    enum Operation { ADD, SUBTRUCT, MULTIPLY, DIVIDE, MOD, AND, OR };
+    enum class Operation { ADD, SUBTRUCT, MULTIPLY, DIVIDE, MOD, AND, OR };
     Operation operation;
     ExpressionHandle lhs;
     ExpressionHandle rhs;
 };
 
 export struct UnaryOp {
-    enum Operation { NOT };
+    enum class Operation { NOT };
     Operation operation;
     ExpressionHandle value;
 };
