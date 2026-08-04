@@ -12,26 +12,28 @@ export namespace JunoPL {
 
 class Lexer {
   public:
-    Lexer(IFileReader &fileReader) : mFileReader(fileReader), mStateHandler() {}
+    struct Output {
+        std::vector<Token> tokens;
+        std::vector<LexerError> errors;
+    };
 
-    void tokenize();
+  public:
+    Lexer();
+    Output tokenize(IFileReader &fileReader);
     void reset();
 
-    const std::vector<Token> &getTokens() const { return mTokens; }
-    const std::vector<LexerError> &getErrors() const { return mErrors; }
+  private:
+    /**
+    Saves the token to @param output
+     */
+    void saveToken(TokenType type, Output &output);
 
   private:
-    void saveToken(TokenType type);
-
-  private:
-    IFileReader &mFileReader;
     LexerStateHandler mStateHandler;
-    std::vector<Token> mTokens;
 
     int mLine;
     int mCol;
     int mColStart;
     std::string mLexeme;
-    std::vector<LexerError> mErrors;
 };
 }
