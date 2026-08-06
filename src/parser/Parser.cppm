@@ -24,8 +24,5 @@ export class Parser {
     handleProgramName(TokenList &tokens);
 
     std::expected<ImportNode, ParserError> handleImport(TokenList &tokens);
-
-    std::expected<Token, ParserError> expectToken(TokenList &tokens,
-                                                  TokenType expected);
 };
 }

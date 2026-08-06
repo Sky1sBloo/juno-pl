@@ -18,13 +18,26 @@ export class ParserError {
     const Token &token() const { return mToken; }
     const std::string &message() const { return mMessage; }
 
+    static ParserError EmptyTokenList() {
+        return ParserError{Type::EMPTY_TOKENS, "Parser token list is empty"};
+    }
+
+    static ParserError EmptyTokenList(TokenType expectedToken) {
+        return ParserError{
+            Type::EMPTY_TOKENS,
+            std::format("Parser token list is empty. Expected: {0}",
+                        static_cast<int>(expectedToken))};
+    }
+
     static ParserError UnexpectedToken(const Token &token,
                                        TokenType expectedToken) {
         return ParserError{
             Type::UNEXPECTED_TOKEN, token,
-            std::format("Unexpected token: {0}, at {1}:{2}. Expected: {3}",
-                        token.value, token.line, token.colStart,
-                        static_cast<int>(expectedToken))}; //todo: make a string version of this
+            std::format(
+                "Unexpected token: {0}, at {1}:{2}. Expected: {3}", token.value,
+                token.line, token.colStart,
+                static_cast<int>(
+                    expectedToken))}; // todo: make a string version of this
     }
 
   private:

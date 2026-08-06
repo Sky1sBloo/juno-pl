@@ -5,6 +5,7 @@ module junopl.parser;
 import junopl.lexer.tokens;
 import junopl.parser.nodes;
 import junopl.parser.error;
+import junopl.parser.handlers;
 
 namespace JunoPL {
 Parser::Output Parser::parse(TokenList &tokens) {
@@ -50,8 +51,7 @@ Parser::handleProgramName(TokenList &tokens) {
     return name.value().value;
 }
 
-std::expected<ImportNode, ParserError>
-Parser::handleImport(TokenList &tokens) {
+std::expected<ImportNode, ParserError> Parser::handleImport(TokenList &tokens) {
     auto importSymbol = expectToken(tokens, TokenType::K_IMPORT);
     if (!importSymbol.has_value()) {
         return std::unexpected(importSymbol.error());
@@ -64,15 +64,5 @@ Parser::handleImport(TokenList &tokens) {
     ImportNode node;
     node.path = importPath.value().value;
     return node;
-}
-
-std::expected<Token, ParserError> Parser::expectToken(TokenList &tokens,
-                                                      TokenType expected) {
-    const Token token = tokens.current();
-    if (token.type != expected) {
-        return std::unexpected(ParserError::UnexpectedToken(token, expected));
-    }
-    tokens.advance();
-    return token;
 }
 }
