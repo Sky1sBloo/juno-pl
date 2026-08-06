@@ -1,5 +1,6 @@
 module;
 #include <expected>
+#include <span>
 #include <vector>
 export module junopl.parser;
 import junopl.lexer.tokens;
@@ -13,5 +14,7 @@ export class Parser {
     parse(const std::vector<Token> &tokens);
 
   private:
+    std::expected<RootNode, ParserError>
+    handleProgramName(std::span<Token> tokens);
 };
 }
