@@ -17,7 +17,7 @@ Parser::Output Parser::parse(TokenList &tokens) {
 
     RootNode root;
     switch (tokens.current().type) {
-    case TokenType::K_PROGRAM:
+    case TokenType::K_PROGRAM: {
         auto programName = handleProgramName(tokens);
         if (programName.has_value()) {
             root.programName = programName.value();
@@ -26,22 +26,53 @@ Parser::Output Parser::parse(TokenList &tokens) {
         }
         break;
     }
+    case TokenType::K_IMPORT: {
+        auto importPath = handleImport(tokens);
+        if (importPath.has_value()) {
+            root.body.push_back(importPath.value());
+        }
+    } break;
+    }
     return output;
 }
 
-std::expected<std::string, ParserError> handleProgramName(TokenList &tokens) {
-    tokens.current();
-    if (tokens.current().type != TokenType::K_PROGRAM) {
-        return std::unexpected(ParserError::UnexpectedToken(
-            tokens.current(), TokenType::K_PROGRAM));
+std::expected<std::string, ParserError>
+Parser::handleProgramName(TokenList &tokens) {
+    auto program = expectToken(tokens, TokenType::K_PROGRAM);
+    if (!program.has_value()) {
+        return std::unexpected(program.error());
+    }
+
+    auto name = expectToken(tokens, TokenType::STR);
+    if (!name.has_value()) {
+        return std::unexpected(program.error());
+    }
+    return name.value().value;
+}
+
+std::expected<ImportNode, ParserError>
+Parser::handleImport(TokenList &tokens) {
+    auto importSymbol = expectToken(tokens, TokenType::K_IMPORT);
+    if (!importSymbol.has_value()) {
+        return std::unexpected(importSymbol.error());
+    }
+
+    auto importPath = expectToken(tokens, TokenType::STR);
+    if (!importPath.has_value()) {
+        return std::unexpected(importPath.error());
+    }
+    ImportNode node;
+    node.path = importPath.value().value;
+    return node;
+}
+
+std::expected<Token, ParserError> Parser::expectToken(TokenList &tokens,
+                                                      TokenType expected) {
+    const Token token = tokens.current();
+    if (token.type != expected) {
+        return std::unexpected(ParserError::UnexpectedToken(token, expected));
     }
     tokens.advance();
-    if (tokens.current().type != TokenType::STR) {
-        return std::unexpected(
-            ParserError::UnexpectedToken(tokens.current(), TokenType::STR));
-    }
-    std::string programName = tokens.current().value;
-    tokens.advance();
-    return programName;
+    return token;
 }
 }

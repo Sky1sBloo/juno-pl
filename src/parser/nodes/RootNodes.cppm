@@ -26,7 +26,7 @@ export struct FunctionNode {
 using RootNodes = std::variant<ImportNode, EventNode, FunctionNode, VarDeclaration, ListDeclaration>;
 export struct RootNode {
     std::string programName;
-    std::vector<std::unique_ptr<RootNodes>> body;
+    std::vector<RootNodes> body;
 };
 
 }
