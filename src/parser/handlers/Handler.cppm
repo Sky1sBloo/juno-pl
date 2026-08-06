@@ -19,7 +19,7 @@ export class ExpressionHandler {
     Parses a span of tokens
      */
     virtual std::expected<std::unique_ptr<Expression>, ParserError>
-    parse(const std::span<Token> tokens) = 0;
+    parse(TokenList &tokens) = 0;
 
   private:
     // Save handlers here
@@ -28,7 +28,7 @@ export class ExpressionHandler {
 export class StatementHandler {
   public:
     virtual std::expected<std::unique_ptr<Statements>, ParserError>
-    parse(const std::span<Token> tokens) = 0;
+    parse(TokenList &tokens) = 0;
 
   private:
     // Save handlers here

@@ -1,6 +1,7 @@
 module;
 #include <expected>
-#include <span>
+#include <memory>
+#include <string>
 #include <vector>
 export module junopl.parser;
 import junopl.lexer.tokens;
@@ -10,11 +11,16 @@ import junopl.parser.error;
 namespace JunoPL {
 export class Parser {
   public:
-    std::expected<RootNode, ParserError>
-    parse(const std::vector<Token> &tokens);
+    struct Output {
+        std::unique_ptr<RootNode> root;
+        std::vector<ParserError> errors;
+    };
+
+  public:
+    Output parse(TokenList &tokens);
 
   private:
-    std::expected<RootNode, ParserError>
-    handleProgramName(std::span<Token> tokens);
+    std::expected<std::string, ParserError>
+    handleProgramName(TokenList &tokens);
 };
 }
