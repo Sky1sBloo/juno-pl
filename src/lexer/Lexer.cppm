@@ -13,7 +13,7 @@ export namespace JunoPL {
 class Lexer {
   public:
     struct Output {
-        std::vector<Token> tokens;
+        TokenList tokens;
         std::vector<LexerError> errors;
     };
 

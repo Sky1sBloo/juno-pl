@@ -104,7 +104,7 @@ void Lexer::reset() {
 void Lexer::saveToken(TokenType type, Output &output) {
     auto keywordToken = getKeyword(mLexeme);
     TokenType tokenType = keywordToken.value_or(type);
-    output.tokens.push_back(Token{tokenType, mLexeme, mLine, mColStart, mCol});
+    output.tokens.emplace_back(Token{tokenType, mLexeme, mLine, mColStart, mCol});
     mColStart = mCol;
     mStateHandler.reset();
     mLexeme.clear();

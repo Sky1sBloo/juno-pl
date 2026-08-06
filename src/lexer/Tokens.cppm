@@ -1,5 +1,8 @@
 module;
+#include <span>
 #include <string>
+#include <utility>
+#include <vector>
 export module junopl.lexer.tokens;
 
 namespace JunoPL {
@@ -62,6 +65,31 @@ export struct Token {
           int colStart = -1, int colEnd = -1)
         : type(type), value(value), line(line), colStart(colStart),
           colEnd(colEnd) {}
+};
+
+/**
+Class for handling multiple tokens for the parser
+ */
+export class TokenList {
+  private:
+    std::vector<Token> mTokens;
+    std::size_t idx;
+
+  public:
+    void push_back(const Token &token) { mTokens.push_back(token); }
+    template <typename... Args> Token &emplace_back(Args &&...args) {
+        return mTokens.emplace_back(std::forward<Args>(args)...);
+    }
+    const Token &at(std::size_t pos) const { return mTokens.at(pos); }
+
+    const Token &current() const { return mTokens.at(idx); }
+    std::span<const Token> remaining() const {
+        return {mTokens.begin() + idx, mTokens.end()};
+    }
+    void advance() { idx++; }
+
+    bool empty() const { return mTokens.empty(); }
+    std::size_t size() const { return mTokens.size(); }
 };
 
 }

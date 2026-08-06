@@ -32,5 +32,5 @@ export class StatementHandler {
 
   private:
     // Save handlers here
-}
 };
+}
