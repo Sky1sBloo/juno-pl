@@ -8,24 +8,25 @@ import junopl.parser.nodes.statements;
 
 namespace JunoPL {
 std::expected<FunctionNode, ParserError> parseFunction(TokenList &tokens) {
-    auto instr = expectToken(tokens, TokenType::K_INSTR);
-    if (!instr.has_value()) {
+    if (auto instr = expectToken(tokens, TokenType::K_INSTR); !instr) {
         return std::unexpected(instr.error());
     }
 
-    auto identifier = expectToken(tokens, TokenType::IDENT);
-    if (!identifier.has_value()) {
+    if (auto identifier = expectToken(tokens, TokenType::IDENT); !identifier) {
         return std::unexpected(identifier.error());
-    }
-
-    auto params = parseParam(tokens);
-    if (!params) {
-        return std::unexpected(params.error());
-    }
-
-    auto body = parseBody(tokens);
-    if (!params) {
-        return std::unexpected(params.error());
+    } else {
+        // identifier is available through identifier->value
+        if (auto params = parseParam(tokens); !params) {
+            return std::unexpected(params.error());
+        } else if (auto body = parseBody(tokens); !body) {
+            return std::unexpected(body.error());
+        } else {
+            FunctionNode node;
+            node.identifier = identifier->value;
+            node.params = std::move(params.value());
+            node.body = std::move(body.value());
+            return node;
+        }
     }
 }
 }

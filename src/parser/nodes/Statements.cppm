@@ -69,7 +69,7 @@ export struct ForLoop {
 };
 
 export struct Statements {
-    std::variant<VarDeclaration, ListDeclaration, PerformInstruction,
+    std::variant<Body, VarDeclaration, ListDeclaration, PerformInstruction,
                  ConditionalStatement, EmitEvent, RepeatLoop, WhileLoop,
                  ForLoop>
         statement;
