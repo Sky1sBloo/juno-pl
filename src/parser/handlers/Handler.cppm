@@ -4,7 +4,7 @@ export module junopl.parser.handlers;
 
 import junopl.lexer.tokens;
 import junopl.parser.error;
-;
+import junopl.parser.nodes;
 
 namespace JunoPL {
 export std::expected<Token, ParserError>
@@ -24,4 +24,7 @@ expectToken(TokenList &tokens, TokenType expectedToken, bool advance = true) {
     }
     return token;
 }
+
+export std::expected<FunctionNode, ParserError>
+parseFunctionHandler(TokenList &tokens);
 }

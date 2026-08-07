@@ -3,8 +3,7 @@ target_sources(
   juno-pl-parser
   PUBLIC
   FILE_SET
-    CXX_MODULES FILES Parser.cppm ParserError.cppm handlers/Handler.cppm
-    handlers/FunctionHandler.cppm
+    CXX_MODULES FILES Parser.cppm ParserError.cppm handlers/Handler.cppm 
   PRIVATE Parser-impl.cpp handlers/FunctionHandler-impl.cpp)
 
 add_subdirectory(nodes)
