@@ -7,9 +7,9 @@ import junopl.parser.nodes.expressions;
 import junopl.parser.nodes.statements;
 
 namespace JunoPL {
-std::expected<FunctionNode, ParserError> parseFunction(TokenList &tokens) {
-    if (auto instr = expectToken(tokens, TokenType::K_INSTR); !instr) {
-        return std::unexpected(instr.error());
+std::expected<EventNode, ParserError> parseEvent(TokenList &tokens) {
+    if (auto on = expectToken(tokens, TokenType::K_ON); !on) {
+        return std::unexpected(on.error());
     }
 
     if (auto identifier = expectToken(tokens, TokenType::IDENT); !identifier) {
@@ -20,7 +20,7 @@ std::expected<FunctionNode, ParserError> parseFunction(TokenList &tokens) {
         } else if (auto body = parseBody(tokens); !body) {
             return std::unexpected(body.error());
         } else {
-            FunctionNode node;
+            EventNode node;
             node.identifier = identifier.value().value;
             node.params = std::move(params.value());
             node.body = std::move(body.value());

@@ -31,6 +31,8 @@ expectToken(TokenList &tokens, TokenType expectedToken, bool advance = true) {
 export std::expected<FunctionNode, ParserError>
 parseFunction(TokenList &tokens);
 
+export std::expected<EventNode, ParserError> parseEvent(TokenList &tokens);
+
 export std::expected<std::vector<std::string>, ParserError>
 parseParam(TokenList &tokens);
 
