@@ -30,18 +30,18 @@ export struct PerformInstruction {
 
 export struct IfStatement {
     ExpressionHandle condition;
-    std::unique_ptr<Body> body;
+    Body body;
 };
 
 export struct ElifStatement {
     ExpressionHandle condition;
-    std::unique_ptr<Body> body;
+    Body body;
 };
 
 export struct ConditionalStatement {
     IfStatement ifStatement;
-    std::vector<std::unique_ptr<ElifStatement>> elifStatements;
-    std::unique_ptr<Body> elseStatement;
+    std::vector<ElifStatement> elifStatements;
+    Body elseStatement;
 };
 
 export struct EmitEvent {
@@ -58,14 +58,14 @@ export struct RepeatLoop {
 
 export struct WhileLoop {
     ExpressionHandle condition;
-    std::unique_ptr<Body> body;
+    Body body;
 };
 
 export struct ForLoop {
     ExpressionHandle start;
     ExpressionHandle end;
     ExpressionHandle by;
-    std::unique_ptr<Body> body;
+    Body body;
 };
 
 export struct Statements {

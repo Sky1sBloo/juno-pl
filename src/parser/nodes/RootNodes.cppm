@@ -1,5 +1,4 @@
 module;
-#include <memory>
 #include <string>
 #include <variant>
 #include <vector>
@@ -14,13 +13,13 @@ export struct ImportNode {
 export struct EventNode {
     std::string identifier;
     std::vector<std::string> params;
-    std::unique_ptr<Body> body;
+    Body body;
 };
 
 export struct FunctionNode {
     std::string identifier;
     std::vector<std::string> params;
-    std::unique_ptr<Body> body;
+    Body body;
 };
 
 using RootNodes = std::variant<ImportNode, EventNode, FunctionNode, VarDeclaration, ListDeclaration>;
