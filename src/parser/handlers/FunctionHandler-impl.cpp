@@ -23,6 +23,9 @@ std::expected<FunctionNode, ParserError> parseFunction(TokenList &tokens) {
         return std::unexpected(params.error());
     }
 
-    // handle body
+    auto body = parseBody(tokens);
+    if (!params) {
+        return std::unexpected(params.error());
+    }
 }
 }

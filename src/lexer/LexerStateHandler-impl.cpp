@@ -140,10 +140,14 @@ LexerStateHandler::Result LexerStateHandler::handleOperationState(char c) {
         return Result::Save(TokenType::OP_PAR_OP);
     case ')':
         return Result::Save(TokenType::OP_PAR_CLO);
-    case '{':
+    case '[':
         return Result::Save(TokenType::OP_BRAC_OP);
-    case '}':
+    case ']':
         return Result::Save(TokenType::OP_BRAC_CLO);
+    case '{':
+        return Result::Save(TokenType::OP_CBRAC_OP);
+    case '}':
+        return Result::Save(TokenType::OP_CBRAC_CLO);
     case '%':
         return Result::Save(TokenType::OP_MOD);
     case '.':

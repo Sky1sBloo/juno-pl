@@ -10,7 +10,7 @@ namespace JunoPL {
 export struct Statements;
 using StatementsHandle = std::unique_ptr<Statements>;
 export struct Body {
-    std::vector<ExpressionHandle> body;
+    std::vector<StatementsHandle> body;
 };
 
 export struct VarDeclaration {
@@ -53,7 +53,7 @@ export struct EmitEvent {
 
 export struct RepeatLoop {
     ExpressionHandle repeatNumber;
-    std::vector<ExpressionHandle> body;
+    Body body;
 };
 
 export struct WhileLoop {
@@ -69,7 +69,9 @@ export struct ForLoop {
 };
 
 export struct Statements {
-    std::variant<VarDeclaration, ListDeclaration, ConditionalStatement>
+    std::variant<VarDeclaration, ListDeclaration, PerformInstruction,
+                 ConditionalStatement, EmitEvent, RepeatLoop, WhileLoop,
+                 ForLoop>
         statement;
 };
 

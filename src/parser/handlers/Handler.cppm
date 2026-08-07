@@ -7,6 +7,7 @@ export module junopl.parser.handlers;
 import junopl.lexer.tokens;
 import junopl.parser.error;
 import junopl.parser.nodes;
+import junopl.parser.nodes.statements;
 
 namespace JunoPL {
 export std::expected<Token, ParserError>
@@ -32,4 +33,6 @@ parseFunction(TokenList &tokens);
 
 export std::expected<std::vector<std::string>, ParserError>
 parseParam(TokenList &tokens);
+
+export std::expected<Body, ParserError> parseBody(TokenList &tokens);
 }
