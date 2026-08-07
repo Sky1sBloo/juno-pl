@@ -31,8 +31,31 @@ Parser::Output Parser::parse(TokenList &tokens) {
         auto importPath = handleImport(tokens);
         if (importPath.has_value()) {
             root.body.push_back(importPath.value());
+        } else {
+            output.errors.push_back(importPath.error());
         }
     } break;
+    case TokenType::K_INSTR: {
+        if (auto instr = parseFunction(tokens); !instr) {
+            output.errors.push_back(instr.error());
+        } else {
+            root.body.push_back(std::move(instr.value()));
+        }
+        break;
+    }
+    case TokenType::K_ON: {
+        if (auto on = parseFunction(tokens); !on) {
+            output.errors.push_back(on.error());
+        } else {
+            root.body.push_back(std::move(on.value()));
+        }
+        break;
+    }
+    default: {
+        output.errors.push_back(ParserError::UnexpectedToken(
+            tokens.current(), {TokenType::K_PROGRAM, TokenType::K_IMPORT,
+                               TokenType::K_INSTR, TokenType::K_ON}));
+    }
     }
     return output;
 }
