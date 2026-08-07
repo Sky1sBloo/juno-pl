@@ -46,7 +46,7 @@ Parser::handleProgramName(TokenList &tokens) {
 
     auto name = expectToken(tokens, TokenType::STR);
     if (!name.has_value()) {
-        return std::unexpected(program.error());
+        return std::unexpected(name.error());
     }
     return name.value().value;
 }

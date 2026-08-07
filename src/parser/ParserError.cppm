@@ -40,6 +40,28 @@ export class ParserError {
                     expectedToken))}; // todo: make a string version of this
     }
 
+    static ParserError
+    UnexpectedToken(const Token &token,
+                    std::initializer_list<TokenType> expectedTokens) {
+        std::string expected;
+
+        bool first = true;
+        for (TokenType type : expectedTokens) {
+            if (!first) {
+                expected += ", ";
+            }
+            first = false;
+            expected += std::to_string(
+                static_cast<int>(type)); // TODO: replace with token name
+        }
+
+        return ParserError{
+            Type::UNEXPECTED_TOKEN, token,
+            std::format(
+                "Unexpected token: {0}, at {1}:{2}. Expected one of: {3}",
+                token.value, token.line, token.colStart, expected)};
+    }
+
   private:
     Type mType;
     Token mToken;

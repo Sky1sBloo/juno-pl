@@ -35,6 +35,7 @@ export enum class TokenType {
     K_VAR,
     K_LIST,
     OP_SEMICOLON,
+    OP_COMMA,
     OP_PLUS,
     OP_MINUS,
     OP_MULT,

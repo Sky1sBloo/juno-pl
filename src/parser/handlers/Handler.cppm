@@ -1,5 +1,7 @@
 module;
 #include <expected>
+#include <string>
+#include <vector>
 export module junopl.parser.handlers;
 
 import junopl.lexer.tokens;
@@ -26,5 +28,8 @@ expectToken(TokenList &tokens, TokenType expectedToken, bool advance = true) {
 }
 
 export std::expected<FunctionNode, ParserError>
-parseFunctionHandler(TokenList &tokens);
+parseFunction(TokenList &tokens);
+
+export std::expected<std::vector<std::string>, ParserError>
+parseParam(TokenList &tokens);
 }
