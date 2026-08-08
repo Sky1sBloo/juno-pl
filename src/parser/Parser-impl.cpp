@@ -51,6 +51,13 @@ Parser::Output Parser::parse(TokenList &tokens) {
         }
         break;
     }
+    case TokenType::K_VAR: {
+        if (auto var = parseVarDeclaration(tokens); !var) {
+            output.errors.push_back(var.error());
+        } else {
+            root.body.push_back(std::move(var.value()));
+        }
+    }
     default: {
         output.errors.push_back(ParserError::UnexpectedToken(
             tokens.current(), {TokenType::K_PROGRAM, TokenType::K_IMPORT,
