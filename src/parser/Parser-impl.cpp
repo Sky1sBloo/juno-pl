@@ -58,6 +58,13 @@ Parser::Output Parser::parse(TokenList &tokens) {
             root.body.push_back(std::move(var.value()));
         }
     }
+    case TokenType::K_EXPR: {
+        if (auto expr = parseCustomExpression(tokens); !expr) {
+            output.errors.push_back(expr.error());
+        } else {
+            root.body.push_back(std::move(expr.value()));
+        }
+    }
     default: {
         output.errors.push_back(ParserError::UnexpectedToken(
             tokens.current(), {TokenType::K_PROGRAM, TokenType::K_IMPORT,
