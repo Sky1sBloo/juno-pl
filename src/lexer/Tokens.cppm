@@ -32,6 +32,7 @@ export enum class TokenType {
     K_EMIT,
     K_CRAFT,
     K_NEARBY,
+    K_EXPR,
     K_VAR,
     K_LIST,
     OP_SEMICOLON,
