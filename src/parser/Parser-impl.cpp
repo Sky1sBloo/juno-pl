@@ -1,5 +1,6 @@
 module;
 #include <expected>
+#include <memory>
 #include <string>
 module junopl.parser;
 import junopl.lexer.tokens;
@@ -57,6 +58,15 @@ Parser::Output Parser::parse(TokenList &tokens) {
         } else {
             root.body.push_back(std::move(var.value()));
         }
+        break;
+    }
+    case TokenType::K_LIST: {
+        if (auto list = parseListDeclaration(tokens); !list) {
+            output.errors.push_back(list.error());
+        } else {
+            root.body.push_back(std::move(list.value()));
+        }
+        break;
     }
     case TokenType::K_EXPR: {
         if (auto expr = parseCustomExpression(tokens); !expr) {
@@ -64,13 +74,18 @@ Parser::Output Parser::parse(TokenList &tokens) {
         } else {
             root.body.push_back(std::move(expr.value()));
         }
+        break;
     }
     default: {
         output.errors.push_back(ParserError::UnexpectedToken(
             tokens.current(), {TokenType::K_PROGRAM, TokenType::K_IMPORT,
-                               TokenType::K_INSTR, TokenType::K_ON}));
+                               TokenType::K_INSTR, TokenType::K_ON,
+                               TokenType::K_VAR, TokenType::K_LIST,
+                               TokenType::K_EXPR}));
     }
     }
+
+    output.root = std::make_unique<RootNode>(std::move(root));
     return output;
 }
 

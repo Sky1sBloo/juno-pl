@@ -77,7 +77,7 @@ Class for handling multiple tokens for the parser
 export class TokenList {
   private:
     std::vector<Token> mTokens;
-    std::size_t idx;
+    std::size_t idx{0};
 
   public:
     void push_back(const Token &token) { mTokens.push_back(token); }

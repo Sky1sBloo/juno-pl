@@ -55,6 +55,7 @@ expectToken(TokenList &tokens, std::initializer_list<TokenType> expectedTokens,
     return token;
 }
 
+/// Root nodes 
 export std::expected<FunctionNode, ParserError>
 parseFunction(TokenList &tokens);
 
@@ -63,11 +64,15 @@ parseCustomExpression(TokenList &tokens);
 
 export std::expected<EventNode, ParserError> parseEvent(TokenList &tokens);
 
+export std::expected<VarDeclaration, ParserError>
+parseVarDeclaration(TokenList &tokens);
+
+export std::expected<ListDeclaration, ParserError>
+parseListDeclaration(TokenList &tokens);
+
 export std::expected<std::vector<std::string>, ParserError>
 parseParam(TokenList &tokens);
 
 export std::expected<Body, ParserError> parseBody(TokenList &tokens);
 
-export std::expected<VarDeclaration, ParserError>
-parseVarDeclaration(TokenList &tokens);
 }

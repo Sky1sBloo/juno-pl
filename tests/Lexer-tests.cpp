@@ -80,23 +80,26 @@ TEST_CASE("Lexer Operator Test") {
     JunoPL::Tests::FileReaderTest fileReader;
 
     SUBCASE("Single character operators") {
-        fileReader.setSourceCode("+ - * / = ( ) { } % .");
+        fileReader.setSourceCode("+ - * / = ; ( ) [ ] { } % .");
         JunoPL::Lexer lexer;
         JunoPL::Lexer::Output output = lexer.tokenize(fileReader);
 
         CHECK(output.errors.empty());
-        REQUIRE(output.tokens.size() == 11);
+        REQUIRE(output.tokens.size() == 14);
         CHECK(output.tokens.at(0).type == JunoPL::TokenType::OP_PLUS);
         CHECK(output.tokens.at(1).type == JunoPL::TokenType::OP_MINUS);
         CHECK(output.tokens.at(2).type == JunoPL::TokenType::OP_MULT);
         CHECK(output.tokens.at(3).type == JunoPL::TokenType::OP_DIVIDE);
         CHECK(output.tokens.at(4).type == JunoPL::TokenType::OP_EQUAL);
-        CHECK(output.tokens.at(5).type == JunoPL::TokenType::OP_PAR_OP);
-        CHECK(output.tokens.at(6).type == JunoPL::TokenType::OP_PAR_CLO);
-        CHECK(output.tokens.at(7).type == JunoPL::TokenType::OP_BRAC_OP);
-        CHECK(output.tokens.at(8).type == JunoPL::TokenType::OP_BRAC_CLO);
-        CHECK(output.tokens.at(9).type == JunoPL::TokenType::OP_MOD);
-        CHECK(output.tokens.at(10).type == JunoPL::TokenType::OP_DOT);
+        CHECK(output.tokens.at(5).type == JunoPL::TokenType::OP_SEMICOLON);
+        CHECK(output.tokens.at(6).type == JunoPL::TokenType::OP_PAR_OP);
+        CHECK(output.tokens.at(7).type == JunoPL::TokenType::OP_PAR_CLO);
+        CHECK(output.tokens.at(8).type == JunoPL::TokenType::OP_BRAC_OP);
+        CHECK(output.tokens.at(9).type == JunoPL::TokenType::OP_BRAC_CLO);
+        CHECK(output.tokens.at(10).type == JunoPL::TokenType::OP_CBRAC_OP);
+        CHECK(output.tokens.at(11).type == JunoPL::TokenType::OP_CBRAC_CLO);
+        CHECK(output.tokens.at(12).type == JunoPL::TokenType::OP_MOD);
+        CHECK(output.tokens.at(13).type == JunoPL::TokenType::OP_DOT);
     }
 
     SUBCASE("Comparison operators") {

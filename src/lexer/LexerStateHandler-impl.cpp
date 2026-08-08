@@ -148,6 +148,8 @@ LexerStateHandler::Result LexerStateHandler::handleOperationState(char c) {
         return Result::Save(TokenType::OP_CBRAC_OP);
     case '}':
         return Result::Save(TokenType::OP_CBRAC_CLO);
+    case ';':
+        return Result::Save(TokenType::OP_SEMICOLON);
     case '%':
         return Result::Save(TokenType::OP_MOD);
     case '.':
@@ -184,8 +186,11 @@ bool LexerStateHandler::isOpSymbol(char c) {
     case '=':
     case '(':
     case ')':
+    case '[':
+    case ']':
     case '{':
     case '}':
+    case ';':
     case '<':
     case '>':
     case '%':

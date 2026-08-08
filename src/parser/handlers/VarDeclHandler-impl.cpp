@@ -9,6 +9,23 @@ import junopl.parser.nodes;
 import junopl.parser.nodes.statements;
 import junopl.parser.nodes.expressions;
 
+namespace {
+std::expected<JunoPL::ExpressionHandle, JunoPL::ParserError>
+parseSimpleValueExpression(JunoPL::TokenList &tokens) {
+    auto valueToken = JunoPL::expectToken(
+        tokens, {JunoPL::TokenType::NUM, JunoPL::TokenType::STR,
+                 JunoPL::TokenType::TRUE, JunoPL::TokenType::FALSE,
+                 JunoPL::TokenType::IDENT});
+    if (!valueToken) {
+        return std::unexpected(valueToken.error());
+    }
+
+    auto expression = std::make_unique<JunoPL::Expression>();
+    expression->value = JunoPL::Value{valueToken.value().value};
+    return expression;
+}
+}
+
 namespace JunoPL {
 std::expected<VarDeclaration, ParserError>
 parseVarDeclaration(TokenList &tokens) {
@@ -30,12 +47,20 @@ parseVarDeclaration(TokenList &tokens) {
     }
 
     if (next.value().type == TokenType::OP_SEMICOLON) {
-        auto expr = std::make_unique<Expression>();
-        expr->value = Value{next.value().value};
-        node.value = std::move(expr);
         return node;
     }
 
-    // add handling for expression
+    auto value = parseSimpleValueExpression(tokens);
+    if (!value) {
+        return std::unexpected(value.error());
+    }
+
+    auto semicolon = expectToken(tokens, TokenType::OP_SEMICOLON);
+    if (!semicolon) {
+        return std::unexpected(semicolon.error());
+    }
+
+    node.value = std::move(value.value());
+    return node;
 }
 }
