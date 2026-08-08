@@ -9,6 +9,7 @@ import junopl.lexer.tokens;
 import junopl.parser.error;
 import junopl.parser.nodes;
 import junopl.parser.nodes.statements;
+import junopl.parser.nodes.expressions;
 
 namespace JunoPL {
 export std::expected<Token, ParserError>
@@ -38,13 +39,14 @@ expectToken(TokenList &tokens, std::initializer_list<TokenType> expectedTokens,
 
     Token token = tokens.current();
     bool found = false;
-    for (TokenType expectedToken: expectedTokens) {
+    for (TokenType expectedToken : expectedTokens) {
         if (token.type == expectedToken) {
             found = true;
         }
     }
     if (!found) {
-        return std::unexpected(ParserError::UnexpectedToken(token, expectedTokens));
+        return std::unexpected(
+            ParserError::UnexpectedToken(token, expectedTokens));
     }
 
     if (advance) {
@@ -55,6 +57,9 @@ expectToken(TokenList &tokens, std::initializer_list<TokenType> expectedTokens,
 
 export std::expected<FunctionNode, ParserError>
 parseFunction(TokenList &tokens);
+
+export std::expected<CustomExpression, ParserError>
+parseCustomExpression(TokenList &tokens);
 
 export std::expected<EventNode, ParserError> parseEvent(TokenList &tokens);
 

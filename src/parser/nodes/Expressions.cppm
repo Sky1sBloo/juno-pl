@@ -15,6 +15,12 @@ export struct CallExpression {
     std::vector<ExpressionHandle> params;
 };
 
+export struct CustomExpression {
+    std::string identifier;
+    std::vector<std::string> params;
+    ExpressionHandle expression;
+};
+
 /**
 Can be int, string, bool as Vizzy doesn't separate them
  */
