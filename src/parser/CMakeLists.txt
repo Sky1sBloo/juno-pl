@@ -6,7 +6,7 @@ target_sources(
   PRIVATE
     Parser-impl.cpp handlers/FunctionHandler-impl.cpp
     handlers/ParamHandler-impl.cpp handlers/BodyHandler-impl.cpp
-    handlers/EventHandler-impl.cpp)
+    handlers/EventHandler-impl.cpp handlers/VarDeclHandler-impl.cpp)
 
 add_subdirectory(nodes)
 target_link_libraries(juno-pl-parser PRIVATE juno-pl-lexer juno-pl-parse-nodes)

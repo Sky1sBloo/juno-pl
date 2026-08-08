@@ -29,6 +29,23 @@ export class ParserError {
                         static_cast<int>(expectedToken))};
     }
 
+    static ParserError
+    EmptyTokenList(std::initializer_list<TokenType> expectedTokens) {
+        std::string expected;
+        bool first = true;
+        for (TokenType type : expectedTokens) {
+            if (!first) {
+                expected += ", ";
+            }
+            first = false;
+            expected += std::to_string(
+                static_cast<int>(type)); // TODO: replace with token name
+        }
+        return ParserError{
+            Type::EMPTY_TOKENS,
+            std::format("Parser token list is empty. Expected: {0}", expected)};
+    }
+
     static ParserError UnexpectedToken(const Token &token,
                                        TokenType expectedToken) {
         return ParserError{

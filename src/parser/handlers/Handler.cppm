@@ -1,5 +1,6 @@
 module;
 #include <expected>
+#include <initializer_list>
 #include <string>
 #include <vector>
 export module junopl.parser.handlers;
@@ -28,6 +29,30 @@ expectToken(TokenList &tokens, TokenType expectedToken, bool advance = true) {
     return token;
 }
 
+export std::expected<Token, ParserError>
+expectToken(TokenList &tokens, std::initializer_list<TokenType> expectedTokens,
+            bool advance = true) {
+    if (tokens.empty()) {
+        return std::unexpected(ParserError::EmptyTokenList(expectedTokens));
+    }
+
+    Token token = tokens.current();
+    bool found = false;
+    for (TokenType expectedToken: expectedTokens) {
+        if (token.type == expectedToken) {
+            found = true;
+        }
+    }
+    if (!found) {
+        return std::unexpected(ParserError::UnexpectedToken(token, expectedTokens));
+    }
+
+    if (advance) {
+        tokens.advance();
+    }
+    return token;
+}
+
 export std::expected<FunctionNode, ParserError>
 parseFunction(TokenList &tokens);
 
@@ -37,4 +62,7 @@ export std::expected<std::vector<std::string>, ParserError>
 parseParam(TokenList &tokens);
 
 export std::expected<Body, ParserError> parseBody(TokenList &tokens);
+
+export std::expected<VarDeclaration, ParserError>
+parseVarDeclaration(TokenList &tokens);
 }
