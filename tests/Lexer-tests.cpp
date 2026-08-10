@@ -80,12 +80,12 @@ TEST_CASE("Lexer Operator Test") {
     JunoPL::Tests::FileReaderTest fileReader;
 
     SUBCASE("Single character operators") {
-        fileReader.setSourceCode("+ - * / = ; ( ) [ ] { } % .");
+        fileReader.setSourceCode("+ - * / = ; ( ) [ ] { } % . : ?");
         JunoPL::Lexer lexer;
         JunoPL::Lexer::Output output = lexer.tokenize(fileReader);
 
         CHECK(output.errors.empty());
-        REQUIRE(output.tokens.size() == 14);
+        REQUIRE(output.tokens.size() == 16);
         CHECK(output.tokens.at(0).type == JunoPL::TokenType::OP_PLUS);
         CHECK(output.tokens.at(1).type == JunoPL::TokenType::OP_MINUS);
         CHECK(output.tokens.at(2).type == JunoPL::TokenType::OP_MULT);
@@ -100,6 +100,8 @@ TEST_CASE("Lexer Operator Test") {
         CHECK(output.tokens.at(11).type == JunoPL::TokenType::OP_CBRAC_CLO);
         CHECK(output.tokens.at(12).type == JunoPL::TokenType::OP_MOD);
         CHECK(output.tokens.at(13).type == JunoPL::TokenType::OP_DOT);
+        CHECK(output.tokens.at(14).type == JunoPL::TokenType::OP_COLON);
+        CHECK(output.tokens.at(15).type == JunoPL::TokenType::OP_QUESTION);
     }
 
     SUBCASE("Comparison operators") {

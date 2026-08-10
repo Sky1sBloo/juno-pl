@@ -29,14 +29,28 @@ export struct Value {
 };
 
 export struct BinaryOp {
-    enum class Operation { ADD, SUBTRUCT, MULTIPLY, DIVIDE, MOD, AND, OR };
+    enum class Operation {
+        ADD,
+        SUBTRUCT,
+        MULTIPLY,
+        DIVIDE,
+        MOD,
+        AND,
+        OR,
+        EQUAL,
+        NOT_EQUAL,
+        GREATER,
+        LESS,
+        GREATER_EQ,
+        LESS_EQ
+    };
     Operation operation;
     ExpressionHandle lhs;
     ExpressionHandle rhs;
 };
 
 export struct UnaryOp {
-    enum class Operation { NOT };
+    enum class Operation { NOT, NEGATE };
     Operation operation;
     ExpressionHandle value;
 };

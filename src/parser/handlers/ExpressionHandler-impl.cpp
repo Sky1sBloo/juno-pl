@@ -1,5 +1,6 @@
 module;
 #include <expected>
+#include <utility>
 module junopl.parser.handlers;
 import junopl.lexer.tokens;
 import junopl.parser.error;
@@ -13,18 +14,35 @@ parseCustomExpression(TokenList &tokens) {
         return std::unexpected(expr.error());
     }
 
-    if (auto ident = expectToken(tokens, TokenType::IDENT); !ident) {
+    auto ident = expectToken(tokens, TokenType::IDENT);
+    if (!ident) {
         return std::unexpected(ident.error());
-    } else {
-        if (auto params = parseParam(tokens); !params) {
-            return std::unexpected(params.error());
-        } else {
-            // todo: handle expression value content
-            CustomExpression exprNode;
-            exprNode.identifier = ident.value().value;
-            exprNode.params = std::move(params.value());
-            return exprNode;
-        }
     }
+
+    auto params = parseParam(tokens);
+    if (!params) {
+        return std::unexpected(params.error());
+    }
+
+    auto equals = expectToken(tokens, TokenType::OP_EQUAL);
+    if (!equals) {
+        return std::unexpected(equals.error());
+    }
+
+    auto expression = parseSimpleValueExpression(tokens);
+    if (!expression) {
+        return std::unexpected(expression.error());
+    }
+
+    auto semicolon = expectToken(tokens, TokenType::OP_SEMICOLON);
+    if (!semicolon) {
+        return std::unexpected(semicolon.error());
+    }
+
+    CustomExpression exprNode;
+    exprNode.identifier = ident.value().value;
+    exprNode.params = std::move(params.value());
+    exprNode.expression = std::move(expression.value());
+    return exprNode;
 }
 }

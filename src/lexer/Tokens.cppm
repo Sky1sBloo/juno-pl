@@ -50,6 +50,7 @@ export enum class TokenType {
     OP_CBRAC_CLO,
     OP_MOD,
     OP_DOT,
+    OP_COLON,
     OP_COMP_EQ,
     OP_COMP_NOT_EQ,
     OP_COMP_GREATER,

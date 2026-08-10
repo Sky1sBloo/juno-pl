@@ -154,6 +154,8 @@ LexerStateHandler::Result LexerStateHandler::handleOperationState(char c) {
         return Result::Save(TokenType::OP_MOD);
     case '.':
         return Result::Save(TokenType::OP_DOT);
+    case ':':
+        return Result::Save(TokenType::OP_COLON);
     case ',':
         return Result::Save(TokenType::OP_COMMA);
     case '?':
@@ -195,6 +197,7 @@ bool LexerStateHandler::isOpSymbol(char c) {
     case '>':
     case '%':
     case '.':
+    case ':':
     case '?':
     case ',':
         return true;
