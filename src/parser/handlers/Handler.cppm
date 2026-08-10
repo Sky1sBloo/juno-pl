@@ -55,7 +55,7 @@ expectToken(TokenList &tokens, std::initializer_list<TokenType> expectedTokens,
     return token;
 }
 
-/// Root nodes 
+/// Root nodes
 export std::expected<FunctionNode, ParserError>
 parseFunction(TokenList &tokens);
 
@@ -74,5 +74,8 @@ export std::expected<std::vector<std::string>, ParserError>
 parseParam(TokenList &tokens);
 
 export std::expected<Body, ParserError> parseBody(TokenList &tokens);
+
+std::expected<JunoPL::ExpressionHandle, JunoPL::ParserError>
+parseSimpleValueExpression(JunoPL::TokenList &tokens);
 
 }

@@ -54,7 +54,7 @@ export struct TernaryOp {
 };
 
 export struct Expression {
-    std::variant<CallExpression, Value> value;
+    std::variant<CallExpression, Value, BinaryOp, UnaryOp, ListOp, TernaryOp> value;
 };
 
 }
