@@ -14,8 +14,14 @@ parsePerformInstruction(TokenList &tokens) {
         return std::unexpected(ident.error());
     }
 
+    auto params = parseParamExpr(tokens);
+    if (!params) {
+        return std::unexpected(params.error());
+    }
+
     PerformInstruction instr;
     instr.identifier = ident.value().value;
+    instr.params = std::move(params.value());
     return instr;
 }
 }
