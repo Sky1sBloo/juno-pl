@@ -40,7 +40,7 @@ parseListDeclaration(TokenList &tokens) {
 
 	if (tokens.current().type != TokenType::OP_BRAC_CLO) {
 		while (true) {
-			auto value = parseSimpleValueExpression(tokens);
+			auto value = parseExpression(tokens);
 			if (!value) {
 				return std::unexpected(value.error());
 			}

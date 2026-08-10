@@ -32,7 +32,7 @@ parseVarDeclaration(TokenList &tokens) {
         return node;
     }
 
-    auto value = parseSimpleValueExpression(tokens);
+    auto value = parseExpression(tokens);
     if (!value) {
         return std::unexpected(value.error());
     }

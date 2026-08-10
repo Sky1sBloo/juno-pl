@@ -70,12 +70,18 @@ parseVarDeclaration(TokenList &tokens);
 export std::expected<ListDeclaration, ParserError>
 parseListDeclaration(TokenList &tokens);
 
+export std::expected<PerformInstruction, ParserError>
+parsePerformInstruction(TokenList &tokens);
+
 export std::expected<std::vector<std::string>, ParserError>
 parseParam(TokenList &tokens);
+
+export std::expected<std::vector<ExpressionHandle>, ParserError>
+parseParamExpr(TokenList &tokens);
 
 export std::expected<Body, ParserError> parseBody(TokenList &tokens);
 
 export std::expected<JunoPL::ExpressionHandle, JunoPL::ParserError>
-parseSimpleValueExpression(JunoPL::TokenList &tokens);
+parseExpression(JunoPL::TokenList &tokens);
 
 }

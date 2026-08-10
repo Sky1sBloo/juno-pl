@@ -29,7 +29,7 @@ parseCustomExpression(TokenList &tokens) {
         return std::unexpected(equals.error());
     }
 
-    auto expression = parseSimpleValueExpression(tokens);
+    auto expression = parseExpression(tokens);
     if (!expression) {
         return std::unexpected(expression.error());
     }

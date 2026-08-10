@@ -15,7 +15,6 @@ parseParam(TokenList &tokens) {
     if (!parOp)
         return std::unexpected(parOp.error());
 
-    tokens.advance();
     std::vector<std::string> params;
     while (tokens.current().type != TokenType::OP_PAR_CLO) {
         auto ident = expectToken(tokens, TokenType::IDENT);

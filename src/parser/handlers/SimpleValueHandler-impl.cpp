@@ -92,7 +92,7 @@ unaryOperationForToken(const Token &token) {
         token, {TokenType::K_NOT, TokenType::OP_MINUS}));
 }
 
-std::expected<ExpressionHandle, ParserError> parseExpression(TokenList &tokens);
+std::expected<ExpressionHandle, ParserError> parseExpressionImpl(TokenList &tokens);
 
 std::expected<ExpressionHandle, ParserError>
 parsePrimaryExpression(TokenList &tokens) {
@@ -115,7 +115,7 @@ parsePrimaryExpression(TokenList &tokens) {
     }
     case TokenType::OP_PAR_OP: {
         tokens.advance();
-        auto expression = parseExpression(tokens);
+        auto expression = parseExpressionImpl(tokens);
         if (!expression) {
             return std::unexpected(expression.error());
         }
@@ -213,7 +213,7 @@ parseTernaryExpression(TokenList &tokens) {
 
     tokens.advance();
 
-    auto valueIfTrue = parseExpression(tokens);
+    auto valueIfTrue = parseExpressionImpl(tokens);
     if (!valueIfTrue) {
         return std::unexpected(valueIfTrue.error());
     }
@@ -223,7 +223,7 @@ parseTernaryExpression(TokenList &tokens) {
         return std::unexpected(colon.error());
     }
 
-    auto valueIfFalse = parseExpression(tokens);
+    auto valueIfFalse = parseExpressionImpl(tokens);
     if (!valueIfFalse) {
         return std::unexpected(valueIfFalse.error());
     }
@@ -236,13 +236,13 @@ parseTernaryExpression(TokenList &tokens) {
 }
 
 std::expected<ExpressionHandle, ParserError>
-parseExpression(TokenList &tokens) {
+parseExpressionImpl(TokenList &tokens) {
     return parseTernaryExpression(tokens);
 }
 } // namespace
 
 std::expected<JunoPL::ExpressionHandle, JunoPL::ParserError>
-parseSimpleValueExpression(JunoPL::TokenList &tokens) {
-    return parseExpression(tokens);
+parseExpression(JunoPL::TokenList &tokens) {
+    return parseExpressionImpl(tokens);
 }
 }
