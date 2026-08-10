@@ -81,7 +81,7 @@ parseParamExpr(TokenList &tokens);
 
 export std::expected<Body, ParserError> parseBody(TokenList &tokens);
 
-export std::expected<JunoPL::ExpressionHandle, JunoPL::ParserError>
+export std::expected<ExpressionHandle, ParserError>
 parseExpression(JunoPL::TokenList &tokens);
 
 }
