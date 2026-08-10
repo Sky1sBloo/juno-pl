@@ -19,11 +19,12 @@ parseParam(TokenList &tokens) {
     while (tokens.current().type != TokenType::OP_PAR_CLO) {
         auto ident = expectToken(tokens, TokenType::IDENT);
         if (!ident)
-            return std::unexpected(parOp.error());
+            return std::unexpected(ident.error());
 
         params.push_back(ident->value);
         auto currentToken = tokens.current();
         if (currentToken.type == TokenType::OP_COMMA) {
+            tokens.advance();
             continue;
         } else if (currentToken.type == TokenType::OP_PAR_CLO) {
             break;
@@ -35,7 +36,7 @@ parseParam(TokenList &tokens) {
     }
     auto parClo = expectToken(tokens, TokenType::OP_PAR_CLO);
     if (!parClo)
-        return std::unexpected(parOp.error());
+        return std::unexpected(parClo.error());
 
     return params;
 }

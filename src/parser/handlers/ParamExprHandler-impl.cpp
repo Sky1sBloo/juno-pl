@@ -15,7 +15,7 @@ parseParamExpr(TokenList &tokens) {
     }
 
     std::vector<ExpressionHandle> paramValues;
-    while (tokens.current().type != TokenType::OP_BRAC_CLO) {
+    while (tokens.current().type != TokenType::OP_PAR_CLO) {
         auto value = parseExpression(tokens);
         if (!value) {
             return std::unexpected(value.error());
@@ -24,6 +24,7 @@ parseParamExpr(TokenList &tokens) {
         paramValues.push_back(std::move(value.value()));
         auto currentToken = tokens.current();
         if (currentToken.type == TokenType::OP_COMMA) {
+            tokens.advance();
             continue;
         } else if (currentToken.type == TokenType::OP_PAR_CLO) {
             break;
