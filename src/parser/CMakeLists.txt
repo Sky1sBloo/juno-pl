@@ -7,13 +7,13 @@ target_sources(
     Parser-impl.cpp
     handlers/FunctionHandler-impl.cpp
     handlers/ExpressionHandler-impl.cpp
+    handlers/CustomExpressionHandler-impl.cpp
     handlers/ParamHandler-impl.cpp
     handlers/ParamExprHandler-impl.cpp
     handlers/BodyHandler-impl.cpp
     handlers/EventHandler-impl.cpp
     handlers/VarDeclHandler-impl.cpp
     handlers/ListHandler-impl.cpp
-    handlers/SimpleValueHandler-impl.cpp
     handlers/PerformInstructionHandler-impl.cpp)
 
 add_subdirectory(nodes)
