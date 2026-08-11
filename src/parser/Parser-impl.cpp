@@ -45,7 +45,7 @@ Parser::Output Parser::parse(TokenList &tokens) {
         break;
     }
     case TokenType::K_ON: {
-        if (auto on = parseFunction(tokens); !on) {
+        if (auto on = parseEvent(tokens); !on) {
             output.errors.push_back(on.error());
         } else {
             root.body.push_back(std::move(on.value()));
@@ -78,10 +78,10 @@ Parser::Output Parser::parse(TokenList &tokens) {
     }
     default: {
         output.errors.push_back(ParserError::UnexpectedToken(
-            tokens.current(), {TokenType::K_PROGRAM, TokenType::K_IMPORT,
-                               TokenType::K_INSTR, TokenType::K_ON,
-                               TokenType::K_VAR, TokenType::K_LIST,
-                               TokenType::K_EXPR}));
+            tokens.current(),
+            {TokenType::K_PROGRAM, TokenType::K_IMPORT, TokenType::K_INSTR,
+             TokenType::K_ON, TokenType::K_VAR, TokenType::K_LIST,
+             TokenType::K_EXPR}));
     }
     }
 

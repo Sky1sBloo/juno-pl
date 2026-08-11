@@ -52,10 +52,6 @@ parseConditionalStatement(TokenList &tokens) {
         return stmt;
     }
 
-    if (auto openPar = expectToken(tokens, TokenType::OP_PAR_OP); !openPar) {
-        return std::unexpected(openPar.error());
-    }
-
     auto elseBody = parseBody(tokens);
     if (!elseBody) {
         return std::unexpected(elseBody.error());
