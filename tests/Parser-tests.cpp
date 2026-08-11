@@ -75,7 +75,7 @@ TEST_CASE("Parser Expression Operators Test") {
 
 TEST_CASE("Parser Perform Instruction - no params") {
     JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("perform doSomething()");
+    fileReader.setSourceCode("perform doSomething();");
 
     JunoPL::Lexer lexer;
     auto lexOutput = lexer.tokenize(fileReader);
@@ -94,7 +94,7 @@ TEST_CASE("Parser Perform Instruction - no params") {
 
 TEST_CASE("Parser Perform Instruction - with params") {
     JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("perform movePlayer(1, \"right\", true)");
+    fileReader.setSourceCode("perform movePlayer(1, \"right\", true);");
 
     JunoPL::Lexer lexer;
     auto lexOutput = lexer.tokenize(fileReader);
@@ -119,7 +119,7 @@ TEST_CASE("Parser Perform Instruction - with params") {
 
 TEST_CASE("Parser Perform Instruction - expression params") {
     JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("perform calc(x + 1, y * 2)");
+    fileReader.setSourceCode("perform calc(x + 1, y * 2);");
 
     JunoPL::Lexer lexer;
     auto lexOutput = lexer.tokenize(fileReader);

@@ -19,6 +19,11 @@ parsePerformInstruction(TokenList &tokens) {
         return std::unexpected(params.error());
     }
 
+    if (auto semiColon = expectToken(tokens, TokenType::OP_SEMICOLON);
+        !semiColon) {
+        return std::unexpected(semiColon.error());
+    }
+
     PerformInstruction instr;
     instr.identifier = ident.value().value;
     instr.params = std::move(params.value());
