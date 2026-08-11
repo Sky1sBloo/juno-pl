@@ -73,6 +73,9 @@ parseListDeclaration(TokenList &tokens);
 export std::expected<PerformInstruction, ParserError>
 parsePerformInstruction(TokenList &tokens);
 
+export std::expected<ConditionalStatement, ParserError>
+parseConditionalStatement(TokenList &tokens);
+
 export std::expected<std::vector<std::string>, ParserError>
 parseParam(TokenList &tokens);
 
