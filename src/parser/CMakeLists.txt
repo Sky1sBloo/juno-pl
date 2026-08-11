@@ -18,7 +18,7 @@ target_sources(
     handlers/RepeatLoopHandler-impl.cpp
     handlers/WhileLoopHandler-impl.cpp
     handlers/ForLoopHandler-impl.cpp
-    )
+    handlers/EmitEventHandler-impl.cpp)
 
 add_subdirectory(nodes)
 target_link_libraries(juno-pl-parser PRIVATE juno-pl-lexer juno-pl-parse-nodes)
