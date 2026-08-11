@@ -40,7 +40,7 @@ parseConditionalStatement(TokenList &tokens) {
         if (auto elifCond = parseExpression(tokens); !elifCond) {
             return std::unexpected(elifCond.error());
         } else if (auto elifBody = parseBody(tokens); !elifBody) {
-            return std::unexpected(body.error());
+            return std::unexpected(elifBody.error());
         } else {
             stmt.elifStatements.emplace_back(IfStatement{
                 std::move(elifCond.value()), std::move(elifBody.value())});
