@@ -55,6 +55,22 @@ expectToken(TokenList &tokens, std::initializer_list<TokenType> expectedTokens,
     return token;
 }
 
+/**
+For ordered listing */
+export std::expected<std::vector<Token>, ParserError>
+expectTokenList(TokenList &tokens,
+                std::initializer_list<TokenType> expectedTokens) {
+    std::vector<Token> toReturn;
+    for (TokenType type : expectedTokens) {
+        if (auto token = expectToken(tokens, type); !token) {
+            return std::unexpected(token.error());
+        } else {
+            toReturn.push_back(token.value());
+        }
+    }
+    return toReturn;
+}
+
 /// Root nodes
 export std::expected<FunctionNode, ParserError>
 parseFunction(TokenList &tokens);
@@ -78,6 +94,10 @@ parseConditionalStatement(TokenList &tokens);
 
 export std::expected<RepeatLoop, ParserError>
 parseRepeatLoop(TokenList &tokens);
+
+export std::expected<WhileLoop, ParserError> parseWhileLoop(TokenList &tokens);
+
+export std::expected<ForLoop, ParserError> parseForLoop(TokenList &tokens);
 
 export std::expected<std::vector<std::string>, ParserError>
 parseParam(TokenList &tokens);

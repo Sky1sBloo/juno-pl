@@ -15,7 +15,10 @@ target_sources(
     handlers/VarDeclHandler-impl.cpp
     handlers/ListHandler-impl.cpp
     handlers/PerformInstructionHandler-impl.cpp
-    handlers/RepeatLoopHandler-impl.cpp)
+    handlers/RepeatLoopHandler-impl.cpp
+    handlers/WhileLoopHandler-impl.cpp
+    handlers/ForLoopHandler-impl.cpp
+    )
 
 add_subdirectory(nodes)
 target_link_libraries(juno-pl-parser PRIVATE juno-pl-lexer juno-pl-parse-nodes)
