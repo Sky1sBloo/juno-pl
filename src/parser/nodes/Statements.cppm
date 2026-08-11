@@ -33,14 +33,9 @@ export struct IfStatement {
     Body body;
 };
 
-export struct ElifStatement {
-    ExpressionHandle condition;
-    Body body;
-};
-
 export struct ConditionalStatement {
     IfStatement ifStatement;
-    std::vector<ElifStatement> elifStatements;
+    std::vector<IfStatement> elifStatements;
     Body elseStatement;
 };
 
