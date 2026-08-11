@@ -24,6 +24,7 @@ export enum class TokenType {
     K_FROM,
     K_TO,
     K_BY,
+    K_REPEAT,
     K_WHILE,
     K_BREAK,
     K_INSTR,
