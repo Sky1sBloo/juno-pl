@@ -20,7 +20,7 @@ parseConditionalStatement(TokenList &tokens) {
 
     auto body = parseBody(tokens);
     if (!body) {
-        return std::unexpected(condition.error());
+        return std::unexpected(body.error());
     }
 
     ConditionalStatement stmt;
@@ -37,9 +37,9 @@ parseConditionalStatement(TokenList &tokens) {
             return std::unexpected(openPar.error());
         }
 
-        if (auto elifCond = parseExpression(tokens); !condition) {
+        if (auto elifCond = parseExpression(tokens); !elifCond) {
             return std::unexpected(elifCond.error());
-        } else if (auto elifBody = parseBody(tokens); !body) {
+        } else if (auto elifBody = parseBody(tokens); !elifBody) {
             return std::unexpected(body.error());
         } else {
             stmt.elifStatements.emplace_back(ElifStatement{
