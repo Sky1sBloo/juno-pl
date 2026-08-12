@@ -2,7 +2,7 @@
 module junopl.parser.handlers;
 
 namespace JunoPL {
-std::expected<EmitEvent, ParserError> emitEvent(TokenList &tokens) {
+std::expected<EmitEvent, ParserError> parseEmitEvent(TokenList &tokens) {
     if (auto emitToken = expectToken(tokens, TokenType::K_EMIT); !emitToken) {
         return std::unexpected(emitToken.error());
     }

@@ -99,7 +99,7 @@ export std::expected<WhileLoop, ParserError> parseWhileLoop(TokenList &tokens);
 
 export std::expected<ForLoop, ParserError> parseForLoop(TokenList &tokens);
 
-export std::expected<EmitEvent, ParserError> emitEvent(TokenList &tokens);
+export std::expected<EmitEvent, ParserError> parseEmitEvent(TokenList &tokens);
 
 export std::expected<std::vector<std::string>, ParserError>
 parseParam(TokenList &tokens);
