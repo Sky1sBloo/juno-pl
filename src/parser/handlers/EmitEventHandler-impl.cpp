@@ -1,5 +1,6 @@
 module;
 #include <optional>
+#include <string>
 module junopl.parser;
 
 namespace JunoPL {
@@ -17,6 +18,20 @@ std::optional<EmitEvent> Parser::parseEmitEvent(TokenList &tokens) {
         return std::nullopt;
     }
 
+    std::string identifier = ident->value;
+
+    // Check for qualified identifier: identifier.identifier
+    if (!mTokens->empty() && mTokens->current().type == TokenType::OP_DOT) {
+        mTokens->advance();
+        auto methodName = expectToken(TokenType::IDENT);
+        if (!methodName) {
+            recoverTo(TokenType::OP_SEMICOLON);
+            return std::nullopt;
+        }
+        // For emit, the qualifier is used as the identifier with dot
+        identifier = ident->value + "." + methodName->value;
+    }
+
     auto params = parseParamExpr(tokens);
     if (!params) {
         recoverTo(TokenType::OP_SEMICOLON);
@@ -30,7 +45,7 @@ std::optional<EmitEvent> Parser::parseEmitEvent(TokenList &tokens) {
     }
     if (mTokens->current().type == TokenType::OP_SEMICOLON) {
         mTokens->advance();
-        return EmitEvent{ident->value, std::move(params.value()),
+        return EmitEvent{identifier, std::move(params.value()),
                          EmitEvent::Options::TO_SCRIPT};
     }
     mTokens->advance();
@@ -55,6 +70,6 @@ std::optional<EmitEvent> Parser::parseEmitEvent(TokenList &tokens) {
         return std::nullopt;
     }
 
-    return EmitEvent{ident->value, std::move(params.value()), options};
+    return EmitEvent{identifier, std::move(params.value()), options};
 }
 }

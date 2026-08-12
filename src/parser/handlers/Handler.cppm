@@ -33,6 +33,11 @@ export std::optional<VarDeclaration> parseVarDeclaration(TokenList &tokens) {
     return parser.parseVarDeclaration(tokens);
 }
 
+export std::optional<VarAssignment> parseVarAssignment(TokenList &tokens) {
+    Parser parser;
+    return parser.parseVarAssignment(tokens);
+}
+
 export std::optional<ListDeclaration> parseListDeclaration(TokenList &tokens) {
     Parser parser;
     return parser.parseListDeclaration(tokens);
@@ -42,6 +47,11 @@ export std::optional<PerformInstruction>
 parsePerformInstruction(TokenList &tokens) {
     Parser parser;
     return parser.parsePerformInstruction(tokens);
+}
+
+export std::optional<BreakStatement> parseBreakStatement(TokenList &tokens) {
+    Parser parser;
+    return parser.parseBreakStatement(tokens);
 }
 
 export std::optional<ConditionalStatement>

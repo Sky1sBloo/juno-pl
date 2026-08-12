@@ -2,6 +2,7 @@ module;
 #include <memory>
 #include <optional>
 #include <utility>
+#include <vector>
 module junopl.parser;
 
 namespace JunoPL {
@@ -88,13 +89,102 @@ std::optional<ExpressionHandle> Parser::parsePrimaryExpression() {
     case TokenType::NUM:
     case TokenType::STR:
     case TokenType::TRUE:
-    case TokenType::FALSE:
-    case TokenType::IDENT: {
+    case TokenType::FALSE: {
         auto valueToken = mTokens->current();
         mTokens->advance();
 
         auto expression = std::make_unique<JunoPL::Expression>();
         expression->value = JunoPL::Value{valueToken.value};
+        return expression;
+    }
+    case TokenType::IDENT: {
+        auto identToken = mTokens->current();
+        mTokens->advance();
+
+        // Check for list indexing: identifier[expr]
+        if (!mTokens->empty() && mTokens->current().type == TokenType::OP_BRAC_OP) {
+            mTokens->advance();
+            auto indexExpr = parseTernaryExpression();
+            if (!indexExpr) {
+                return std::nullopt;
+            }
+            if (!expectToken(TokenType::OP_BRAC_CLO)) {
+                return std::nullopt;
+            }
+            auto expr = std::make_unique<JunoPL::Expression>();
+            expr->value = JunoPL::ListIndex{identToken.value, std::move(indexExpr.value())};
+            return expr;
+        }
+
+        // Check for call expression: identifier(args) or identifier.identifier(args)
+        std::string qualifier;
+        std::string identifier = identToken.value;
+
+        if (!mTokens->empty() && mTokens->current().type == TokenType::OP_DOT) {
+            mTokens->advance();
+            auto methodName = expectToken(TokenType::IDENT);
+            if (!methodName) {
+                return std::nullopt;
+            }
+            qualifier = identifier;
+            identifier = methodName->value;
+
+            // Check if this is a list operation: identifier.action(args)
+            if (!mTokens->empty() && mTokens->current().type == TokenType::OP_PAR_OP) {
+                mTokens->advance();
+                std::vector<ExpressionHandle> params;
+                if (mTokens->current().type != TokenType::OP_PAR_CLO) {
+                    while (true) {
+                        auto param = parseTernaryExpression();
+                        if (!param) {
+                            return std::nullopt;
+                        }
+                        params.push_back(std::move(param.value()));
+                        if (mTokens->current().type == TokenType::OP_COMMA) {
+                            mTokens->advance();
+                            continue;
+                        }
+                        break;
+                    }
+                }
+                if (!expectToken(TokenType::OP_PAR_CLO)) {
+                    return std::nullopt;
+                }
+                auto expr = std::make_unique<JunoPL::Expression>();
+                expr->value = JunoPL::ListOp{qualifier, identifier, std::move(params)};
+                return expr;
+            }
+        }
+
+        // Check for function call: identifier(args)
+        if (!mTokens->empty() && mTokens->current().type == TokenType::OP_PAR_OP) {
+            mTokens->advance();
+            std::vector<ExpressionHandle> params;
+            if (mTokens->current().type != TokenType::OP_PAR_CLO) {
+                while (true) {
+                    auto param = parseTernaryExpression();
+                    if (!param) {
+                        return std::nullopt;
+                    }
+                    params.push_back(std::move(param.value()));
+                    if (mTokens->current().type == TokenType::OP_COMMA) {
+                        mTokens->advance();
+                        continue;
+                    }
+                    break;
+                }
+            }
+            if (!expectToken(TokenType::OP_PAR_CLO)) {
+                return std::nullopt;
+            }
+            auto expr = std::make_unique<JunoPL::Expression>();
+            expr->value = JunoPL::CallExpression{qualifier, identifier, std::move(params)};
+            return expr;
+        }
+
+        // Plain identifier
+        auto expression = std::make_unique<JunoPL::Expression>();
+        expression->value = JunoPL::Value{identToken.value};
         return expression;
     }
     case TokenType::OP_PAR_OP: {
@@ -212,7 +302,7 @@ std::optional<ExpressionHandle> Parser::parseTernaryExpression() {
         return std::nullopt;
     }
 
-    if (!expectToken(TokenType::OP_COLON)) {
+    if (!expectToken(TokenType::K_ELSE)) {
         return std::nullopt;
     }
 

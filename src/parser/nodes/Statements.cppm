@@ -17,6 +17,14 @@ export struct VarDeclaration {
     std::string identifier;
     ExpressionHandle value;
 };
+
+export struct VarAssignment {
+    std::string identifier;
+    ExpressionHandle indexExpr;
+    ExpressionHandle value;
+    enum Op { ASSIGN, PLUS_ASSIGN, MINUS_ASSIGN, MULT_ASSIGN, DIVIDE_ASSIGN } op;
+};
+
 export struct ListDeclaration {
     std::string identifier;
     std::vector<ExpressionHandle> values;
@@ -27,6 +35,8 @@ export struct PerformInstruction {
     std::string identifier;
     std::vector<ExpressionHandle> params;
 };
+
+export struct BreakStatement {};
 
 export struct IfStatement {
     ExpressionHandle condition;
@@ -65,9 +75,9 @@ export struct ForLoop {
 };
 
 export struct Statements {
-    std::variant<Body, VarDeclaration, ListDeclaration, PerformInstruction,
-                 ConditionalStatement, EmitEvent, RepeatLoop, WhileLoop,
-                 ForLoop>
+    std::variant<Body, VarDeclaration, VarAssignment, ListDeclaration,
+                 PerformInstruction, BreakStatement, ConditionalStatement,
+                 EmitEvent, RepeatLoop, WhileLoop, ForLoop>
         statement;
 };
 

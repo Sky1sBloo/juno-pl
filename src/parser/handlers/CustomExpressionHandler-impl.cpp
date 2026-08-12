@@ -29,11 +29,6 @@ Parser::parseCustomExpression(TokenList &tokens) {
         return std::nullopt;
     }
 
-    if (!expectToken(TokenType::OP_EQUAL)) {
-        recoverTo(TokenType::OP_SEMICOLON);
-        return std::nullopt;
-    }
-
     auto expression = parseExpression(tokens);
     if (!expression) {
         recoverTo(TokenType::OP_SEMICOLON);

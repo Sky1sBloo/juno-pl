@@ -18,6 +18,21 @@ Parser::parsePerformInstruction(TokenList &tokens) {
         return std::nullopt;
     }
 
+    PerformInstruction instr;
+    instr.identifier = ident->value;
+
+    // Check for qualified identifier: identifier.identifier
+    if (!mTokens->empty() && mTokens->current().type == TokenType::OP_DOT) {
+        mTokens->advance();
+        auto methodName = expectToken(TokenType::IDENT);
+        if (!methodName) {
+            recoverTo(TokenType::OP_SEMICOLON);
+            return std::nullopt;
+        }
+        instr.qualifier = instr.identifier;
+        instr.identifier = methodName->value;
+    }
+
     auto params = parseParamExpr(tokens);
     if (!params) {
         recoverTo(TokenType::OP_SEMICOLON);
@@ -29,8 +44,6 @@ Parser::parsePerformInstruction(TokenList &tokens) {
         return std::nullopt;
     }
 
-    PerformInstruction instr;
-    instr.identifier = ident->value;
     instr.params = std::move(params.value());
     return instr;
 }

@@ -27,8 +27,10 @@ export class Parser {
     std::optional<CustomExpression> parseCustomExpression(TokenList &tokens);
     std::optional<EventNode> parseEvent(TokenList &tokens);
     std::optional<VarDeclaration> parseVarDeclaration(TokenList &tokens);
+    std::optional<VarAssignment> parseVarAssignment(TokenList &tokens);
     std::optional<ListDeclaration> parseListDeclaration(TokenList &tokens);
     std::optional<PerformInstruction> parsePerformInstruction(TokenList &tokens);
+    std::optional<BreakStatement> parseBreakStatement(TokenList &tokens);
     std::optional<ConditionalStatement> parseConditionalStatement(TokenList &tokens);
     std::optional<RepeatLoop> parseRepeatLoop(TokenList &tokens);
     std::optional<WhileLoop> parseWhileLoop(TokenList &tokens);

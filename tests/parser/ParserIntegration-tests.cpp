@@ -11,7 +11,7 @@ import junopl.tests.filereader;
 
 TEST_CASE("Parser List Declaration Test") {
     JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("list identifier = [1, \"a\", false];");
+    fileReader.setSourceCode("program test; list identifier = [1, \"a\", false];");
 
     JunoPL::Lexer lexer;
     auto lexOutput = lexer.tokenize(fileReader);
@@ -39,7 +39,7 @@ TEST_CASE("Parser List Declaration Test") {
 
 TEST_CASE("Parser Expression Operators Test") {
     JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("expr choose(a, b, c) = not a ? b + 1 : c * 2;");
+    fileReader.setSourceCode("program test; expr choose(a, b, c) not a ? b + 1 else c * 2;");
 
     JunoPL::Lexer lexer;
     auto lexOutput = lexer.tokenize(fileReader);

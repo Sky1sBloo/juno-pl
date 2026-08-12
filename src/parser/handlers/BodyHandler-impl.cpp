@@ -58,20 +58,20 @@ std::optional<Body> Parser::parseBody(TokenList &tokens) {
             }
             break;
         }
-        case TokenType::K_IF: {
-            if (auto condStmt = parseConditionalStatement(tokens)) {
-                addStatement(body, std::move(condStmt.value()));
-            } else {
-                recoverTo(TokenType::OP_CBRAC_CLO);
-            }
-            break;
-        }
         case TokenType::K_EMIT: {
             if (auto emitEv = parseEmitEvent(tokens)) {
                 addStatement(body, std::move(emitEv.value()));
             } else {
                 recoverTo(TokenType::OP_SEMICOLON);
                 if (!mTokens->empty()) mTokens->advance();
+            }
+            break;
+        }
+        case TokenType::K_IF: {
+            if (auto condStmt = parseConditionalStatement(tokens)) {
+                addStatement(body, std::move(condStmt.value()));
+            } else {
+                recoverTo(TokenType::OP_CBRAC_CLO);
             }
             break;
         }
@@ -99,12 +99,31 @@ std::optional<Body> Parser::parseBody(TokenList &tokens) {
             }
             break;
         }
+        case TokenType::K_BREAK: {
+            if (auto breakStmt = parseBreakStatement(tokens)) {
+                addStatement(body, std::move(breakStmt.value()));
+            } else {
+                recoverTo(TokenType::OP_SEMICOLON);
+                if (!mTokens->empty()) mTokens->advance();
+            }
+            break;
+        }
+        case TokenType::IDENT: {
+            if (auto varAssign = parseVarAssignment(tokens)) {
+                addStatement(body, std::move(varAssign.value()));
+            } else {
+                recoverTo(TokenType::OP_SEMICOLON);
+                if (!mTokens->empty()) mTokens->advance();
+            }
+            break;
+        }
         default: {
             mErrors.emplace_back(ParserError::UnexpectedToken(
                 mTokens->current(),
                 {TokenType::K_VAR, TokenType::K_LIST, TokenType::K_PERFORM,
                  TokenType::K_IF, TokenType::K_EMIT, TokenType::K_REPEAT,
-                 TokenType::K_WHILE, TokenType::K_FOR}));
+                 TokenType::K_WHILE, TokenType::K_FOR, TokenType::K_BREAK,
+                 TokenType::IDENT}));
             recoverTo(TokenType::OP_SEMICOLON);
             if (!mTokens->empty()) mTokens->advance();
             break;

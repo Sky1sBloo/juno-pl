@@ -58,7 +58,12 @@ export struct UnaryOp {
 export struct ListOp {
     std::string identifier;
     std::string action;
-    std::vector<std::string> params;
+    std::vector<ExpressionHandle> params;
+};
+
+export struct ListIndex {
+    std::string identifier;
+    ExpressionHandle index;
 };
 
 export struct TernaryOp {
@@ -68,7 +73,9 @@ export struct TernaryOp {
 };
 
 export struct Expression {
-    std::variant<CallExpression, Value, BinaryOp, UnaryOp, ListOp, TernaryOp> value;
+    std::variant<CallExpression, Value, BinaryOp, UnaryOp, ListOp, ListIndex,
+                 TernaryOp>
+        value;
 };
 
 }
