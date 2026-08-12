@@ -2,6 +2,7 @@ module;
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 module junopl.parser;
 import junopl.lexer.tokens;
 import junopl.parser.nodes;
@@ -242,6 +243,61 @@ std::optional<VarAssignment> Parser::parseVarAssignment(TokenList &tokens) {
     }
 
     return node;
+}
+
+std::optional<ListOp> Parser::parseListOperationStatement(TokenList &tokens) {
+    mTokens = &tokens;
+
+    auto ident = expectToken(TokenType::IDENT);
+    if (!ident) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
+    }
+
+    if (!expectToken(TokenType::OP_DOT)) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
+    }
+
+    auto method = expectToken(TokenType::IDENT);
+    if (!method) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
+    }
+
+    if (!expectToken(TokenType::OP_PAR_OP)) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
+    }
+
+    std::vector<ExpressionHandle> params;
+    if (mTokens->current().type != TokenType::OP_PAR_CLO) {
+        while (true) {
+            auto param = parseExpression(tokens);
+            if (!param) {
+                recoverTo(TokenType::OP_SEMICOLON);
+                return std::nullopt;
+            }
+            params.push_back(std::move(param.value()));
+            if (mTokens->current().type == TokenType::OP_COMMA) {
+                mTokens->advance();
+                continue;
+            }
+            break;
+        }
+    }
+
+    if (!expectToken(TokenType::OP_PAR_CLO)) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
+    }
+
+    if (!expectToken(TokenType::OP_SEMICOLON)) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
+    }
+
+    return ListOp{ident->value, method->value, std::move(params)};
 }
 
 std::optional<BreakStatement> Parser::parseBreakStatement(TokenList &tokens) {

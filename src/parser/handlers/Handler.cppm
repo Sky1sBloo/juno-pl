@@ -38,6 +38,11 @@ export std::optional<VarAssignment> parseVarAssignment(TokenList &tokens) {
     return parser.parseVarAssignment(tokens);
 }
 
+export std::optional<ListOp> parseListOperationStatement(TokenList &tokens) {
+    Parser parser;
+    return parser.parseListOperationStatement(tokens);
+}
+
 export std::optional<ListDeclaration> parseListDeclaration(TokenList &tokens) {
     Parser parser;
     return parser.parseListDeclaration(tokens);
