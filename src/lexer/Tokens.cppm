@@ -94,7 +94,7 @@ export class TokenList {
     }
     void advance() { idx++; }
 
-    bool empty() const { return mTokens.empty(); }
+    bool empty() const { return idx >= mTokens.size(); }
     std::size_t size() const { return mTokens.size(); }
 };
 

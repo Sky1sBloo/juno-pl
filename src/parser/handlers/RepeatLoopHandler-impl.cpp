@@ -1,3 +1,4 @@
+module;
 #include <expected>
 module junopl.parser.handlers;
 

@@ -25,7 +25,7 @@ std::expected<Body, ParserError> parseBody(TokenList &tokens) {
         return std::unexpected(ParserError::EmptyTokenList());
     }
 
-    while (tokens.current().type != TokenType::OP_CBRAC_CLO) {
+    while (!tokens.empty() && tokens.current().type != TokenType::OP_CBRAC_CLO) {
         switch (tokens.current().type) {
         case TokenType::K_VAR: {
             auto varDecl = parseVarDeclaration(tokens);
@@ -98,6 +98,10 @@ std::expected<Body, ParserError> parseBody(TokenList &tokens) {
                  TokenType::K_WHILE, TokenType::K_FOR}));
         }
         }
+    }
+
+    if (tokens.empty()) {
+        return std::unexpected(ParserError::EmptyTokenList(TokenType::OP_CBRAC_CLO));
     }
 
     if (tokens.current().type == TokenType::OP_CBRAC_CLO) {
