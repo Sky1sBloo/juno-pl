@@ -42,6 +42,10 @@ std::expected<EmitEvent, ParserError> parseEmitEvent(TokenList &tokens) {
             tokens.current(), {TokenType::K_CRAFT, TokenType::K_NEARBY}));
     }
     tokens.advance();
+    if (auto semiColon = expectToken(tokens, TokenType::OP_SEMICOLON);
+        !semiColon) {
+        return std::unexpected(semiColon.error());
+    }
 
     return EmitEvent{ident.value().value, std::move(params.value()), options};
 }
