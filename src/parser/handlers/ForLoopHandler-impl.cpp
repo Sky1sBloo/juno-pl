@@ -8,9 +8,9 @@ std::expected<ForLoop, ParserError> parseForLoop(TokenList &tokens) {
         return std::unexpected(repeat.error());
     }
 
-    auto ident = parseExpression(tokens);
-    if (!ident) {
-        return std::unexpected(ident.error());
+    auto iterator = expectToken(tokens, TokenType::IDENT);
+    if (!iterator) {
+        return std::unexpected(iterator.error());
     }
 
     if (auto from = expectToken(tokens, TokenType::K_FROM); !from) {
@@ -43,7 +43,7 @@ std::expected<ForLoop, ParserError> parseForLoop(TokenList &tokens) {
         return std::unexpected(body.error());
     }
 
-    return ForLoop{std::move(start.value()), std::move(end.value()),
-                   std::move(increment.value())};
+    return ForLoop{iterator.value().value, std::move(start.value()),
+                   std::move(end.value()), std::move(increment.value())};
 }
 }
