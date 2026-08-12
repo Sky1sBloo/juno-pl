@@ -77,6 +77,11 @@ std::optional<UnaryOp::Operation> unaryOperationForToken(const Token &token) {
         return std::nullopt;
     }
 }
+
+bool isListActionName(const std::string &name) {
+    return name == "insert" || name == "remove" || name == "clear" ||
+           name == "sort" || name == "reverse" || name == "length";
+}
 } // namespace
 
 std::optional<ExpressionHandle> Parser::parsePrimaryExpression() {
@@ -151,7 +156,13 @@ std::optional<ExpressionHandle> Parser::parsePrimaryExpression() {
                     return std::nullopt;
                 }
                 auto expr = std::make_unique<JunoPL::Expression>();
-                expr->value = JunoPL::ListOp{qualifier, identifier, std::move(params)};
+                if (isListActionName(identifier)) {
+                    expr->value =
+                        JunoPL::ListOp{qualifier, identifier, std::move(params)};
+                } else {
+                    expr->value = JunoPL::CallExpression{
+                        qualifier, identifier, std::move(params)};
+                }
                 return expr;
             }
         }

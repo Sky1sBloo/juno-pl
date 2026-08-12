@@ -195,6 +195,7 @@ bool LexerStateHandler::isOpSymbol(char c) {
     case ';':
     case '<':
     case '>':
+    case '!':
     case '%':
     case '.':
     case ':':

@@ -13,7 +13,7 @@ Parser::parseParamExpr(TokenList &tokens) {
     mTokens = &tokens;
 
     if (!expectToken(TokenType::OP_PAR_OP)) {
-        recoverTo(TokenType::OP_PAR_CLO);
+        recoverTo(TokenType::OP_SEMICOLON);
         return std::nullopt;
     }
 
@@ -21,7 +21,7 @@ Parser::parseParamExpr(TokenList &tokens) {
     while (mTokens->current().type != TokenType::OP_PAR_CLO) {
         auto value = parseExpression(tokens);
         if (!value) {
-            recoverTo(TokenType::OP_PAR_CLO);
+            recoverTo(TokenType::OP_SEMICOLON);
             return std::nullopt;
         }
 
@@ -36,7 +36,7 @@ Parser::parseParamExpr(TokenList &tokens) {
             mErrors.emplace_back(ParserError::UnexpectedToken(
                 mTokens->current(),
                 {TokenType::OP_COMMA, TokenType::OP_PAR_CLO}));
-            recoverTo(TokenType::OP_PAR_CLO);
+            recoverTo(TokenType::OP_SEMICOLON);
             return std::nullopt;
         }
     }

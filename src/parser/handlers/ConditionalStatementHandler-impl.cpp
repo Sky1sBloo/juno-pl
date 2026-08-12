@@ -23,19 +23,22 @@ Parser::parseConditionalStatement(TokenList &tokens) {
         return std::nullopt;
     }
 
+    if (!expectToken(TokenType::OP_PAR_CLO)) {
+        recoverTo(TokenType::OP_CBRAC_CLO);
+        return std::nullopt;
+    }
+
     auto body = parseBody(tokens);
     if (!body) {
         return std::nullopt;
     }
 
     ConditionalStatement stmt;
-    if (mTokens->empty()) {
-        stmt.ifStatement =
-            IfStatement{std::move(condition.value()), std::move(body.value())};
-        return stmt;
-    }
+    stmt.ifStatement =
+        IfStatement{std::move(condition.value()), std::move(body.value())};
 
-    while (mTokens->current().type == TokenType::K_ELIF) {
+    while (!mTokens->empty() &&
+           mTokens->current().type == TokenType::K_ELIF) {
         mTokens->advance();
         if (!expectToken(TokenType::OP_PAR_OP)) {
             recoverTo(TokenType::OP_CBRAC_CLO);
@@ -44,6 +47,11 @@ Parser::parseConditionalStatement(TokenList &tokens) {
 
         auto elifCond = parseExpression(tokens);
         if (!elifCond) {
+            recoverTo(TokenType::OP_CBRAC_CLO);
+            return std::nullopt;
+        }
+
+        if (!expectToken(TokenType::OP_PAR_CLO)) {
             recoverTo(TokenType::OP_CBRAC_CLO);
             return std::nullopt;
         }
@@ -57,10 +65,10 @@ Parser::parseConditionalStatement(TokenList &tokens) {
             std::move(elifCond.value()), std::move(elifBody.value())});
     }
 
-    auto elseToken = expectToken(TokenType::K_ELSE);
-    if (!elseToken) {
+    if (mTokens->empty() || mTokens->current().type != TokenType::K_ELSE) {
         return stmt;
     }
+    mTokens->advance();
 
     auto elseBody = parseBody(tokens);
     if (!elseBody) {
