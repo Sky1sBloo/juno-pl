@@ -1,7 +1,6 @@
 module;
-#include <expected>
-module junopl.parser.handlers;
-
+#include <optional>
+module junopl.parser;
 import junopl.lexer.tokens;
 import junopl.parser.error;
 import junopl.parser.nodes;
@@ -9,37 +8,42 @@ import junopl.parser.nodes.statements;
 import junopl.parser.nodes.expressions;
 
 namespace JunoPL {
-std::expected<VarDeclaration, ParserError>
-parseVarDeclaration(TokenList &tokens) {
-    if (auto kVar = expectToken(tokens, TokenType::K_VAR); !kVar) {
-        return std::unexpected(kVar.error());
+std::optional<VarDeclaration> Parser::parseVarDeclaration(TokenList &tokens) {
+    mTokens = &tokens;
+
+    if (!expectToken(TokenType::K_VAR)) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
 
-    auto ident = expectToken(tokens, TokenType::IDENT);
+    auto ident = expectToken(TokenType::IDENT);
     if (!ident) {
-        return std::unexpected(ident.error());
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
 
     VarDeclaration node;
-    node.identifier = ident.value().value;
+    node.identifier = ident->value;
     auto next =
-        expectToken(tokens, {TokenType::OP_EQUAL, TokenType::OP_SEMICOLON});
+        expectToken({TokenType::OP_EQUAL, TokenType::OP_SEMICOLON});
     if (!next) {
-        return std::unexpected(next.error());
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
 
-    if (next.value().type == TokenType::OP_SEMICOLON) {
+    if (next->type == TokenType::OP_SEMICOLON) {
         return node;
     }
 
     auto value = parseExpression(tokens);
     if (!value) {
-        return std::unexpected(value.error());
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
 
-    auto semicolon = expectToken(tokens, TokenType::OP_SEMICOLON);
-    if (!semicolon) {
-        return std::unexpected(semicolon.error());
+    if (!expectToken(TokenType::OP_SEMICOLON)) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
 
     node.value = std::move(value.value());

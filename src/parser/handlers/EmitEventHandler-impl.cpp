@@ -1,37 +1,42 @@
 module;
-#include <expected>
-module junopl.parser.handlers;
+#include <optional>
+module junopl.parser;
 
 namespace JunoPL {
-std::expected<EmitEvent, ParserError> parseEmitEvent(TokenList &tokens) {
-    if (auto emitToken = expectToken(tokens, TokenType::K_EMIT); !emitToken) {
-        return std::unexpected(emitToken.error());
+std::optional<EmitEvent> Parser::parseEmitEvent(TokenList &tokens) {
+    mTokens = &tokens;
+
+    if (!expectToken(TokenType::K_EMIT)) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
 
-    auto ident = expectToken(tokens, TokenType::IDENT);
+    auto ident = expectToken(TokenType::IDENT);
     if (!ident) {
-        return std::unexpected(ident.error());
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
 
     auto params = parseParamExpr(tokens);
     if (!params) {
-        return std::unexpected(params.error());
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
 
-    if (auto end = expectToken(
-            tokens, {TokenType::OP_SEMICOLON, TokenType::K_TO}, false);
-        !end) {
-        return std::unexpected(end.error());
+    auto end = expectToken({TokenType::OP_SEMICOLON, TokenType::K_TO}, false);
+    if (!end) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
-    if (tokens.current().type == TokenType::OP_SEMICOLON) {
-        tokens.advance();
-        return EmitEvent{ident.value().value, std::move(params.value()),
+    if (mTokens->current().type == TokenType::OP_SEMICOLON) {
+        mTokens->advance();
+        return EmitEvent{ident->value, std::move(params.value()),
                          EmitEvent::Options::TO_SCRIPT};
     }
-    tokens.advance();
+    mTokens->advance();
 
     EmitEvent::Options options;
-    switch (tokens.current().type) {
+    switch (mTokens->current().type) {
     case TokenType::K_CRAFT:
         options = EmitEvent::Options::TO_CRAFT;
         break;
@@ -39,15 +44,17 @@ std::expected<EmitEvent, ParserError> parseEmitEvent(TokenList &tokens) {
         options = EmitEvent::Options::TO_NEARBY_CRAFTS;
         break;
     default:
-        return std::unexpected(ParserError::UnexpectedToken(
-            tokens.current(), {TokenType::K_CRAFT, TokenType::K_NEARBY}));
+        mErrors.emplace_back(ParserError::UnexpectedToken(
+            mTokens->current(), {TokenType::K_CRAFT, TokenType::K_NEARBY}));
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
-    tokens.advance();
-    if (auto semiColon = expectToken(tokens, TokenType::OP_SEMICOLON);
-        !semiColon) {
-        return std::unexpected(semiColon.error());
+    mTokens->advance();
+    if (!expectToken(TokenType::OP_SEMICOLON)) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
 
-    return EmitEvent{ident.value().value, std::move(params.value()), options};
+    return EmitEvent{ident->value, std::move(params.value()), options};
 }
 }

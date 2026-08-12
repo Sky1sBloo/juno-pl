@@ -1,83 +1,127 @@
 module;
-#include <expected>
 #include <memory>
+#include <optional>
 #include <string>
 module junopl.parser;
 import junopl.lexer.tokens;
 import junopl.parser.nodes;
 import junopl.parser.error;
-import junopl.parser.handlers;
 
 namespace JunoPL {
+
+std::optional<Token> Parser::expectToken(TokenType expectedType, bool advance) {
+    if (mTokens->empty()) {
+        mErrors.emplace_back(ParserError::EmptyTokenList(expectedType));
+        return std::nullopt;
+    }
+
+    Token token = mTokens->current();
+    if (token.type != expectedType) {
+        mErrors.emplace_back(ParserError::UnexpectedToken(token, expectedType));
+        return std::nullopt;
+    }
+
+    if (advance) {
+        mTokens->advance();
+    }
+    return token;
+}
+
+std::optional<Token>
+Parser::expectToken(std::initializer_list<TokenType> expectedTypes,
+                    bool advance) {
+    if (mTokens->empty()) {
+        mErrors.emplace_back(ParserError::EmptyTokenList(expectedTypes));
+        return std::nullopt;
+    }
+
+    Token token = mTokens->current();
+    bool found = false;
+    for (TokenType type : expectedTypes) {
+        if (token.type == type) {
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        mErrors.emplace_back(ParserError::UnexpectedToken(token, expectedTypes));
+        return std::nullopt;
+    }
+
+    if (advance) {
+        mTokens->advance();
+    }
+    return token;
+}
+
+void Parser::recoverTo(TokenType stopType) {
+    while (!mTokens->empty() && mTokens->current().type != stopType) {
+        mTokens->advance();
+    }
+}
+
+void Parser::pushError(ParserError error) {
+    mErrors.emplace_back(std::move(error));
+}
+
 Parser::Output Parser::parse(TokenList &tokens) {
+    mTokens = &tokens;
+    mErrors.clear();
+
     Output output;
     if (tokens.empty()) {
-        output.errors.emplace_back(ParserError{ParserError::Type::EMPTY_TOKENS,
-                                               "Parser received empty tokens"});
+        mErrors.emplace_back(ParserError{ParserError::Type::EMPTY_TOKENS,
+                                         "Parser received empty tokens"});
+        output.errors = std::move(mErrors);
         return output;
     }
 
     RootNode root;
     switch (tokens.current().type) {
     case TokenType::K_PROGRAM: {
-        auto programName = handleProgramName(tokens);
-        if (programName.has_value()) {
+        if (auto programName = handleProgramName()) {
             root.programName = programName.value();
-        } else {
-            output.errors.push_back(programName.error());
         }
         break;
     }
     case TokenType::K_IMPORT: {
-        auto importPath = handleImport(tokens);
-        if (importPath.has_value()) {
-            root.body.push_back(importPath.value());
-        } else {
-            output.errors.push_back(importPath.error());
+        if (auto importNode = handleImport()) {
+            root.body.push_back(importNode.value());
         }
-    } break;
+        break;
+    }
     case TokenType::K_INSTR: {
-        if (auto instr = parseFunction(tokens); !instr) {
-            output.errors.push_back(instr.error());
-        } else {
+        if (auto instr = parseFunction(tokens)) {
             root.body.push_back(std::move(instr.value()));
         }
         break;
     }
     case TokenType::K_ON: {
-        if (auto on = parseEvent(tokens); !on) {
-            output.errors.push_back(on.error());
-        } else {
+        if (auto on = parseEvent(tokens)) {
             root.body.push_back(std::move(on.value()));
         }
         break;
     }
     case TokenType::K_VAR: {
-        if (auto var = parseVarDeclaration(tokens); !var) {
-            output.errors.push_back(var.error());
-        } else {
+        if (auto var = parseVarDeclaration(tokens)) {
             root.body.push_back(std::move(var.value()));
         }
         break;
     }
     case TokenType::K_LIST: {
-        if (auto list = parseListDeclaration(tokens); !list) {
-            output.errors.push_back(list.error());
-        } else {
+        if (auto list = parseListDeclaration(tokens)) {
             root.body.push_back(std::move(list.value()));
         }
         break;
     }
     case TokenType::K_EXPR: {
-        if (auto expr = parseCustomExpression(tokens); !expr) {
-            output.errors.push_back(expr.error());
-        } else {
+        if (auto expr = parseCustomExpression(tokens)) {
             root.body.push_back(std::move(expr.value()));
         }
         break;
     }
     default: {
-        output.errors.push_back(ParserError::UnexpectedToken(
+        mErrors.emplace_back(ParserError::UnexpectedToken(
             tokens.current(),
             {TokenType::K_PROGRAM, TokenType::K_IMPORT, TokenType::K_INSTR,
              TokenType::K_ON, TokenType::K_VAR, TokenType::K_LIST,
@@ -86,35 +130,33 @@ Parser::Output Parser::parse(TokenList &tokens) {
     }
 
     output.root = std::make_unique<RootNode>(std::move(root));
+    output.errors = std::move(mErrors);
     return output;
 }
 
-std::expected<std::string, ParserError>
-Parser::handleProgramName(TokenList &tokens) {
-    auto program = expectToken(tokens, TokenType::K_PROGRAM);
-    if (!program.has_value()) {
-        return std::unexpected(program.error());
+std::optional<std::string> Parser::handleProgramName() {
+    if (!expectToken(TokenType::K_PROGRAM)) {
+        return std::nullopt;
     }
 
-    auto name = expectToken(tokens, TokenType::STR);
-    if (!name.has_value()) {
-        return std::unexpected(name.error());
+    auto name = expectToken(TokenType::STR);
+    if (!name) {
+        return std::nullopt;
     }
-    return name.value().value;
+    return name->value;
 }
 
-std::expected<ImportNode, ParserError> Parser::handleImport(TokenList &tokens) {
-    auto importSymbol = expectToken(tokens, TokenType::K_IMPORT);
-    if (!importSymbol.has_value()) {
-        return std::unexpected(importSymbol.error());
+std::optional<ImportNode> Parser::handleImport() {
+    if (!expectToken(TokenType::K_IMPORT)) {
+        return std::nullopt;
     }
 
-    auto importPath = expectToken(tokens, TokenType::STR);
-    if (!importPath.has_value()) {
-        return std::unexpected(importPath.error());
+    auto importPath = expectToken(TokenType::STR);
+    if (!importPath) {
+        return std::nullopt;
     }
     ImportNode node;
-    node.path = importPath.value().value;
+    node.path = importPath->value;
     return node;
 }
 }

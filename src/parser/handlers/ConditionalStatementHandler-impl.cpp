@@ -1,60 +1,70 @@
 module;
-#include <expected>
-module junopl.parser.handlers;
+#include <optional>
+module junopl.parser;
 
 namespace JunoPL {
-std::expected<ConditionalStatement, ParserError>
-parseConditionalStatement(TokenList &tokens) {
-    if (auto ifToken = expectToken(tokens, TokenType::K_IF); !ifToken) {
-        return std::unexpected(ifToken.error());
+std::optional<ConditionalStatement>
+Parser::parseConditionalStatement(TokenList &tokens) {
+    mTokens = &tokens;
+
+    if (!expectToken(TokenType::K_IF)) {
+        recoverTo(TokenType::OP_CBRAC_CLO);
+        return std::nullopt;
     }
 
-    if (auto openPar = expectToken(tokens, TokenType::OP_PAR_OP); !openPar) {
-        return std::unexpected(openPar.error());
+    if (!expectToken(TokenType::OP_PAR_OP)) {
+        recoverTo(TokenType::OP_CBRAC_CLO);
+        return std::nullopt;
     }
 
     auto condition = parseExpression(tokens);
     if (!condition) {
-        return std::unexpected(condition.error());
+        recoverTo(TokenType::OP_CBRAC_CLO);
+        return std::nullopt;
     }
 
     auto body = parseBody(tokens);
     if (!body) {
-        return std::unexpected(body.error());
+        return std::nullopt;
     }
 
     ConditionalStatement stmt;
-    if (tokens.empty()) {
+    if (mTokens->empty()) {
         stmt.ifStatement =
             IfStatement{std::move(condition.value()), std::move(body.value())};
         return stmt;
     }
 
-    while (tokens.current().type == TokenType::K_ELIF) {
-        tokens.advance();
-        if (auto openPar = expectToken(tokens, TokenType::OP_PAR_OP);
-            !openPar) {
-            return std::unexpected(openPar.error());
+    while (mTokens->current().type == TokenType::K_ELIF) {
+        mTokens->advance();
+        if (!expectToken(TokenType::OP_PAR_OP)) {
+            recoverTo(TokenType::OP_CBRAC_CLO);
+            return std::nullopt;
         }
 
-        if (auto elifCond = parseExpression(tokens); !elifCond) {
-            return std::unexpected(elifCond.error());
-        } else if (auto elifBody = parseBody(tokens); !elifBody) {
-            return std::unexpected(elifBody.error());
-        } else {
-            stmt.elifStatements.emplace_back(IfStatement{
-                std::move(elifCond.value()), std::move(elifBody.value())});
+        auto elifCond = parseExpression(tokens);
+        if (!elifCond) {
+            recoverTo(TokenType::OP_CBRAC_CLO);
+            return std::nullopt;
         }
+
+        auto elifBody = parseBody(tokens);
+        if (!elifBody) {
+            return std::nullopt;
+        }
+
+        stmt.elifStatements.emplace_back(IfStatement{
+            std::move(elifCond.value()), std::move(elifBody.value())});
     }
 
-    auto elseToken = expectToken(tokens, TokenType::K_ELSE);
+    auto elseToken = expectToken(TokenType::K_ELSE);
     if (!elseToken) {
         return stmt;
     }
 
     auto elseBody = parseBody(tokens);
     if (!elseBody) {
-        return std::unexpected(elseBody.error());
+        return std::nullopt;
     }
     stmt.elseStatement = std::move(elseBody.value());
     return stmt;

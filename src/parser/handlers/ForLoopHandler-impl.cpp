@@ -1,49 +1,61 @@
 module;
-#include <expected>
-module junopl.parser.handlers;
+#include <optional>
+module junopl.parser;
 
 namespace JunoPL {
-std::expected<ForLoop, ParserError> parseForLoop(TokenList &tokens) {
-    if (auto repeat = expectToken(tokens, TokenType::K_FOR); !repeat) {
-        return std::unexpected(repeat.error());
+std::optional<ForLoop> Parser::parseForLoop(TokenList &tokens) {
+    mTokens = &tokens;
+
+    if (!expectToken(TokenType::K_FOR)) {
+        recoverTo(TokenType::OP_CBRAC_CLO);
+        return std::nullopt;
     }
 
-    auto iterator = expectToken(tokens, TokenType::IDENT);
+    auto iterator = expectToken(TokenType::IDENT);
     if (!iterator) {
-        return std::unexpected(iterator.error());
+        recoverTo(TokenType::OP_CBRAC_CLO);
+        return std::nullopt;
     }
 
-    if (auto from = expectToken(tokens, TokenType::K_FROM); !from) {
-        return std::unexpected(from.error());
+    if (!expectToken(TokenType::K_FROM)) {
+        recoverTo(TokenType::OP_CBRAC_CLO);
+        return std::nullopt;
     }
 
     auto start = parseExpression(tokens);
     if (!start) {
-        return std::unexpected(start.error());
+        recoverTo(TokenType::OP_CBRAC_CLO);
+        return std::nullopt;
     }
 
-    if (auto to = expectToken(tokens, TokenType::K_TO); !to) {
-        return std::unexpected(to.error());
+    if (!expectToken(TokenType::K_TO)) {
+        recoverTo(TokenType::OP_CBRAC_CLO);
+        return std::nullopt;
     }
+
     auto end = parseExpression(tokens);
     if (!end) {
-        return std::unexpected(end.error());
+        recoverTo(TokenType::OP_CBRAC_CLO);
+        return std::nullopt;
     }
 
-    if (auto by = expectToken(tokens, TokenType::K_BY); !by) {
-        return std::unexpected(by.error());
+    if (!expectToken(TokenType::K_BY)) {
+        recoverTo(TokenType::OP_CBRAC_CLO);
+        return std::nullopt;
     }
+
     auto increment = parseExpression(tokens);
     if (!increment) {
-        return std::unexpected(increment.error());
+        recoverTo(TokenType::OP_CBRAC_CLO);
+        return std::nullopt;
     }
 
     auto body = parseBody(tokens);
     if (!body) {
-        return std::unexpected(body.error());
+        return std::nullopt;
     }
 
-    return ForLoop{iterator.value().value, std::move(start.value()),
+    return ForLoop{iterator->value, std::move(start.value()),
                    std::move(end.value()), std::move(increment.value())};
 }
 }

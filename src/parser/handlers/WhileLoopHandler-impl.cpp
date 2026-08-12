@@ -1,21 +1,25 @@
 module;
-#include <expected>
-module junopl.parser.handlers;
+#include <optional>
+module junopl.parser;
 
 namespace JunoPL {
-std::expected<WhileLoop, ParserError> parseWhileLoop(TokenList &tokens) {
-    if (auto repeat = expectToken(tokens, TokenType::K_WHILE); !repeat) {
-        return std::unexpected(repeat.error());
+std::optional<WhileLoop> Parser::parseWhileLoop(TokenList &tokens) {
+    mTokens = &tokens;
+
+    if (!expectToken(TokenType::K_WHILE)) {
+        recoverTo(TokenType::OP_CBRAC_CLO);
+        return std::nullopt;
     }
 
     auto expr = parseExpression(tokens);
     if (!expr) {
-        return std::unexpected(expr.error());
+        recoverTo(TokenType::OP_CBRAC_CLO);
+        return std::nullopt;
     }
 
     auto body = parseBody(tokens);
     if (!body) {
-        return std::unexpected(body.error());
+        return std::nullopt;
     }
 
     return WhileLoop{std::move(expr.value()), std::move(body.value())};

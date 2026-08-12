@@ -1,6 +1,5 @@
 module;
-#include <expected>
-#include <initializer_list>
+#include <optional>
 #include <string>
 #include <vector>
 export module junopl.parser.handlers;
@@ -10,106 +9,87 @@ import junopl.parser.error;
 import junopl.parser.nodes;
 import junopl.parser.nodes.statements;
 import junopl.parser.nodes.expressions;
+import junopl.parser;
 
 namespace JunoPL {
-export std::expected<Token, ParserError>
-expectToken(TokenList &tokens, TokenType expectedToken, bool advance = true) {
-    if (tokens.empty()) {
-        return std::unexpected(ParserError::EmptyTokenList(expectedToken));
-    }
 
-    Token token = tokens.current();
-    if (token.type != expectedToken) {
-        return std::unexpected(
-            ParserError::UnexpectedToken(token, expectedToken));
-    }
-
-    if (advance) {
-        tokens.advance();
-    }
-    return token;
+export std::optional<Body> parseBody(TokenList &tokens) {
+    Parser parser;
+    return parser.parseBody(tokens);
 }
 
-export std::expected<Token, ParserError>
-expectToken(TokenList &tokens, std::initializer_list<TokenType> expectedTokens,
-            bool advance = true) {
-    if (tokens.empty()) {
-        return std::unexpected(ParserError::EmptyTokenList(expectedTokens));
-    }
-
-    Token token = tokens.current();
-    bool found = false;
-    for (TokenType expectedToken : expectedTokens) {
-        if (token.type == expectedToken) {
-            found = true;
-        }
-    }
-    if (!found) {
-        return std::unexpected(
-            ParserError::UnexpectedToken(token, expectedTokens));
-    }
-
-    if (advance) {
-        tokens.advance();
-    }
-    return token;
+export std::optional<FunctionNode> parseFunction(TokenList &tokens) {
+    Parser parser;
+    return parser.parseFunction(tokens);
 }
 
-/**
-For ordered listing */
-export std::expected<std::vector<Token>, ParserError>
-expectTokenList(TokenList &tokens,
-                std::initializer_list<TokenType> expectedTokens) {
-    std::vector<Token> toReturn;
-    for (TokenType type : expectedTokens) {
-        if (auto token = expectToken(tokens, type); !token) {
-            return std::unexpected(token.error());
-        } else {
-            toReturn.push_back(token.value());
-        }
-    }
-    return toReturn;
+export std::optional<EventNode> parseEvent(TokenList &tokens) {
+    Parser parser;
+    return parser.parseEvent(tokens);
 }
 
-/// Root nodes
-export std::expected<FunctionNode, ParserError>
-parseFunction(TokenList &tokens);
+export std::optional<VarDeclaration> parseVarDeclaration(TokenList &tokens) {
+    Parser parser;
+    return parser.parseVarDeclaration(tokens);
+}
 
-export std::expected<CustomExpression, ParserError>
-parseCustomExpression(TokenList &tokens);
+export std::optional<ListDeclaration> parseListDeclaration(TokenList &tokens) {
+    Parser parser;
+    return parser.parseListDeclaration(tokens);
+}
 
-export std::expected<EventNode, ParserError> parseEvent(TokenList &tokens);
+export std::optional<PerformInstruction>
+parsePerformInstruction(TokenList &tokens) {
+    Parser parser;
+    return parser.parsePerformInstruction(tokens);
+}
 
-export std::expected<VarDeclaration, ParserError>
-parseVarDeclaration(TokenList &tokens);
+export std::optional<ConditionalStatement>
+parseConditionalStatement(TokenList &tokens) {
+    Parser parser;
+    return parser.parseConditionalStatement(tokens);
+}
 
-export std::expected<ListDeclaration, ParserError>
-parseListDeclaration(TokenList &tokens);
+export std::optional<RepeatLoop> parseRepeatLoop(TokenList &tokens) {
+    Parser parser;
+    return parser.parseRepeatLoop(tokens);
+}
 
-export std::expected<PerformInstruction, ParserError>
-parsePerformInstruction(TokenList &tokens);
+export std::optional<WhileLoop> parseWhileLoop(TokenList &tokens) {
+    Parser parser;
+    return parser.parseWhileLoop(tokens);
+}
 
-export std::expected<ConditionalStatement, ParserError>
-parseConditionalStatement(TokenList &tokens);
+export std::optional<ForLoop> parseForLoop(TokenList &tokens) {
+    Parser parser;
+    return parser.parseForLoop(tokens);
+}
 
-export std::expected<RepeatLoop, ParserError>
-parseRepeatLoop(TokenList &tokens);
+export std::optional<EmitEvent> parseEmitEvent(TokenList &tokens) {
+    Parser parser;
+    return parser.parseEmitEvent(tokens);
+}
 
-export std::expected<WhileLoop, ParserError> parseWhileLoop(TokenList &tokens);
+export std::optional<CustomExpression>
+parseCustomExpression(TokenList &tokens) {
+    Parser parser;
+    return parser.parseCustomExpression(tokens);
+}
 
-export std::expected<ForLoop, ParserError> parseForLoop(TokenList &tokens);
+export std::optional<std::vector<std::string>> parseParam(TokenList &tokens) {
+    Parser parser;
+    return parser.parseParam(tokens);
+}
 
-export std::expected<EmitEvent, ParserError> parseEmitEvent(TokenList &tokens);
+export std::optional<std::vector<ExpressionHandle>>
+parseParamExpr(TokenList &tokens) {
+    Parser parser;
+    return parser.parseParamExpr(tokens);
+}
 
-export std::expected<std::vector<std::string>, ParserError>
-parseParam(TokenList &tokens);
-
-export std::expected<std::vector<ExpressionHandle>, ParserError>
-parseParamExpr(TokenList &tokens);
-
-export std::expected<Body, ParserError> parseBody(TokenList &tokens);
-
-export std::expected<ExpressionHandle, ParserError>
-parseExpression(JunoPL::TokenList &tokens);
-
+export std::optional<ExpressionHandle>
+parseExpression(TokenList &tokens) {
+    Parser parser;
+    return parser.parseExpression(tokens);
+}
 }

@@ -1,6 +1,6 @@
 module;
-#include <expected>
-module junopl.parser.handlers;
+#include <optional>
+module junopl.parser;
 
 import junopl.lexer.tokens;
 import junopl.parser.error;
@@ -9,69 +9,75 @@ import junopl.parser.nodes.expressions;
 import junopl.parser.nodes.statements;
 
 namespace JunoPL {
-std::expected<ListDeclaration, ParserError>
-parseListDeclaration(TokenList &tokens) {
-	if (auto kList = expectToken(tokens, TokenType::K_LIST); !kList) {
-		return std::unexpected(kList.error());
-	}
+std::optional<ListDeclaration> Parser::parseListDeclaration(TokenList &tokens) {
+    mTokens = &tokens;
 
-	auto ident = expectToken(tokens, TokenType::IDENT);
-	if (!ident) {
-		return std::unexpected(ident.error());
-	}
+    if (!expectToken(TokenType::K_LIST)) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
+    }
 
-	ListDeclaration node;
-	node.identifier = ident.value().value;
+    auto ident = expectToken(TokenType::IDENT);
+    if (!ident) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
+    }
 
-	auto next = expectToken(tokens,
-							{TokenType::OP_EQUAL, TokenType::OP_SEMICOLON});
-	if (!next) {
-		return std::unexpected(next.error());
-	}
+    ListDeclaration node;
+    node.identifier = ident->value;
 
-	if (next.value().type == TokenType::OP_SEMICOLON) {
-		return node;
-	}
+    auto next = expectToken({TokenType::OP_EQUAL, TokenType::OP_SEMICOLON});
+    if (!next) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
+    }
 
-	auto openBracket = expectToken(tokens, TokenType::OP_BRAC_OP);
-	if (!openBracket) {
-		return std::unexpected(openBracket.error());
-	}
+    if (next->type == TokenType::OP_SEMICOLON) {
+        return node;
+    }
 
-	if (tokens.current().type != TokenType::OP_BRAC_CLO) {
-		while (true) {
-			auto value = parseExpression(tokens);
-			if (!value) {
-				return std::unexpected(value.error());
-			}
+    if (!expectToken(TokenType::OP_BRAC_OP)) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
+    }
 
-			node.values.push_back(std::move(value.value()));
+    if (mTokens->current().type != TokenType::OP_BRAC_CLO) {
+        while (true) {
+            auto value = parseExpression(tokens);
+            if (!value) {
+                recoverTo(TokenType::OP_SEMICOLON);
+                return std::nullopt;
+            }
 
-			if (tokens.current().type == TokenType::OP_COMMA) {
-				tokens.advance();
-				continue;
-			}
+            node.values.push_back(std::move(value.value()));
 
-			if (tokens.current().type == TokenType::OP_BRAC_CLO) {
-				break;
-			}
+            if (mTokens->current().type == TokenType::OP_COMMA) {
+                mTokens->advance();
+                continue;
+            }
 
-			return std::unexpected(ParserError::UnexpectedToken(
-				tokens.current(),
-				{TokenType::OP_COMMA, TokenType::OP_BRAC_CLO}));
-		}
-	}
+            if (mTokens->current().type == TokenType::OP_BRAC_CLO) {
+                break;
+            }
 
-	auto closeBracket = expectToken(tokens, TokenType::OP_BRAC_CLO);
-	if (!closeBracket) {
-		return std::unexpected(closeBracket.error());
-	}
+            mErrors.emplace_back(ParserError::UnexpectedToken(
+                mTokens->current(),
+                {TokenType::OP_COMMA, TokenType::OP_BRAC_CLO}));
+            recoverTo(TokenType::OP_SEMICOLON);
+            return std::nullopt;
+        }
+    }
 
-	auto semicolon = expectToken(tokens, TokenType::OP_SEMICOLON);
-	if (!semicolon) {
-		return std::unexpected(semicolon.error());
-	}
+    if (!expectToken(TokenType::OP_BRAC_CLO)) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
+    }
 
-	return node;
+    if (!expectToken(TokenType::OP_SEMICOLON)) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
+    }
+
+    return node;
 }
 }

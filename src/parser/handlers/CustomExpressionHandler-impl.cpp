@@ -1,46 +1,52 @@
 module;
-#include <expected>
+#include <optional>
 #include <utility>
-module junopl.parser.handlers;
+module junopl.parser;
 import junopl.lexer.tokens;
 import junopl.parser.error;
 import junopl.parser.nodes;
 import junopl.parser.nodes.expressions;
 
 namespace JunoPL {
-std::expected<CustomExpression, ParserError>
-parseCustomExpression(TokenList &tokens) {
-    if (auto expr = expectToken(tokens, TokenType::K_EXPR); !expr) {
-        return std::unexpected(expr.error());
+std::optional<CustomExpression>
+Parser::parseCustomExpression(TokenList &tokens) {
+    mTokens = &tokens;
+
+    if (!expectToken(TokenType::K_EXPR)) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
 
-    auto ident = expectToken(tokens, TokenType::IDENT);
+    auto ident = expectToken(TokenType::IDENT);
     if (!ident) {
-        return std::unexpected(ident.error());
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
 
     auto params = parseParam(tokens);
     if (!params) {
-        return std::unexpected(params.error());
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
 
-    auto equals = expectToken(tokens, TokenType::OP_EQUAL);
-    if (!equals) {
-        return std::unexpected(equals.error());
+    if (!expectToken(TokenType::OP_EQUAL)) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
 
     auto expression = parseExpression(tokens);
     if (!expression) {
-        return std::unexpected(expression.error());
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
 
-    auto semicolon = expectToken(tokens, TokenType::OP_SEMICOLON);
-    if (!semicolon) {
-        return std::unexpected(semicolon.error());
+    if (!expectToken(TokenType::OP_SEMICOLON)) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
 
     CustomExpression exprNode;
-    exprNode.identifier = ident.value().value;
+    exprNode.identifier = ident->value;
     exprNode.params = std::move(params.value());
     exprNode.expression = std::move(expression.value());
     return exprNode;

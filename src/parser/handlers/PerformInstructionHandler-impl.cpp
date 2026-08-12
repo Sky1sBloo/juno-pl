@@ -1,31 +1,36 @@
 module;
-#include <expected>
-module junopl.parser.handlers;
+#include <optional>
+module junopl.parser;
 
 namespace JunoPL {
-std::expected<PerformInstruction, ParserError>
-parsePerformInstruction(TokenList &tokens) {
-    if (auto perform = expectToken(tokens, TokenType::K_PERFORM); !perform) {
-        return std::unexpected(perform.error());
+std::optional<PerformInstruction>
+Parser::parsePerformInstruction(TokenList &tokens) {
+    mTokens = &tokens;
+
+    if (!expectToken(TokenType::K_PERFORM)) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
 
-    auto ident = expectToken(tokens, TokenType::IDENT);
+    auto ident = expectToken(TokenType::IDENT);
     if (!ident) {
-        return std::unexpected(ident.error());
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
 
     auto params = parseParamExpr(tokens);
     if (!params) {
-        return std::unexpected(params.error());
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
 
-    if (auto semiColon = expectToken(tokens, TokenType::OP_SEMICOLON);
-        !semiColon) {
-        return std::unexpected(semiColon.error());
+    if (!expectToken(TokenType::OP_SEMICOLON)) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
     }
 
     PerformInstruction instr;
-    instr.identifier = ident.value().value;
+    instr.identifier = ident->value;
     instr.params = std::move(params.value());
     return instr;
 }

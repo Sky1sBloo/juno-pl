@@ -1,14 +1,12 @@
 module;
-#include <expected>
 #include <memory>
+#include <optional>
 #include <utility>
-module junopl.parser.handlers;
+module junopl.parser;
 
 namespace JunoPL {
 
 namespace {
-using ExpressionHandle = JunoPL::ExpressionHandle;
-
 int binaryPrecedence(TokenType type) {
     switch (type) {
     case TokenType::K_OR:
@@ -34,7 +32,7 @@ int binaryPrecedence(TokenType type) {
     }
 }
 
-std::expected<BinaryOp::Operation, ParserError>
+std::optional<BinaryOp::Operation>
 binaryOperationForToken(const Token &token) {
     switch (token.type) {
     case TokenType::OP_PLUS:
@@ -64,95 +62,83 @@ binaryOperationForToken(const Token &token) {
     case TokenType::OP_COMP_LESS_EQ:
         return BinaryOp::Operation::LESS_EQ;
     default:
-        break;
+        return std::nullopt;
     }
-
-    return std::unexpected(ParserError::UnexpectedToken(
-        token, {TokenType::OP_PLUS,        TokenType::OP_MINUS,
-                TokenType::OP_MULT,        TokenType::OP_DIVIDE,
-                TokenType::OP_MOD,         TokenType::K_AND,
-                TokenType::K_OR,           TokenType::OP_COMP_EQ,
-                TokenType::OP_COMP_NOT_EQ, TokenType::OP_COMP_GREATER,
-                TokenType::OP_COMP_LESS,   TokenType::OP_COMP_GREATER_EQ,
-                TokenType::OP_COMP_LESS_EQ}));
 }
 
-std::expected<UnaryOp::Operation, ParserError>
-unaryOperationForToken(const Token &token) {
+std::optional<UnaryOp::Operation> unaryOperationForToken(const Token &token) {
     switch (token.type) {
     case TokenType::K_NOT:
         return UnaryOp::Operation::NOT;
     case TokenType::OP_MINUS:
         return UnaryOp::Operation::NEGATE;
     default:
-        break;
+        return std::nullopt;
     }
-
-    return std::unexpected(ParserError::UnexpectedToken(
-        token, {TokenType::K_NOT, TokenType::OP_MINUS}));
 }
+} // namespace
 
-std::expected<ExpressionHandle, ParserError> parseExpressionImpl(TokenList &tokens);
-
-std::expected<ExpressionHandle, ParserError>
-parsePrimaryExpression(TokenList &tokens) {
-    if (tokens.empty()) {
-        return std::unexpected(ParserError::EmptyTokenList(TokenType::IDENT));
+std::optional<ExpressionHandle> Parser::parsePrimaryExpression() {
+    if (mTokens->empty()) {
+        mErrors.emplace_back(ParserError::EmptyTokenList(TokenType::IDENT));
+        return std::nullopt;
     }
 
-    switch (tokens.current().type) {
+    switch (mTokens->current().type) {
     case TokenType::NUM:
     case TokenType::STR:
     case TokenType::TRUE:
     case TokenType::FALSE:
     case TokenType::IDENT: {
-        auto valueToken = tokens.current();
-        tokens.advance();
+        auto valueToken = mTokens->current();
+        mTokens->advance();
 
         auto expression = std::make_unique<JunoPL::Expression>();
         expression->value = JunoPL::Value{valueToken.value};
         return expression;
     }
     case TokenType::OP_PAR_OP: {
-        tokens.advance();
-        auto expression = parseExpressionImpl(tokens);
+        mTokens->advance();
+        auto expression = parseTernaryExpression();
         if (!expression) {
-            return std::unexpected(expression.error());
+            return std::nullopt;
         }
 
-        auto closeParen = expectToken(tokens, TokenType::OP_PAR_CLO);
-        if (!closeParen) {
-            return std::unexpected(closeParen.error());
+        if (!expectToken(TokenType::OP_PAR_CLO)) {
+            return std::nullopt;
         }
 
         return expression;
     }
     default:
-        return std::unexpected(ParserError::UnexpectedToken(
-            tokens.current(), {TokenType::NUM, TokenType::STR, TokenType::TRUE,
-                               TokenType::FALSE, TokenType::IDENT,
-                               TokenType::OP_PAR_OP}));
+        mErrors.emplace_back(ParserError::UnexpectedToken(
+            mTokens->current(), {TokenType::NUM, TokenType::STR, TokenType::TRUE,
+                                TokenType::FALSE, TokenType::IDENT,
+                                TokenType::OP_PAR_OP}));
+        return std::nullopt;
     }
 }
 
-std::expected<ExpressionHandle, ParserError>
-parseUnaryExpression(TokenList &tokens) {
-    if (tokens.empty()) {
-        return std::unexpected(ParserError::EmptyTokenList(TokenType::IDENT));
+std::optional<ExpressionHandle> Parser::parseUnaryExpression() {
+    if (mTokens->empty()) {
+        mErrors.emplace_back(ParserError::EmptyTokenList(TokenType::IDENT));
+        return std::nullopt;
     }
 
-    switch (tokens.current().type) {
+    switch (mTokens->current().type) {
     case TokenType::K_NOT:
     case TokenType::OP_MINUS: {
-        auto operation = unaryOperationForToken(tokens.current());
+        auto operation = unaryOperationForToken(mTokens->current());
         if (!operation) {
-            return std::unexpected(operation.error());
+            mErrors.emplace_back(ParserError::UnexpectedToken(
+                mTokens->current(), {TokenType::K_NOT, TokenType::OP_MINUS}));
+            return std::nullopt;
         }
 
-        tokens.advance();
-        auto value = parseUnaryExpression(tokens);
+        mTokens->advance();
+        auto value = parseUnaryExpression();
         if (!value) {
-            return std::unexpected(value.error());
+            return std::nullopt;
         }
 
         auto expression = std::make_unique<JunoPL::Expression>();
@@ -161,33 +147,42 @@ parseUnaryExpression(TokenList &tokens) {
         return expression;
     }
     default:
-        return parsePrimaryExpression(tokens);
+        return parsePrimaryExpression();
     }
 }
 
-std::expected<ExpressionHandle, ParserError>
-parseBinaryExpression(TokenList &tokens, int minimumPrecedence) {
-    auto left = parseUnaryExpression(tokens);
+std::optional<ExpressionHandle>
+Parser::parseBinaryExpression(int minimumPrecedence) {
+    auto left = parseUnaryExpression();
     if (!left) {
-        return std::unexpected(left.error());
+        return std::nullopt;
     }
 
-    while (!tokens.empty()) {
-        int precedence = binaryPrecedence(tokens.current().type);
+    while (!mTokens->empty()) {
+        int precedence = binaryPrecedence(mTokens->current().type);
         if (precedence < minimumPrecedence) {
             break;
         }
 
-        auto operation = binaryOperationForToken(tokens.current());
+        auto operation = binaryOperationForToken(mTokens->current());
         if (!operation) {
-            return std::unexpected(operation.error());
+            mErrors.emplace_back(ParserError::UnexpectedToken(
+                mTokens->current(),
+                {TokenType::OP_PLUS,        TokenType::OP_MINUS,
+                 TokenType::OP_MULT,        TokenType::OP_DIVIDE,
+                 TokenType::OP_MOD,         TokenType::K_AND,
+                 TokenType::K_OR,           TokenType::OP_COMP_EQ,
+                 TokenType::OP_COMP_NOT_EQ, TokenType::OP_COMP_GREATER,
+                 TokenType::OP_COMP_LESS,   TokenType::OP_COMP_GREATER_EQ,
+                 TokenType::OP_COMP_LESS_EQ}));
+            return std::nullopt;
         }
 
-        tokens.advance();
+        mTokens->advance();
 
-        auto right = parseBinaryExpression(tokens, precedence + 1);
+        auto right = parseBinaryExpression(precedence + 1);
         if (!right) {
-            return std::unexpected(right.error());
+            return std::nullopt;
         }
 
         auto expression = std::make_unique<JunoPL::Expression>();
@@ -200,32 +195,30 @@ parseBinaryExpression(TokenList &tokens, int minimumPrecedence) {
     return left;
 }
 
-std::expected<ExpressionHandle, ParserError>
-parseTernaryExpression(TokenList &tokens) {
-    auto condition = parseBinaryExpression(tokens, 0);
+std::optional<ExpressionHandle> Parser::parseTernaryExpression() {
+    auto condition = parseBinaryExpression(0);
     if (!condition) {
-        return std::unexpected(condition.error());
+        return std::nullopt;
     }
 
-    if (tokens.empty() || tokens.current().type != TokenType::OP_QUESTION) {
+    if (mTokens->empty() || mTokens->current().type != TokenType::OP_QUESTION) {
         return condition;
     }
 
-    tokens.advance();
+    mTokens->advance();
 
-    auto valueIfTrue = parseExpressionImpl(tokens);
+    auto valueIfTrue = parseTernaryExpression();
     if (!valueIfTrue) {
-        return std::unexpected(valueIfTrue.error());
+        return std::nullopt;
     }
 
-    auto colon = expectToken(tokens, TokenType::OP_COLON);
-    if (!colon) {
-        return std::unexpected(colon.error());
+    if (!expectToken(TokenType::OP_COLON)) {
+        return std::nullopt;
     }
 
-    auto valueIfFalse = parseExpressionImpl(tokens);
+    auto valueIfFalse = parseTernaryExpression();
     if (!valueIfFalse) {
-        return std::unexpected(valueIfFalse.error());
+        return std::nullopt;
     }
 
     auto expression = std::make_unique<JunoPL::Expression>();
@@ -235,14 +228,8 @@ parseTernaryExpression(TokenList &tokens) {
     return expression;
 }
 
-std::expected<ExpressionHandle, ParserError>
-parseExpressionImpl(TokenList &tokens) {
-    return parseTernaryExpression(tokens);
-}
-} // namespace
-
-std::expected<JunoPL::ExpressionHandle, JunoPL::ParserError>
-parseExpression(JunoPL::TokenList &tokens) {
-    return parseExpressionImpl(tokens);
+std::optional<ExpressionHandle> Parser::parseExpression(TokenList &tokens) {
+    mTokens = &tokens;
+    return parseTernaryExpression();
 }
 }

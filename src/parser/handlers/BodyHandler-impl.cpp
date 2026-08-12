@@ -1,7 +1,7 @@
 module;
-#include <expected>
 #include <memory>
-module junopl.parser.handlers;
+#include <optional>
+module junopl.parser;
 import junopl.lexer.tokens;
 import junopl.parser.error;
 import junopl.parser.nodes;
@@ -14,120 +14,137 @@ template <typename T> void addStatement(Body &body, T &&statement) {
     body.body.push_back(std::make_unique<Statements>(std::move(stmt)));
 }
 
-std::expected<Body, ParserError> parseBody(TokenList &tokens) {
-    auto openBrace = expectToken(tokens, TokenType::OP_CBRAC_OP);
-    if (!openBrace)
-        return std::unexpected(openBrace.error());
+std::optional<Body> Parser::parseBody(TokenList &tokens) {
+    mTokens = &tokens;
+
+    if (!expectToken(TokenType::OP_CBRAC_OP)) {
+        recoverTo(TokenType::OP_CBRAC_CLO);
+        return std::nullopt;
+    }
 
     Body body;
 
-    if (tokens.empty()) {
-        return std::unexpected(ParserError::EmptyTokenList());
+    if (mTokens->empty()) {
+        mErrors.emplace_back(ParserError::EmptyTokenList());
+        return std::nullopt;
     }
 
-    while (!tokens.empty() && tokens.current().type != TokenType::OP_CBRAC_CLO) {
-        switch (tokens.current().type) {
+    while (!mTokens->empty() && mTokens->current().type != TokenType::OP_CBRAC_CLO) {
+        switch (mTokens->current().type) {
         case TokenType::K_VAR: {
-            auto varDecl = parseVarDeclaration(tokens);
-            if (!varDecl)
-                return std::unexpected(varDecl.error());
-            addStatement(body, std::move(varDecl.value()));
+            if (auto varDecl = parseVarDeclaration(tokens)) {
+                addStatement(body, std::move(varDecl.value()));
+            } else {
+                recoverTo(TokenType::OP_SEMICOLON);
+                if (!mTokens->empty()) mTokens->advance();
+            }
             break;
         }
         case TokenType::K_LIST: {
-            auto listDecl = parseListDeclaration(tokens);
-            if (!listDecl) {
-                return std::unexpected(listDecl.error());
+            if (auto listDecl = parseListDeclaration(tokens)) {
+                addStatement(body, std::move(listDecl.value()));
+            } else {
+                recoverTo(TokenType::OP_SEMICOLON);
+                if (!mTokens->empty()) mTokens->advance();
             }
-            addStatement(body, std::move(listDecl.value()));
             break;
         }
         case TokenType::K_PERFORM: {
-            auto performStmt = parsePerformInstruction(tokens);
-            if (!performStmt) {
-                return std::unexpected(performStmt.error());
+            if (auto performStmt = parsePerformInstruction(tokens)) {
+                addStatement(body, std::move(performStmt.value()));
+            } else {
+                recoverTo(TokenType::OP_SEMICOLON);
+                if (!mTokens->empty()) mTokens->advance();
             }
-            addStatement(body, std::move(performStmt.value()));
             break;
         }
         case TokenType::K_IF: {
-            auto condStmt = parseConditionalStatement(tokens);
-            if (!condStmt) {
-                return std::unexpected(condStmt.error());
+            if (auto condStmt = parseConditionalStatement(tokens)) {
+                addStatement(body, std::move(condStmt.value()));
+            } else {
+                recoverTo(TokenType::OP_CBRAC_CLO);
             }
-            addStatement(body, std::move(condStmt.value()));
             break;
         }
         case TokenType::K_EMIT: {
-            auto emitEv = parseEmitEvent(tokens);
-            if (!emitEv) {
-                return std::unexpected(emitEv.error());
+            if (auto emitEv = parseEmitEvent(tokens)) {
+                addStatement(body, std::move(emitEv.value()));
+            } else {
+                recoverTo(TokenType::OP_SEMICOLON);
+                if (!mTokens->empty()) mTokens->advance();
             }
-            addStatement(body, std::move(emitEv.value()));
             break;
         }
         case TokenType::K_REPEAT: {
-            auto repeatLoop = parseRepeatLoop(tokens);
-            if (!repeatLoop) {
-                return std::unexpected(repeatLoop.error());
+            if (auto repeatLoop = parseRepeatLoop(tokens)) {
+                addStatement(body, std::move(repeatLoop.value()));
+            } else {
+                recoverTo(TokenType::OP_CBRAC_CLO);
             }
-            addStatement(body, std::move(repeatLoop.value()));
             break;
         }
         case TokenType::K_WHILE: {
-            auto whileLoop = parseWhileLoop(tokens);
-            if (!whileLoop) {
-                return std::unexpected(whileLoop.error());
+            if (auto whileLoop = parseWhileLoop(tokens)) {
+                addStatement(body, std::move(whileLoop.value()));
+            } else {
+                recoverTo(TokenType::OP_CBRAC_CLO);
             }
-            addStatement(body, std::move(whileLoop.value()));
             break;
         }
         case TokenType::K_FOR: {
-            auto forLoop = parseForLoop(tokens);
-            if (!forLoop) {
-                return std::unexpected(forLoop.error());
+            if (auto forLoop = parseForLoop(tokens)) {
+                addStatement(body, std::move(forLoop.value()));
+            } else {
+                recoverTo(TokenType::OP_CBRAC_CLO);
             }
-            addStatement(body, std::move(forLoop.value()));
             break;
         }
         default: {
-            return std::unexpected(ParserError::UnexpectedToken(
-                tokens.current(),
+            mErrors.emplace_back(ParserError::UnexpectedToken(
+                mTokens->current(),
                 {TokenType::K_VAR, TokenType::K_LIST, TokenType::K_PERFORM,
                  TokenType::K_IF, TokenType::K_EMIT, TokenType::K_REPEAT,
                  TokenType::K_WHILE, TokenType::K_FOR}));
+            recoverTo(TokenType::OP_SEMICOLON);
+            if (!mTokens->empty()) mTokens->advance();
+            break;
         }
         }
     }
 
-    if (tokens.empty()) {
-        return std::unexpected(ParserError::EmptyTokenList(TokenType::OP_CBRAC_CLO));
+    if (mTokens->empty()) {
+        mErrors.emplace_back(ParserError::EmptyTokenList(TokenType::OP_CBRAC_CLO));
+        return std::nullopt;
     }
 
-    if (tokens.current().type == TokenType::OP_CBRAC_CLO) {
-        auto closeBrace = expectToken(tokens, TokenType::OP_CBRAC_CLO);
-        if (!closeBrace)
-            return std::unexpected(closeBrace.error());
+    if (mTokens->current().type == TokenType::OP_CBRAC_CLO) {
+        if (!expectToken(TokenType::OP_CBRAC_CLO)) {
+            return std::nullopt;
+        }
         return body;
     }
-    tokens.advance();
+    mTokens->advance();
 
-    switch (tokens.current().type) {
+    switch (mTokens->current().type) {
     case TokenType::OP_CBRAC_OP: {
-        auto recursiveBody = parseBody(tokens);
-        if (!recursiveBody)
-            return std::unexpected(recursiveBody.error());
-        Statements stmt;
-        stmt.statement = std::move(recursiveBody.value());
-        body.body.push_back(std::make_unique<Statements>(std::move(stmt)));
+        if (auto recursiveBody = parseBody(tokens)) {
+            Statements stmt;
+            stmt.statement = std::move(recursiveBody.value());
+            body.body.push_back(std::make_unique<Statements>(std::move(stmt)));
+        } else {
+            recoverTo(TokenType::OP_CBRAC_CLO);
+        }
+        break;
     }
     case TokenType::OP_CBRAC_CLO:
-        return body;
+        break;
     default:
+        mErrors.emplace_back(ParserError::UnexpectedToken(
+            mTokens->current(), {TokenType::OP_CBRAC_CLO}));
+        recoverTo(TokenType::OP_CBRAC_CLO);
         break;
     }
 
-    return std::unexpected(ParserError::UnexpectedToken(
-        tokens.current(), {TokenType::OP_CBRAC_CLO}));
+    return body;
 }
 }
