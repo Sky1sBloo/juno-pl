@@ -57,6 +57,7 @@ export struct WhileLoop {
 };
 
 export struct ForLoop {
+    std::string iterator;
     ExpressionHandle start;
     ExpressionHandle end;
     ExpressionHandle by;
