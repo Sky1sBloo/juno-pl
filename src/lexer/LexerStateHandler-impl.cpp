@@ -140,14 +140,24 @@ LexerStateHandler::Result LexerStateHandler::handleOperationState(char c) {
         return Result::Save(TokenType::OP_PAR_OP);
     case ')':
         return Result::Save(TokenType::OP_PAR_CLO);
-    case '{':
+    case '[':
         return Result::Save(TokenType::OP_BRAC_OP);
-    case '}':
+    case ']':
         return Result::Save(TokenType::OP_BRAC_CLO);
+    case '{':
+        return Result::Save(TokenType::OP_CBRAC_OP);
+    case '}':
+        return Result::Save(TokenType::OP_CBRAC_CLO);
+    case ';':
+        return Result::Save(TokenType::OP_SEMICOLON);
     case '%':
         return Result::Save(TokenType::OP_MOD);
     case '.':
         return Result::Save(TokenType::OP_DOT);
+    case ':':
+        return Result::Save(TokenType::OP_COLON);
+    case ',':
+        return Result::Save(TokenType::OP_COMMA);
     case '?':
         return Result::Save(TokenType::OP_QUESTION);
     }
@@ -178,13 +188,19 @@ bool LexerStateHandler::isOpSymbol(char c) {
     case '=':
     case '(':
     case ')':
+    case '[':
+    case ']':
     case '{':
     case '}':
+    case ';':
     case '<':
     case '>':
+    case '!':
     case '%':
     case '.':
+    case ':':
     case '?':
+    case ',':
         return true;
     }
     return false;
