@@ -276,3 +276,49 @@ TEST_CASE("Parser List Index Expression") {
     CHECK(listIdx.identifier == "items");
     CHECK(std::get<JunoPL::Value>(listIdx.index->value).value == "0");
 }
+
+TEST_CASE("Parser Value Expression - literal and identifier kinds") {
+    JunoPL::Tests::FileReaderTest fileReader;
+    fileReader.setSourceCode("program test;\n"
+                             "expr a() 42;\n"
+                             "expr b() \"text\";\n"
+                             "expr c() name;\n"
+                             "expr d() true;\n");
+
+    JunoPL::Lexer lexer;
+    auto lexOutput = lexer.tokenize(fileReader);
+    REQUIRE(lexOutput.errors.empty());
+
+    JunoPL::Parser parser;
+    auto parseOutput = parser.parse(lexOutput.tokens);
+
+    CHECK(parseOutput.errors.empty());
+    REQUIRE(parseOutput.root);
+    REQUIRE(parseOutput.root->body.size() == 4);
+
+    // Note: "text" and name both parse to the same string value;
+    // only kind distinguishes a literal from an identifier reference
+    const auto &number =
+        std::get<JunoPL::CustomExpression>(parseOutput.root->body.at(0));
+    CHECK(std::get<JunoPL::Value>(number.expression->value).value == "42");
+    CHECK(std::get<JunoPL::Value>(number.expression->value).kind ==
+          JunoPL::Value::Kind::Literal);
+
+    const auto &string =
+        std::get<JunoPL::CustomExpression>(parseOutput.root->body.at(1));
+    CHECK(std::get<JunoPL::Value>(string.expression->value).value == "text");
+    CHECK(std::get<JunoPL::Value>(string.expression->value).kind ==
+          JunoPL::Value::Kind::Literal);
+
+    const auto &identifier =
+        std::get<JunoPL::CustomExpression>(parseOutput.root->body.at(2));
+    CHECK(std::get<JunoPL::Value>(identifier.expression->value).value == "name");
+    CHECK(std::get<JunoPL::Value>(identifier.expression->value).kind ==
+          JunoPL::Value::Kind::Identifier);
+
+    const auto &boolean =
+        std::get<JunoPL::CustomExpression>(parseOutput.root->body.at(3));
+    CHECK(std::get<JunoPL::Value>(boolean.expression->value).value == "true");
+    CHECK(std::get<JunoPL::Value>(boolean.expression->value).kind ==
+          JunoPL::Value::Kind::Literal);
+}

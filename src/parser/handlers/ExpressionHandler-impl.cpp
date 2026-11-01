@@ -99,8 +99,9 @@ std::optional<ExpressionHandle> Parser::parsePrimaryExpression() {
         mTokens->advance();
 
         auto expression = std::make_unique<JunoPL::Expression>();
-        expression->value =
-            JunoPL::Value{valueToken.value, locationOf(valueToken)};
+        expression->value = JunoPL::Value{valueToken.value,
+                                          JunoPL::Value::Kind::Literal,
+                                          locationOf(valueToken)};
         return expression;
     }
     case TokenType::IDENT: {
@@ -202,8 +203,9 @@ std::optional<ExpressionHandle> Parser::parsePrimaryExpression() {
 
         // Plain identifier
         auto expression = std::make_unique<JunoPL::Expression>();
-        expression->value =
-            JunoPL::Value{identToken.value, locationOf(identToken)};
+        expression->value = JunoPL::Value{identToken.value,
+                                          JunoPL::Value::Kind::Identifier,
+                                          locationOf(identToken)};
         return expression;
     }
     case TokenType::OP_PAR_OP: {
