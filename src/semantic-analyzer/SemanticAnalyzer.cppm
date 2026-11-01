@@ -1,12 +1,36 @@
 module;
 #include <string>
-#include <unordered_map>
 #include <vector>
 export module junopl.semantic;
+
+import junopl.parser.nodes;
+import junopl.parser.nodes.statements;
+import junopl.semantic.symbols;
+import junopl.semantic.diagnostic;
 
 namespace JunoPL {
 export class SemanticAnalyzer {
   public:
+    /**
+Runs both passes over the program and returns every diagnostic found.
+Invariant: analyze() pushes the global scope before anything else, so
+declare() and lookup() are only valid while at least that scope exists.
+     */
+    std::vector<Diagnostic> analyze(const RootNode &root);
+
   private:
+    // Recursive walk
+    void visitBody(const Body &body);
+    void visitStatement(const Statements &stmt);
+
+    // Scope stack
+    void pushScope();
+    void popScope();
+    Symbol *lookup(const std::string &name);
+    bool declare(Symbol symbol);
+
+    std::vector<Scope> mScopes;
+    std::vector<Diagnostic> mDiagnostics;
+    int mLoopDepth{0};
 };
-}
+} // namespace JunoPL
