@@ -2,7 +2,8 @@ add_library(juno-pl-semantic-analyzer)
 target_sources(
   juno-pl-semantic-analyzer
   PUBLIC
-  FILE_SET CXX_MODULES FILES SemanticAnalyzer.cppm Symbols.cppm)
+  FILE_SET
+    CXX_MODULES FILES SemanticAnalyzer.cppm Symbols.cppm SemanticError.cppm)
 
 target_link_libraries(
   juno-pl-semantic-analyzer
