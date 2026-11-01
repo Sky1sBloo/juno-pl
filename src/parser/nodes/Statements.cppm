@@ -4,6 +4,7 @@ module;
 #include <variant>
 #include <vector>
 export module junopl.parser.nodes.statements;
+import junopl.common.location;
 import junopl.parser.nodes.expressions;
 
 namespace JunoPL {
@@ -11,11 +12,13 @@ export struct Statements;
 using StatementsHandle = std::unique_ptr<Statements>;
 export struct Body {
     std::vector<StatementsHandle> body;
+    SourceLocation loc;
 };
 
 export struct VarDeclaration {
     std::string identifier;
     ExpressionHandle value;
+    SourceLocation loc;
 };
 
 export struct VarAssignment {
@@ -23,30 +26,37 @@ export struct VarAssignment {
     ExpressionHandle indexExpr;
     ExpressionHandle value;
     enum Op { ASSIGN, PLUS_ASSIGN, MINUS_ASSIGN, MULT_ASSIGN, DIVIDE_ASSIGN } op;
+    SourceLocation loc;
 };
 
 export struct ListDeclaration {
     std::string identifier;
     std::vector<ExpressionHandle> values;
+    SourceLocation loc;
 };
 
 export struct PerformInstruction {
     std::string qualifier;
     std::string identifier;
     std::vector<ExpressionHandle> params;
+    SourceLocation loc;
 };
 
-export struct BreakStatement {};
+export struct BreakStatement {
+    SourceLocation loc;
+};
 
 export struct IfStatement {
     ExpressionHandle condition;
     Body body;
+    SourceLocation loc;
 };
 
 export struct ConditionalStatement {
     IfStatement ifStatement;
     std::vector<IfStatement> elifStatements;
     Body elseStatement;
+    SourceLocation loc;
 };
 
 export struct EmitEvent {
@@ -54,16 +64,19 @@ export struct EmitEvent {
     std::string identifier;
     std::vector<ExpressionHandle> params;
     Options option;
+    SourceLocation loc;
 };
 
 export struct RepeatLoop {
     ExpressionHandle repeatNumber;
     Body body;
+    SourceLocation loc;
 };
 
 export struct WhileLoop {
     ExpressionHandle condition;
     Body body;
+    SourceLocation loc;
 };
 
 export struct ForLoop {
@@ -72,6 +85,7 @@ export struct ForLoop {
     ExpressionHandle end;
     ExpressionHandle by;
     Body body;
+    SourceLocation loc;
 };
 
 export struct Statements {
@@ -79,6 +93,12 @@ export struct Statements {
                  PerformInstruction, BreakStatement, ConditionalStatement,
                  EmitEvent, RepeatLoop, WhileLoop, ForLoop, ListOp>
         statement;
+
+    SourceLocation loc() const {
+        return std::visit(
+            [](const auto &node) -> SourceLocation { return node.loc; },
+            statement);
+    }
 };
 
-}
+} // namespace JunoPL

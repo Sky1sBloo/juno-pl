@@ -7,7 +7,8 @@ std::optional<PerformInstruction>
 Parser::parsePerformInstruction(TokenList &tokens) {
     mTokens = &tokens;
 
-    if (!expectToken(TokenType::K_PERFORM)) {
+    auto performToken = expectToken(TokenType::K_PERFORM);
+    if (!performToken) {
         recoverTo(TokenType::OP_SEMICOLON);
         return std::nullopt;
     }
@@ -45,6 +46,7 @@ Parser::parsePerformInstruction(TokenList &tokens) {
     }
 
     instr.params = std::move(params.value());
+    instr.loc = locationOf(*performToken);
     return instr;
 }
 }

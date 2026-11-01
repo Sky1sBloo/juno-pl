@@ -3,24 +3,28 @@ module;
 #include <variant>
 #include <vector>
 export module junopl.parser.nodes;
+import junopl.common.location;
 import junopl.parser.nodes.statements;
 import junopl.parser.nodes.expressions;
 
 namespace JunoPL {
 export struct ImportNode {
     std::string path;
+    SourceLocation loc;
 };
 
 export struct EventNode {
     std::string identifier;
     std::vector<std::string> params;
     Body body;
+    SourceLocation loc;
 };
 
 export struct FunctionNode {
     std::string identifier;
     std::vector<std::string> params;
     Body body;
+    SourceLocation loc;
 };
 
 using RootNodes =
@@ -29,6 +33,7 @@ using RootNodes =
 export struct RootNode {
     std::string programName;
     std::vector<RootNodes> body;
+    SourceLocation loc;
 };
 
-}
+} // namespace JunoPL

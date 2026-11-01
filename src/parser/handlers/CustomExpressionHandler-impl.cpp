@@ -12,7 +12,8 @@ std::optional<CustomExpression>
 Parser::parseCustomExpression(TokenList &tokens) {
     mTokens = &tokens;
 
-    if (!expectToken(TokenType::K_EXPR)) {
+    auto exprToken = expectToken(TokenType::K_EXPR);
+    if (!exprToken) {
         recoverTo(TokenType::OP_SEMICOLON);
         return std::nullopt;
     }
@@ -44,6 +45,7 @@ Parser::parseCustomExpression(TokenList &tokens) {
     exprNode.identifier = ident->value;
     exprNode.params = std::move(params.value());
     exprNode.expression = std::move(expression.value());
+    exprNode.loc = locationOf(*exprToken);
     return exprNode;
 }
 }

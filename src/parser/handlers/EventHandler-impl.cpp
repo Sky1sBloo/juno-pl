@@ -10,7 +10,8 @@ namespace JunoPL {
 std::optional<EventNode> Parser::parseEvent(TokenList &tokens) {
     mTokens = &tokens;
 
-    if (!expectToken(TokenType::K_ON)) {
+    auto onToken = expectToken(TokenType::K_ON);
+    if (!onToken) {
         recoverTo(TokenType::OP_SEMICOLON);
         return std::nullopt;
     }
@@ -36,6 +37,7 @@ std::optional<EventNode> Parser::parseEvent(TokenList &tokens) {
     node.identifier = identifier->value;
     node.params = std::move(params.value());
     node.body = std::move(body.value());
+    node.loc = locationOf(*onToken);
     return node;
 }
 }

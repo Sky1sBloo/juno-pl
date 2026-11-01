@@ -17,12 +17,14 @@ template <typename T> void addStatement(Body &body, T &&statement) {
 std::optional<Body> Parser::parseBody(TokenList &tokens) {
     mTokens = &tokens;
 
-    if (!expectToken(TokenType::OP_CBRAC_OP)) {
+    auto openBrace = expectToken(TokenType::OP_CBRAC_OP);
+    if (!openBrace) {
         recoverTo(TokenType::OP_CBRAC_CLO);
         return std::nullopt;
     }
 
     Body body;
+    body.loc = locationOf(*openBrace);
 
     if (mTokens->empty()) {
         mErrors.emplace_back(ParserError::EmptyTokenList());

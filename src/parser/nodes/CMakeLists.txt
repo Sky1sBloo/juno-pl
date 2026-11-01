@@ -3,4 +3,5 @@ target_sources(
   juno-pl-parse-nodes
   PUBLIC
   FILE_SET CXX_MODULES FILES RootNodes.cppm Statements.cppm Expressions.cppm)
+target_link_libraries(juno-pl-parse-nodes PUBLIC juno-pl-common)
 target_compile_features(juno-pl-parse-nodes PUBLIC cxx_std_23)

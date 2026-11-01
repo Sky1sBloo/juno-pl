@@ -61,6 +61,10 @@ void Parser::recoverTo(TokenType stopType) {
     }
 }
 
+SourceLocation Parser::locationOf(const Token &token) {
+    return SourceLocation{token.line, token.colStart, token.colEnd};
+}
+
 void Parser::pushError(ParserError error) {
     mErrors.emplace_back(std::move(error));
 }
@@ -81,6 +85,7 @@ Parser::Output Parser::parse(TokenList &tokens) {
 
     // Parse program name
     if (tokens.current().type == TokenType::K_PROGRAM) {
+        root.loc = locationOf(tokens.current());
         if (auto programName = handleProgramName()) {
             root.programName = programName.value();
         }
@@ -167,7 +172,8 @@ std::optional<std::string> Parser::handleProgramName() {
 }
 
 std::optional<ImportNode> Parser::handleImport() {
-    if (!expectToken(TokenType::K_IMPORT)) {
+    auto importToken = expectToken(TokenType::K_IMPORT);
+    if (!importToken) {
         return std::nullopt;
     }
 
@@ -182,6 +188,7 @@ std::optional<ImportNode> Parser::handleImport() {
 
     ImportNode node;
     node.path = importPath->value;
+    node.loc = locationOf(*importToken);
     return node;
 }
 
@@ -196,6 +203,7 @@ std::optional<VarAssignment> Parser::parseVarAssignment(TokenList &tokens) {
 
     VarAssignment node;
     node.identifier = ident->value;
+    node.loc = locationOf(*ident);
 
     // Check for list index: identifier[expr]
     if (!mTokens->empty() && mTokens->current().type == TokenType::OP_BRAC_OP) {
@@ -297,13 +305,15 @@ std::optional<ListOp> Parser::parseListOperationStatement(TokenList &tokens) {
         return std::nullopt;
     }
 
-    return ListOp{ident->value, method->value, std::move(params)};
+    return ListOp{ident->value, method->value, std::move(params),
+                  locationOf(*ident)};
 }
 
 std::optional<BreakStatement> Parser::parseBreakStatement(TokenList &tokens) {
     mTokens = &tokens;
 
-    if (!expectToken(TokenType::K_BREAK)) {
+    auto breakToken = expectToken(TokenType::K_BREAK);
+    if (!breakToken) {
         recoverTo(TokenType::OP_SEMICOLON);
         return std::nullopt;
     }
@@ -313,6 +323,6 @@ std::optional<BreakStatement> Parser::parseBreakStatement(TokenList &tokens) {
         return std::nullopt;
     }
 
-    return BreakStatement{};
+    return BreakStatement{locationOf(*breakToken)};
 }
 }

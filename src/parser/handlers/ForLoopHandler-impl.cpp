@@ -6,7 +6,8 @@ namespace JunoPL {
 std::optional<ForLoop> Parser::parseForLoop(TokenList &tokens) {
     mTokens = &tokens;
 
-    if (!expectToken(TokenType::K_FOR)) {
+    auto forToken = expectToken(TokenType::K_FOR);
+    if (!forToken) {
         recoverTo(TokenType::OP_CBRAC_CLO);
         return std::nullopt;
     }
@@ -57,6 +58,6 @@ std::optional<ForLoop> Parser::parseForLoop(TokenList &tokens) {
 
     return ForLoop{iterator->value, std::move(start.value()),
                    std::move(end.value()), std::move(increment.value()),
-                   std::move(body.value())};
+                   std::move(body.value()), locationOf(*forToken)};
 }
 }
