@@ -40,6 +40,56 @@ void SemanticAnalyzer::visitBody(const Body &body) {
     popScope();
 }
 
+void SemanticAnalyzer::visitExpression(const Expression &expr) {
+    std::visit(
+        Overload{
+            [this](const Value &value) {
+                if (value.kind == Value::Kind::Identifier) {
+                    expect(value.value, value.loc);
+                }
+            },
+            [this](const CallExpression &call) {
+                if (!call.qualifier.empty()) {
+                    expectQualified(call.qualifier, call.identifier,
+                                    call.params.size(), call.loc);
+                } else {
+                    expect(call.identifier, call.loc);
+                }
+                for (const auto &param : call.params) {
+                    if (param) {
+                        visitExpression(*param);
+                    }
+                }
+            },
+            [this](const ListOp &listOp) {
+                expect(listOp.identifier, listOp.loc);
+                for (const auto &param : listOp.params) {
+                    if (param) {
+                        visitExpression(*param);
+                    }
+                }
+            },
+            [this](const ListIndex &listIndex) {
+                expect(listIndex.identifier, listIndex.loc);
+                visitExpression(*listIndex.index);
+            },
+            [this](const BinaryOp &binOp) {
+                visitExpression(*binOp.lhs);
+                visitExpression(*binOp.rhs);
+            },
+            [this](const UnaryOp &unOp) {
+                visitExpression(*unOp.value);
+            },
+            [this](const TernaryOp &ternary) {
+                visitExpression(*ternary.condition);
+                visitExpression(*ternary.valueIfTrue);
+                visitExpression(*ternary.valueIfFalse);
+            },
+            [](const auto &) {},
+        },
+        expr.value);
+}
+
 void SemanticAnalyzer::visitStatement(const Statements &statement) {
     std::visit(Overload{
                    [this](const Body &body) { visitBody(body); },
@@ -64,7 +114,15 @@ void SemanticAnalyzer::visitStatement(const Statements &statement) {
                        }
                    },
                    [this](const BreakStatement &) {},
-                   [this](const ConditionalStatement &) {},
+                   [this](const ConditionalStatement &cond) {
+                        visitExpression(*cond.ifStatement.condition);
+                        visitBody(cond.ifStatement.body);
+                        for (const auto &elif : cond.elifStatements) {
+                            visitExpression(*elif.condition);
+                            visitBody(elif.body);
+                        }
+                        visitBody(cond.elseStatement);
+                    },
                    [this](const EmitEvent &) {},
                    [this](const RepeatLoop &) {},
                    [this](const WhileLoop &) {},

@@ -25,6 +25,7 @@ declare() and lookup() are only valid while at least that scope exists.
     // Recursive walk
     void visitBody(const Body &body);
     void visitStatement(const Statements &stmt);
+    void visitExpression(const Expression &expr);
 
     // Scope stack
     void pushScope();
