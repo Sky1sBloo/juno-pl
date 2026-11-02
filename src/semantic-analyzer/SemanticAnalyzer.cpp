@@ -54,7 +54,15 @@ void SemanticAnalyzer::visitStatement(const Statements &statement) {
                        declare(Symbol{listDecl.identifier, Symbol::Kind::LIST,
                                       0, listDecl.loc});
                    },
-                   [this](const PerformInstruction &performInstr) {},
+                   [this](const PerformInstruction &performInstr) {
+                       if (!performInstr.qualifier.empty()) {
+                           expectQualified(
+                               performInstr.qualifier, performInstr.identifier,
+                               performInstr.params.size(), performInstr.loc);
+                       } else {
+                           expect(performInstr.identifier, performInstr.loc);
+                       }
+                   },
                    [this](const BreakStatement &) {},
                    [this](const ConditionalStatement &) {},
                    [this](const EmitEvent &) {},
@@ -92,13 +100,21 @@ bool SemanticAnalyzer::expect(const std::string &name,
 
 bool SemanticAnalyzer::expectQualified(const std::string &qualifier,
                                        const std::string &identifier,
+                                       std::size_t argCount,
                                        const SourceLocation &source) {
     if (auto func = JunoSTL::find(qualifier, identifier); func.has_value()) {
+        if (func->arity != argCount) {
+            mDiagnostics.emplace_back(
+                std::format("'{}.{}' expects {} arguments, got {}", qualifier,
+                            identifier, func->arity, argCount),
+                source);
+            return false;
+        }
         return true;
     }
     mDiagnostics.emplace_back(
-        std::format("'{}.{}' is not defined in the standard library",
-                    qualifier, identifier),
+        std::format("'{}.{}' is not defined in the standard library", qualifier,
+                    identifier),
         source);
     return false;
 }

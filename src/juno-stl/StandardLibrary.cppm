@@ -42,6 +42,7 @@ export class JunoSTL {
         Qualifiers qualifier;
         Operations operation;
         std::string identifier;
+        std::size_t arity; // expected parameter count
     };
 
     /**

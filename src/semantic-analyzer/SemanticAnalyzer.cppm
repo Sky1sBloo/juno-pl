@@ -38,6 +38,7 @@ declare() and lookup() are only valid while at least that scope exists.
     // For stl functions
     bool expectQualified(const std::string &qualifier,
                          const std::string &identifier,
+                         std::size_t argCount,
                          const SourceLocation &source);
     bool declare(Symbol symbol);
 
