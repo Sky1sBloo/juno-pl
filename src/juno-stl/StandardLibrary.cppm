@@ -2,8 +2,9 @@
 Contains all valid library instruction calls
  */
 module;
-#include <unordered_map>
+#include <map>
 #include <string>
+#include <optional>
 export module junopl.stl;
 
 namespace JunoPL {
@@ -42,6 +43,15 @@ export class JunoSTL {
         std::string identifier;
     };
 
+    /**
+    To find registered definition in the standard library
+     */
+    static std::optional<Function> find(Qualifiers q, const std::string &ident) {
+        auto it = mRegistry.find({q, ident});
+        return it != mRegistry.end() ? std::optional<Function>(it->second) : std::nullopt;
+    }
+
   private:
+    static std::map<std::pair<Qualifiers, std::string>, Function> mRegistry;
 };
 }
