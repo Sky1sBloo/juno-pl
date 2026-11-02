@@ -51,7 +51,8 @@ void SemanticAnalyzer::visitExpression(const Expression &expr) {
             [this](const CallExpression &call) {
                 if (!call.qualifier.empty()) {
                     expectQualified(call.qualifier, call.identifier,
-                                    call.params.size(), call.loc);
+                                    call.params.size(),
+                                    JunoSTL::Operations::EXPRESSION, call.loc);
                 } else {
                     expect(call.identifier, call.loc);
                 }
@@ -77,9 +78,7 @@ void SemanticAnalyzer::visitExpression(const Expression &expr) {
                 visitExpression(*binOp.lhs);
                 visitExpression(*binOp.rhs);
             },
-            [this](const UnaryOp &unOp) {
-                visitExpression(*unOp.value);
-            },
+            [this](const UnaryOp &unOp) { visitExpression(*unOp.value); },
             [this](const TernaryOp &ternary) {
                 visitExpression(*ternary.condition);
                 visitExpression(*ternary.valueIfTrue);
@@ -106,23 +105,25 @@ void SemanticAnalyzer::visitStatement(const Statements &statement) {
                    },
                    [this](const PerformInstruction &performInstr) {
                        if (!performInstr.qualifier.empty()) {
-                           expectQualified(
-                               performInstr.qualifier, performInstr.identifier,
-                               performInstr.params.size(), performInstr.loc);
+                           expectQualified(performInstr.qualifier,
+                                           performInstr.identifier,
+                                           performInstr.params.size(),
+                                           JunoSTL::Operations::INSTRUCTION,
+                                           performInstr.loc);
                        } else {
                            expect(performInstr.identifier, performInstr.loc);
                        }
                    },
                    [this](const BreakStatement &) {},
                    [this](const ConditionalStatement &cond) {
-                        visitExpression(*cond.ifStatement.condition);
-                        visitBody(cond.ifStatement.body);
-                        for (const auto &elif : cond.elifStatements) {
-                            visitExpression(*elif.condition);
-                            visitBody(elif.body);
-                        }
-                        visitBody(cond.elseStatement);
-                    },
+                       visitExpression(*cond.ifStatement.condition);
+                       visitBody(cond.ifStatement.body);
+                       for (const auto &elif : cond.elifStatements) {
+                           visitExpression(*elif.condition);
+                           visitBody(elif.body);
+                       }
+                       visitBody(cond.elseStatement);
+                   },
                    [this](const EmitEvent &) {},
                    [this](const RepeatLoop &) {},
                    [this](const WhileLoop &) {},
@@ -159,8 +160,10 @@ bool SemanticAnalyzer::expect(const std::string &name,
 bool SemanticAnalyzer::expectQualified(const std::string &qualifier,
                                        const std::string &identifier,
                                        std::size_t argCount,
+                                       JunoSTL::Operations op,
                                        const SourceLocation &source) {
-    if (auto func = JunoSTL::find(qualifier, identifier); func.has_value()) {
+    if (auto func = JunoSTL::find(qualifier, identifier, op);
+        func.has_value()) {
         if (func->arity != argCount) {
             mDiagnostics.emplace_back(
                 std::format("'{}.{}' expects {} arguments, got {}", qualifier,

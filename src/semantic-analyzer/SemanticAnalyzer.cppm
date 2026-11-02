@@ -38,9 +38,8 @@ declare() and lookup() are only valid while at least that scope exists.
     bool expect(const std::string &name, const SourceLocation &source);
     // For stl functions
     bool expectQualified(const std::string &qualifier,
-                         const std::string &identifier,
-                         std::size_t argCount,
-                         const SourceLocation &source);
+                         const std::string &identifier, std::size_t argCount,
+                         JunoSTL::Operations op, const SourceLocation &source);
     bool declare(Symbol symbol);
 
     std::vector<Scope> mScopes;

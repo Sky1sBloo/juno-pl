@@ -3,8 +3,8 @@ Contains all valid library instruction calls
  */
 module;
 #include <map>
-#include <string>
 #include <optional>
+#include <string>
 #include <unordered_map>
 export module junopl.stl;
 
@@ -60,7 +60,8 @@ export class JunoSTL {
     /**
     To find registered definition in the standard library by enum qualifier
      */
-    static std::optional<Function> find(Qualifiers q, const std::string &ident) {
+    static std::optional<Function> find(Qualifiers q,
+                                        const std::string &ident) {
         auto it = mRegistry.find({q, ident});
         return it != mRegistry.end() ? std::optional<Function>(it->second)
                                      : std::nullopt;
@@ -74,27 +75,50 @@ export class JunoSTL {
         return find(qualifierFromString(qualifier), ident);
     }
 
+    /**
+    To find a registered definition matching both qualifier and operation type.
+    Use this when the call site is known to be either an instruction (perform)
+    or an expression, so only functions registered for that context match.
+     */
+    static std::optional<Function> find(Qualifiers q, const std::string &ident,
+                                        Operations op) {
+        auto it = mRegistry.find({q, ident});
+        if (it != mRegistry.end() && it->second.operation == op) {
+            return it->second;
+        }
+        return std::nullopt;
+    }
+
+    /**
+    String-qualifier variant of the operation-aware find.
+     */
+    static std::optional<Function> find(const std::string &qualifier,
+                                        const std::string &ident,
+                                        Operations op) {
+        return find(qualifierFromString(qualifier), ident, op);
+    }
+
   private:
     static std::map<std::pair<Qualifiers, std::string>, Function> mRegistry;
 
-    inline static const std::unordered_map<std::string, Qualifiers> kQualifierMap =
-        {{"Math", Qualifiers::MATH},
-         {"Strings", Qualifiers::STRINGS},
-         {"Input", Qualifiers::INPUT},
-         {"Lists", Qualifiers::LISTS},
-         {"Vector", Qualifiers::VECTOR},
-         {"Game", Qualifiers::GAME},
-         {"Craft", Qualifiers::CRAFT},
-         {"Part", Qualifiers::PART},
-         {"Camera", Qualifiers::CAMERA},
-         {"Nav", Qualifiers::NAV},
-         {"Altitude", Qualifiers::ALTITUDE},
-         {"Velocity", Qualifiers::VELOCITY},
-         {"Orbit", Qualifiers::ORBIT},
-         {"Planet", Qualifiers::PLANET},
-         {"Atmosphere", Qualifiers::ATMOSPHERE},
-         {"Fuel", Qualifiers::FUEL},
-         {"Time", Qualifiers::TIME},
-         {"Performance", Qualifiers::PERFORMANCE}};
+    inline static const std::unordered_map<std::string, Qualifiers>
+        kQualifierMap = {{"Math", Qualifiers::MATH},
+                         {"Strings", Qualifiers::STRINGS},
+                         {"Input", Qualifiers::INPUT},
+                         {"Lists", Qualifiers::LISTS},
+                         {"Vector", Qualifiers::VECTOR},
+                         {"Game", Qualifiers::GAME},
+                         {"Craft", Qualifiers::CRAFT},
+                         {"Part", Qualifiers::PART},
+                         {"Camera", Qualifiers::CAMERA},
+                         {"Nav", Qualifiers::NAV},
+                         {"Altitude", Qualifiers::ALTITUDE},
+                         {"Velocity", Qualifiers::VELOCITY},
+                         {"Orbit", Qualifiers::ORBIT},
+                         {"Planet", Qualifiers::PLANET},
+                         {"Atmosphere", Qualifiers::ATMOSPHERE},
+                         {"Fuel", Qualifiers::FUEL},
+                         {"Time", Qualifiers::TIME},
+                         {"Performance", Qualifiers::PERFORMANCE}};
 };
 }
