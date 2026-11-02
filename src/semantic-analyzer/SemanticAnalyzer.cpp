@@ -2,10 +2,16 @@ module;
 #include <format>
 #include <string>
 #include <utility>
+#include <variant>
 module junopl.semantic;
 
-namespace JunoPL {
+/**
+For visitors
+ */
+template <class ...Ts>
+struct Overload : Ts... { using Ts::operator()...; };
 
+namespace JunoPL {
 std::vector<Diagnostic> SemanticAnalyzer::analyze(const RootNode &root) {
     return {};
 }
@@ -33,8 +39,23 @@ void SemanticAnalyzer::visitBody(const Body &body) {
     popScope();
 }
 
-void SemanticAnalyzer::visitStatement(const Statements &) {
-    // TODO(pass 2): std::visit over the statement variants
+void SemanticAnalyzer::visitStatement(const Statements &statement) {
+    std::visit(
+        Overload{
+            [this](const Body &body) { visitBody(body); },
+            [this](const VarDeclaration &) {},
+            [this](const VarAssignment &) {},
+            [this](const ListDeclaration &) {},
+            [this](const PerformInstruction &) {},
+            [this](const BreakStatement &) {},
+            [this](const ConditionalStatement &) {},
+            [this](const EmitEvent &) {},
+            [this](const RepeatLoop &) {},
+            [this](const WhileLoop &) {},
+            [this](const ForLoop &) {},
+            [this](const ListOp &) {},
+        },
+        statement.statement);
 }
 
 void SemanticAnalyzer::pushScope() { mScopes.emplace_back(); }
@@ -73,4 +94,4 @@ bool SemanticAnalyzer::declare(Symbol symbol) {
     return true;
 }
 
-} // namespace JunoPL
+}

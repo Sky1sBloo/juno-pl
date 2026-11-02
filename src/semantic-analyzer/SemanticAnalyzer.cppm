@@ -5,6 +5,7 @@ export module junopl.semantic;
 
 import junopl.parser.nodes;
 import junopl.parser.nodes.statements;
+import junopl.parser.nodes.expressions;
 import junopl.semantic.symbols;
 import junopl.semantic.diagnostic;
 
