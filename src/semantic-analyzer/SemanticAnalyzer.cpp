@@ -90,47 +90,78 @@ void SemanticAnalyzer::visitExpression(const Expression &expr) {
 }
 
 void SemanticAnalyzer::visitStatement(const Statements &statement) {
-    std::visit(Overload{
-                   [this](const Body &body) { visitBody(body); },
-                   [this](const VarDeclaration &varDecl) {
-                       declare(Symbol{varDecl.identifier, Symbol::Kind::VALUE,
-                                      0, varDecl.loc});
-                   },
-                   [this](const VarAssignment &varAssign) {
-                       expect(varAssign.identifier, varAssign.loc);
-                   },
-                   [this](const ListDeclaration &listDecl) {
-                       declare(Symbol{listDecl.identifier, Symbol::Kind::LIST,
-                                      0, listDecl.loc});
-                   },
-                   [this](const PerformInstruction &performInstr) {
-                       if (!performInstr.qualifier.empty()) {
-                           expectQualified(performInstr.qualifier,
-                                           performInstr.identifier,
-                                           performInstr.params.size(),
-                                           JunoSTL::Operations::INSTRUCTION,
-                                           performInstr.loc);
-                       } else {
-                           expect(performInstr.identifier, performInstr.loc);
-                       }
-                   },
-                   [this](const BreakStatement &) {},
-                   [this](const ConditionalStatement &cond) {
-                       visitExpression(*cond.ifStatement.condition);
-                       visitBody(cond.ifStatement.body);
-                       for (const auto &elif : cond.elifStatements) {
-                           visitExpression(*elif.condition);
-                           visitBody(elif.body);
-                       }
-                       visitBody(cond.elseStatement);
-                   },
-                   [this](const EmitEvent &) {},
-                   [this](const RepeatLoop &) {},
-                   [this](const WhileLoop &) {},
-                   [this](const ForLoop &) {},
-                   [this](const ListOp &) {},
-               },
-               statement.statement);
+    std::visit(
+        Overload{[this](const Body &body) { visitBody(body); },
+                 [this](const VarDeclaration &varDecl) {
+                     declare(Symbol{varDecl.identifier, Symbol::Kind::VALUE, 0,
+                                    varDecl.loc});
+                 },
+                 [this](const VarAssignment &varAssign) {
+                     expect(varAssign.identifier, varAssign.loc);
+                 },
+                 [this](const ListDeclaration &listDecl) {
+                     declare(Symbol{listDecl.identifier, Symbol::Kind::LIST, 0,
+                                    listDecl.loc});
+                 },
+                 [this](const PerformInstruction &performInstr) {
+                     if (!performInstr.qualifier.empty()) {
+                         expectQualified(performInstr.qualifier,
+                                         performInstr.identifier,
+                                         performInstr.params.size(),
+                                         JunoSTL::Operations::INSTRUCTION,
+                                         performInstr.loc);
+                     } else {
+                         expect(performInstr.identifier, performInstr.loc);
+                     }
+                 },
+                 [this](const BreakStatement &) {},
+                 [this](const ConditionalStatement &cond) {
+                     visitExpression(*cond.ifStatement.condition);
+                     visitBody(cond.ifStatement.body);
+                     for (const auto &elif : cond.elifStatements) {
+                         visitExpression(*elif.condition);
+                         visitBody(elif.body);
+                     }
+                     visitBody(cond.elseStatement);
+                 },
+                 [this](const EmitEvent &emitEv) {
+                     // avoided checking ident to allow other crafts to use
+                     // pure vizzy
+                     for (const auto &par : emitEv.params) {
+                         if (par) {
+                             visitExpression(*par);
+                         }
+                     }
+                 },
+                 [this](const RepeatLoop &repeatLoop) {
+                     visitExpression(*repeatLoop.repeatNumber);
+                     visitBody(repeatLoop.body);
+                 },
+                 [this](const WhileLoop &whileLoop) {
+                     visitExpression(*whileLoop.condition);
+                     visitBody(whileLoop.body);
+                 },
+                 [this](const ForLoop &forLoop) {
+                     pushScope();
+                     declare(Symbol{forLoop.iterator, Symbol::Kind::VALUE, 0,
+                                    forLoop.loc});
+                     visitExpression(*forLoop.start);
+                     visitExpression(*forLoop.end);
+                     visitExpression(*forLoop.by);
+                     for (const auto &statement : forLoop.body.body) {
+                         if (statement) {
+                             visitStatement(*statement);
+                         }
+                     }
+                     popScope();
+                 },
+                 [this](const ListOp &listOp) {
+                     expectQualified(JunoSTL::Qualifiers::LISTS,
+                                     listOp.identifier, listOp.params.size(),
+                                     JunoSTL::Operations::INSTRUCTION,
+                                     listOp.loc);
+                 }},
+        statement.statement);
 }
 
 void SemanticAnalyzer::pushScope() { mScopes.emplace_back(); }
@@ -176,6 +207,30 @@ bool SemanticAnalyzer::expectQualified(const std::string &qualifier,
     mDiagnostics.emplace_back(
         std::format("'{}.{}' is not defined in the standard library", qualifier,
                     identifier),
+        source);
+    return false;
+}
+
+bool SemanticAnalyzer::expectQualified(JunoSTL::Qualifiers qualifier,
+                                       const std::string &identifier,
+                                       std::size_t argCount,
+                                       JunoSTL::Operations op,
+                                       const SourceLocation &source) {
+    if (auto func = JunoSTL::find(qualifier, identifier, op);
+        func.has_value()) {
+        if (func->arity != argCount) {
+            mDiagnostics.emplace_back(
+                std::format("'{}.{}' expects {} arguments, got {}",
+                            JunoSTL::qualifierToString(func->qualifier),
+                            identifier, func->arity, argCount),
+                source);
+            return false;
+        }
+        return true;
+    }
+    mDiagnostics.emplace_back(
+        std::format("'{}.{}' is not defined in the standard library",
+                    JunoSTL::qualifierToString(qualifier), identifier),
         source);
     return false;
 }

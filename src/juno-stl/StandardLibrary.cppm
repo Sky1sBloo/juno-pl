@@ -46,7 +46,7 @@ export class JunoSTL {
     };
 
     /**
-    Converts a qualifier string (e.g. "math", "strings") to a Qualifiers
+    Converts a qualifier string (e.g. "Math", "Strings") to a Qualifiers
     enum value. Returns COMMON when the string is empty or unknown.
      */
     static Qualifiers qualifierFromString(const std::string &qualifier) {
@@ -55,6 +55,18 @@ export class JunoSTL {
             return it->second;
         }
         return Qualifiers::COMMON;
+    }
+
+    /**
+    Converts a Qualifiers enum value back to its string form (e.g. "Math").
+    Returns "Common" for Qualifiers::COMMON or any unknown value.
+     */
+    static std::string qualifierToString(Qualifiers qualifier) {
+        auto it = kQualifierReverseMap.find(qualifier);
+        if (it != kQualifierReverseMap.end()) {
+            return it->second;
+        }
+        return "Common";
     }
 
     /**
@@ -120,5 +132,26 @@ export class JunoSTL {
                          {"Fuel", Qualifiers::FUEL},
                          {"Time", Qualifiers::TIME},
                          {"Performance", Qualifiers::PERFORMANCE}};
+
+    inline static const std::map<Qualifiers, std::string> kQualifierReverseMap =
+        {{Qualifiers::COMMON, "Common"},
+         {Qualifiers::MATH, "Math"},
+         {Qualifiers::STRINGS, "Strings"},
+         {Qualifiers::INPUT, "Input"},
+         {Qualifiers::LISTS, "Lists"},
+         {Qualifiers::VECTOR, "Vector"},
+         {Qualifiers::GAME, "Game"},
+         {Qualifiers::CRAFT, "Craft"},
+         {Qualifiers::PART, "Part"},
+         {Qualifiers::CAMERA, "Camera"},
+         {Qualifiers::NAV, "Nav"},
+         {Qualifiers::ALTITUDE, "Altitude"},
+         {Qualifiers::VELOCITY, "Velocity"},
+         {Qualifiers::ORBIT, "Orbit"},
+         {Qualifiers::PLANET, "Planet"},
+         {Qualifiers::ATMOSPHERE, "Atmosphere"},
+         {Qualifiers::FUEL, "Fuel"},
+         {Qualifiers::TIME, "Time"},
+         {Qualifiers::PERFORMANCE, "Performance"}};
 };
 }
