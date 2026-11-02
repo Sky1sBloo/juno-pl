@@ -8,8 +8,9 @@ module junopl.semantic;
 /**
 For visitors
  */
-template <class ...Ts>
-struct Overload : Ts... { using Ts::operator()...; };
+template <class... Ts> struct Overload : Ts... {
+    using Ts::operator()...;
+};
 
 namespace JunoPL {
 std::vector<Diagnostic> SemanticAnalyzer::analyze(const RootNode &root) {
@@ -40,54 +41,58 @@ void SemanticAnalyzer::visitBody(const Body &body) {
 }
 
 void SemanticAnalyzer::visitStatement(const Statements &statement) {
-    std::visit(
-        Overload{
-            [this](const Body &body) { visitBody(body); },
-            [this](const VarDeclaration &) {},
-            [this](const VarAssignment &) {},
-            [this](const ListDeclaration &) {},
-            [this](const PerformInstruction &) {},
-            [this](const BreakStatement &) {},
-            [this](const ConditionalStatement &) {},
-            [this](const EmitEvent &) {},
-            [this](const RepeatLoop &) {},
-            [this](const WhileLoop &) {},
-            [this](const ForLoop &) {},
-            [this](const ListOp &) {},
-        },
-        statement.statement);
+    std::visit(Overload{
+                   [this](const Body &body) { visitBody(body); },
+                   [this](const VarDeclaration &varDecl) {
+                       declare(Symbol{varDecl.identifier, Symbol::Kind::VALUE,
+                                      0, varDecl.loc});
+                   },
+                   [this](const VarAssignment &varAssign) {
+                       expect(varAssign.identifier, varAssign.loc);
+                   },
+                   [this](const ListDeclaration &) {},
+                   [this](const PerformInstruction &) {},
+                   [this](const BreakStatement &) {},
+                   [this](const ConditionalStatement &) {},
+                   [this](const EmitEvent &) {},
+                   [this](const RepeatLoop &) {},
+                   [this](const WhileLoop &) {},
+                   [this](const ForLoop &) {},
+                   [this](const ListOp &) {},
+               },
+               statement.statement);
 }
 
 void SemanticAnalyzer::pushScope() { mScopes.emplace_back(); }
 
 void SemanticAnalyzer::popScope() { mScopes.pop_back(); }
 
-/**
-Resolves a name starting from the innermost scope outward. Returns
-nullptr when the name is not declared anywhere, which callers turn into
-an "undefined variable" diagnostic.
- */
-Symbol *SemanticAnalyzer::lookup(const std::string &name) {
+std::optional<Symbol> SemanticAnalyzer::lookup(const std::string &name) const {
     for (auto scope = mScopes.rbegin(); scope != mScopes.rend(); ++scope) {
         auto found = scope->symbols.find(name);
         if (found != scope->symbols.end()) {
-            return &found->second;
+            return found->second;
         }
     }
-    return nullptr;
+    return std::nullopt;
 }
 
-/**
-Introduces a name in the current (innermost) scope only. Shadowing an
-outer declaration is fine; redeclaring in the same scope is an error.
-Returns false and records a diagnostic when the name is taken.
- */
+bool SemanticAnalyzer::expect(const std::string &name,
+                              const SourceLocation &source) {
+    if (auto symbol = lookup(name); !symbol.has_value()) {
+        mDiagnostics.emplace_back(std::format("'{}' is not defined", name),
+                                  source);
+        return false;
+    }
+    return true;
+}
+
 bool SemanticAnalyzer::declare(Symbol symbol) {
     auto &symbols = mScopes.back().symbols;
     if (auto existing = symbols.find(symbol.name); existing != symbols.end()) {
-        mDiagnostics.push_back(Diagnostic{
+        mDiagnostics.emplace_back(
             std::format("'{}' is already declared in this scope", symbol.name),
-            symbol.declaredAt});
+            symbol.declaredAt);
         return false;
     }
     symbols.emplace(symbol.name, std::move(symbol));

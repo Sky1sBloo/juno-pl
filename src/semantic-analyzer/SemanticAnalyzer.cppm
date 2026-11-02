@@ -1,4 +1,5 @@
 module;
+#include <optional>
 #include <string>
 #include <vector>
 export module junopl.semantic;
@@ -8,6 +9,7 @@ import junopl.parser.nodes.statements;
 import junopl.parser.nodes.expressions;
 import junopl.semantic.symbols;
 import junopl.semantic.diagnostic;
+import junopl.common.location;
 
 namespace JunoPL {
 export class SemanticAnalyzer {
@@ -27,7 +29,12 @@ declare() and lookup() are only valid while at least that scope exists.
     // Scope stack
     void pushScope();
     void popScope();
-    Symbol *lookup(const std::string &name);
+
+    // For handling diagnostics for callers
+    std::optional<Symbol> lookup(const std::string &name) const;
+
+    // For handling diagnostics automatically
+    bool expect(const std::string &name, const SourceLocation &source);
     bool declare(Symbol symbol);
 
     std::vector<Scope> mScopes;
