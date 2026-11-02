@@ -17,19 +17,6 @@ std::vector<Diagnostic> SemanticAnalyzer::analyze(const RootNode &root) {
     return {};
 }
 
-/**
-Creates a new lexical scope for the body, analyzes every statement in
-it, then discards the scope. This one function handles all three
-placements of a Body in the AST: function bodies, event bodies, and bare
-nested-block statements (the Body alternative of Statements), so nested
-blocks get scoping for free.
-
-Note for the future ForLoop analysis: the iterator must be visible
-inside the loop body, so the for-loop case should pushScope(), declare
-the iterator, and walk the body's statements directly instead of going
-through this function (which would seal the iterator off in an outer
-scope).
- */
 void SemanticAnalyzer::visitBody(const Body &body) {
     pushScope();
     for (const auto &statement : body.body) {

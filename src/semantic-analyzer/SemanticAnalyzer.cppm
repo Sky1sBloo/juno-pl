@@ -34,23 +34,19 @@ declare() and lookup() are only valid while at least that scope exists.
     // For handling diagnostics for callers
     std::optional<Symbol> lookup(const std::string &name) const;
 
-// For handling diagnostics automatically
+    // For handling diagnostics automatically
     bool expect(const std::string &name, const SourceLocation &source);
     // For stl functions
     bool expectQualified(const std::string &qualifier,
-                         const std::string &identifier,
-                         std::size_t argCount,
-                         JunoSTL::Operations op,
-                         const SourceLocation &source);
+                         const std::string &identifier, std::size_t argCount,
+                         JunoSTL::Operations op, const SourceLocation &source);
     bool expectQualified(JunoSTL::Qualifiers qualifier,
-                         const std::string &identifier,
-                         std::size_t argCount,
-                         JunoSTL::Operations op,
-                         const SourceLocation &source);
+                         const std::string &identifier, std::size_t argCount,
+                         JunoSTL::Operations op, const SourceLocation &source);
     bool declare(Symbol symbol);
 
     std::vector<Scope> mScopes;
     std::vector<Diagnostic> mDiagnostics;
     int mLoopDepth{0};
 };
-} // namespace JunoPL
+}
