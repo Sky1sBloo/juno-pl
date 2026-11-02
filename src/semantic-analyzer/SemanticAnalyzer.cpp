@@ -50,7 +50,10 @@ void SemanticAnalyzer::visitStatement(const Statements &statement) {
                    [this](const VarAssignment &varAssign) {
                        expect(varAssign.identifier, varAssign.loc);
                    },
-                   [this](const ListDeclaration &) {},
+                   [this](const ListDeclaration &listDecl) {
+                       declare(Symbol{listDecl.identifier, Symbol::Kind::LIST,
+                                      0, listDecl.loc});
+                   },
                    [this](const PerformInstruction &) {},
                    [this](const BreakStatement &) {},
                    [this](const ConditionalStatement &) {},

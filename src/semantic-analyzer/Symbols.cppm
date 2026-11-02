@@ -3,6 +3,7 @@ module;
 #include <unordered_map>
 export module junopl.semantic.symbols;
 import junopl.common.location;
+import junopl.stl;
 namespace JunoPL {
 export struct Symbol {
     enum class Kind { VALUE, LIST };

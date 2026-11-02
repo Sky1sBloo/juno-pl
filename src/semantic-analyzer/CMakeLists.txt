@@ -7,5 +7,5 @@ target_sources(
 
 target_link_libraries(
   juno-pl-semantic-analyzer
-  PRIVATE juno-pl-parser juno-pl-parse-nodes)
+  PRIVATE juno-pl-parser juno-pl-parse-nodes juno-pl-stl)
 target_compile_features(juno-pl-semantic-analyzer PUBLIC cxx_std_23)

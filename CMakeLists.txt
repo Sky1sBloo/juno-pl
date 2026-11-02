@@ -9,6 +9,7 @@ project(juno-pl
 
 add_executable(juno-pl src/main.cpp)
 add_subdirectory(src/common)
+add_subdirectory(src/juno-stl)
 add_subdirectory(src/file-reader)
 add_subdirectory(src/lexer)
 add_subdirectory(src/parser)
