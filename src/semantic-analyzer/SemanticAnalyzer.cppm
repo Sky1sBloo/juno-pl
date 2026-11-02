@@ -10,7 +10,7 @@ import junopl.parser.nodes.expressions;
 import junopl.semantic.symbols;
 import junopl.semantic.diagnostic;
 import junopl.common.location;
-
+import junopl.stl;
 namespace JunoPL {
 export class SemanticAnalyzer {
   public:
@@ -35,6 +35,10 @@ declare() and lookup() are only valid while at least that scope exists.
 
     // For handling diagnostics automatically
     bool expect(const std::string &name, const SourceLocation &source);
+    // For stl functions
+    bool expectQualified(const std::string &qualifier,
+                         const std::string &identifier,
+                         const SourceLocation &source);
     bool declare(Symbol symbol);
 
     std::vector<Scope> mScopes;
