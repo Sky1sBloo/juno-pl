@@ -385,3 +385,38 @@ on start() {
 
     CHECK(xml.find("<Not style=\"op-not\">") != std::string::npos);
 }
+
+TEST_CASE("Compiler XML - custom expression emission") {
+    const auto xml = compileSource(R"(
+program test;
+
+expr myExpr(x) x + 1;
+expr add3(a, b, c) a + b + c;
+)");
+
+    CHECK(xml.find("<CustomExpression name=\"myExpr\"") != std::string::npos);
+    CHECK(xml.find("style=\"custom-expression\"") != std::string::npos);
+    CHECK(xml.find("callFormat=\"myExpr (0) \"") != std::string::npos);
+    CHECK(xml.find("format=\"myExpr |x|  \"") != std::string::npos);
+    CHECK(xml.find("<BinaryOp op=\"+\" style=\"op-add\">") != std::string::npos);
+
+    CHECK(xml.find("<CustomExpression name=\"add3\"") != std::string::npos);
+    CHECK(xml.find("callFormat=\"add3 (0) (1) (2) \"") != std::string::npos);
+    CHECK(xml.find("format=\"add3 |a| |b| |c|  \"") !=
+          std::string::npos);
+}
+
+TEST_CASE("Compiler XML - emit inside on block") {
+    const auto xml = compileSource(R"(
+program test;
+
+on start() {
+    emit testEvent();
+})");
+
+    CHECK(xml.find("<BroadcastMessage id=\"") != std::string::npos);
+    CHECK(xml.find("style=\"broadcast-msg\"") != std::string::npos);
+    CHECK(xml.find("message=\"testEvent\"") != std::string::npos);
+    CHECK(xml.find("global=\"false\"") != std::string::npos);
+    CHECK(xml.find("local=\"true\"") != std::string::npos);
+}

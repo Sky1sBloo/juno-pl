@@ -112,6 +112,8 @@ const char *comparisonOp(BinaryOp::Operation o) {
 std::pair<std::string, std::string> eventName(const std::string &junoEvent) {
     if (junoEvent == "start")
         return {"FlightStart", "flight-start"};
+    if (junoEvent == "update")
+        return {"Update", "update"};
     if (junoEvent == "collision")
         return {"PartCollision", "part-collision"};
     if (junoEvent == "dock")
@@ -149,6 +151,9 @@ std::string Compiler::compileAST(const RootNode &root) {
     std::size_t id = 0;
     auto nextId = [&id] { return std::to_string(id++); };
 
+    // ---- Expressions ----
+    auto exprsEl = prog.append_child("Expressions");
+
     for (const auto &node : root.body) {
         std::visit(
             Overload{
@@ -185,15 +190,45 @@ std::string Compiler::compileAST(const RootNode &root) {
                     mScopePath.pop_back();
                 },
                 [](const auto &) {
-                    // imports, top-level vars, custom expressions
-                    // handled elsewhere
+                    // imports, top-level vars, handled elsewhere
+                },
+                [&](const CustomExpression &customExpr) {
+                    auto el = exprsEl.append_child("CustomExpression");
+                    el.append_attribute("name") =
+                        customExpr.identifier.c_str();
+                    el.append_attribute("style") = "custom-expression";
+                    el.append_attribute("pos") = "-10,-20";
+
+                    // Build callFormat and format from params
+                    std::string paramsStr;
+                    for (std::size_t k = 0; k < customExpr.params.size();
+                         ++k) {
+                        if (k)
+                            paramsStr += " ";
+                        paramsStr += "|" + customExpr.params[k] + "|";
+                    }
+                    el.append_attribute("format") =
+                        (customExpr.identifier + " " + paramsStr +
+                         "  ")
+                            .c_str();
+                    std::string callFormat;
+                    for (std::size_t k = 0;
+                         k < customExpr.params.size(); ++k) {
+                        if (k)
+                            callFormat += " ";
+                        callFormat += "(" + std::to_string(k) + ")";
+                    }
+                    el.append_attribute("callFormat") =
+                        (customExpr.identifier + " " + callFormat + " ")
+                            .c_str();
+
+                    if (customExpr.expression)
+                        emitExpression(*customExpr.expression, el);
                 },
             },
             node);
     }
 
-    // ---- Expressions ----
-    (void)prog.append_child("Expressions");
     std::ostringstream oss;
     pugi::xml_writer_stream writer(oss);
     doc.save(writer, PUGIXML_TEXT("\t"), pugi::format_default, pugi::encoding_utf8);
