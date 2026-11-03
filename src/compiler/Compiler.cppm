@@ -66,6 +66,11 @@ export class Compiler {
     void emitExpression(const Expression &expr, pugi::xml_node parent);
     void emitCondition(const Expression &expr, pugi::xml_node parent);
 
+    /** Resolves a variable reference to its emitted (possibly hashed) name,
+     * looking up the current scope path in mVariables. Falls back to raw
+     * name for top-level variables. */
+    std::string resolveVariableName(const std::string &name);
+
     /** Key/value table built by getVariables. */
     std::map<std::string, std::string> mVariables;
     /** Components of the scope being visited; empty at top level. */

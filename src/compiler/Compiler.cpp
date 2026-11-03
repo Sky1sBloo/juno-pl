@@ -166,7 +166,9 @@ std::string Compiler::compileAST(const RootNode &root) {
                             pn.append_attribute("name") = p.c_str();
                         }
                     }
+                    mScopePath.push_back(event.identifier);
                     emitBody(event.body, instrsEl, nextId);
+                    mScopePath.pop_back();
                 },
                 [&](const FunctionNode &func) {
                     auto el = instrsEl.append_child("CustomInstruction");
@@ -189,7 +191,9 @@ std::string Compiler::compileAST(const RootNode &root) {
                     }
                     el.append_attribute("callFormat") =
                         (func.identifier + " " + callFormat + " ").c_str();
+                    mScopePath.push_back(func.identifier);
                     emitBody(func.body, instrsEl, nextId);
+                    mScopePath.pop_back();
                 },
                 [](const auto &) {
                     // imports, top-level vars, custom expressions
@@ -236,34 +240,36 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
     std::visit(
         Overload{
             [&](const Body &body) {
+                mScopePath.push_back(std::to_string(index));
                 auto inner = parent.append_child("Instructions");
                 emitBody(body, inner, nextId);
+                mScopePath.pop_back();
             },
             [&](const VarDeclaration &varDecl) {
                 auto el = parent.append_child("SetVariable");
                 el.append_attribute("id") = nextId().c_str();
                 el.append_attribute("style") = "set-variable";
-                       auto ref = el.append_child("Variable");
-                       ref.append_attribute("list") = "false";
-                       ref.append_attribute("local") = "false";
-                       ref.append_attribute("variableName") =
-                           varDecl.identifier.c_str();
-                       if (varDecl.value) {
-                           emitExpression(*varDecl.value, el);
-                       } else {
-                           auto c = el.append_child("Constant");
-                           c.append_attribute("number") = "0";
-                       }
-                   },
-                   [&](const VarAssignment &assign) {
-                       auto el = parent.append_child("SetVariable");
-                       el.append_attribute("id") = nextId().c_str();
-                       el.append_attribute("style") = "set-variable";
-                       auto ref = el.append_child("Variable");
-                       ref.append_attribute("list") = "false";
-                       ref.append_attribute("local") = "false";
-                       ref.append_attribute("variableName") =
-                           assign.identifier.c_str();
+                auto ref = el.append_child("Variable");
+                ref.append_attribute("list") = "false";
+                ref.append_attribute("local") = "false";
+                ref.append_attribute("variableName") =
+                    resolveVariableName(varDecl.identifier).c_str();
+                if (varDecl.value) {
+                    emitExpression(*varDecl.value, el);
+                } else {
+                    auto c = el.append_child("Constant");
+                    c.append_attribute("number") = "0";
+                }
+            },
+            [&](const VarAssignment &assign) {
+                auto el = parent.append_child("SetVariable");
+                el.append_attribute("id") = nextId().c_str();
+                el.append_attribute("style") = "set-variable";
+                auto ref = el.append_child("Variable");
+                ref.append_attribute("list") = "false";
+                ref.append_attribute("local") = "false";
+                ref.append_attribute("variableName") =
+                    resolveVariableName(assign.identifier).c_str();
                 if (assign.value) {
                     emitExpression(*assign.value, el);
                 } else {
@@ -275,11 +281,11 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                 auto el = parent.append_child("SetVariable");
                 el.append_attribute("id") = nextId().c_str();
                 el.append_attribute("style") = "list-init";
-                       auto ref = el.append_child("Variable");
-                       ref.append_attribute("list") = "true";
-                       ref.append_attribute("local") = "false";
-                       ref.append_attribute("variableName") =
-                           listDecl.identifier.c_str();
+                auto ref = el.append_child("Variable");
+                ref.append_attribute("list") = "true";
+                ref.append_attribute("local") = "false";
+                ref.append_attribute("variableName") =
+                    resolveVariableName(listDecl.identifier).c_str();
                 auto listOp = el.append_child("ListOp");
                 listOp.append_attribute("op") = "create";
                 listOp.append_attribute("style") = "list-create";
@@ -325,16 +331,21 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                 ifEl.append_attribute("id") = nextId().c_str();
                 ifEl.append_attribute("style") = "if";
                 emitCondition(*cond.ifStatement.condition, ifEl);
+                mScopePath.push_back(std::to_string(index) + ".if");
                 auto ifBody = ifEl.append_child("Instructions");
                 emitBody(cond.ifStatement.body, ifBody, nextId);
+                mScopePath.pop_back();
 
                 for (std::size_t i = 0; i < cond.elifStatements.size(); ++i) {
                     auto ei = parent.append_child("ElseIf");
                     ei.append_attribute("id") = nextId().c_str();
                     ei.append_attribute("style") = "else-if";
                     emitCondition(*cond.elifStatements[i].condition, ei);
+                    mScopePath.push_back(
+                        std::to_string(index) + ".elif" + std::to_string(i));
                     auto eiBody = ei.append_child("Instructions");
                     emitBody(cond.elifStatements[i].body, eiBody, nextId);
+                    mScopePath.pop_back();
                 }
 
                 auto elseEl = parent.append_child("ElseIf");
@@ -343,8 +354,10 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                 auto c = elseEl.append_child("Constant");
                 c.append_attribute("style") = "true";
                 c.append_attribute("bool") = "true";
+                mScopePath.push_back(std::to_string(index) + ".else");
                 auto elseBody = elseEl.append_child("Instructions");
                 emitBody(cond.elseStatement, elseBody, nextId);
+                mScopePath.pop_back();
             },
             [&](const EmitEvent &emit) {
                 auto el = parent.append_child("BroadcastMessage");
@@ -372,30 +385,97 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                     auto c = el.append_child("Constant");
                     c.append_attribute("number") = "1";
                 }
+                mScopePath.push_back(std::to_string(index));
                 auto bodyEl = el.append_child("Instructions");
                 emitBody(repeat.body, bodyEl, nextId);
+                mScopePath.pop_back();
             },
             [&](const WhileLoop &loop) {
                 auto el = parent.append_child("While");
                 el.append_attribute("id") = nextId().c_str();
                 el.append_attribute("style") = "while";
                 emitCondition(*loop.condition, el);
+                mScopePath.push_back(std::to_string(index));
                 auto bodyEl = el.append_child("Instructions");
                 emitBody(loop.body, bodyEl, nextId);
+                mScopePath.pop_back();
             },
             [&](const ForLoop &loop) {
-                auto el = parent.append_child("For");
-                el.append_attribute("id") = nextId().c_str();
-                el.append_attribute("style") = "for";
-                el.append_attribute("var") = loop.iterator.c_str();
+                // Push for-loop scope so iterator resolves to its hashed name
+                mScopePath.push_back(std::to_string(index));
+
+                // 1. Init: i = start (sibling at parent level)
+                auto initEl = parent.append_child("SetVariable");
+                initEl.append_attribute("id") = nextId().c_str();
+                initEl.append_attribute("style") = "set-variable";
+                {
+                    auto ref = initEl.append_child("Variable");
+                    ref.append_attribute("list") = "false";
+                    ref.append_attribute("local") = "false";
+                    ref.append_attribute("variableName") =
+                        resolveVariableName(loop.iterator).c_str();
+                }
                 if (loop.start)
-                    emitExpression(*loop.start, el);
+                    emitExpression(*loop.start, initEl);
+                else {
+                    auto c = initEl.append_child("Constant");
+                    c.append_attribute("number") = "0";
+                }
+
+                // 2. While loop (sibling at parent level)
+                auto whileEl = parent.append_child("While");
+                whileEl.append_attribute("id") = nextId().c_str();
+                whileEl.append_attribute("style") = "while";
+
+                // Condition: i <= end (default; assume forward iteration)
+                auto condEl = whileEl.append_child("Comparison");
+                condEl.append_attribute("op") = "<=";
+                condEl.append_attribute("style") = "op-lte";
+                {
+                    auto lhsRef = condEl.append_child("Variable");
+                    lhsRef.append_attribute("list") = "false";
+                    lhsRef.append_attribute("local") = "false";
+                    lhsRef.append_attribute("variableName") =
+                        resolveVariableName(loop.iterator).c_str();
+                }
                 if (loop.end)
-                    emitExpression(*loop.end, el);
-                if (loop.by)
-                    emitExpression(*loop.by, el);
-                auto bodyEl = el.append_child("Instructions");
+                    emitExpression(*loop.end, condEl);
+
+                // Body: original statements + increment
+                auto bodyEl = whileEl.append_child("Instructions");
                 emitBody(loop.body, bodyEl, nextId);
+
+                // Increment: i = i + by
+                auto incrEl = bodyEl.append_child("SetVariable");
+                incrEl.append_attribute("id") = nextId().c_str();
+                incrEl.append_attribute("style") = "set-variable";
+                {
+                    auto incrRef = incrEl.append_child("Variable");
+                    incrRef.append_attribute("list") = "false";
+                    incrRef.append_attribute("local") = "false";
+                    incrRef.append_attribute("variableName") =
+                        resolveVariableName(loop.iterator).c_str();
+                }
+                {
+                    auto incrOp = incrEl.append_child("BinaryOp");
+                    incrOp.append_attribute("op") = "+";
+                    incrOp.append_attribute("style") = "op-add";
+                    {
+                        auto incrLhs = incrOp.append_child("Variable");
+                        incrLhs.append_attribute("list") = "false";
+                        incrLhs.append_attribute("local") = "false";
+                        incrLhs.append_attribute("variableName") =
+                            resolveVariableName(loop.iterator).c_str();
+                    }
+                    if (loop.by)
+                        emitExpression(*loop.by, incrOp);
+                    else {
+                        auto c = incrOp.append_child("Constant");
+                        c.append_attribute("number") = "1";
+                    }
+                }
+
+                mScopePath.pop_back();
             },
         },
         statement.statement);
@@ -412,13 +492,13 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                            } catch (...) {
                                el.append_attribute("text") = v.value.c_str();
                            }
-                       } else {
-                           auto ref = parent.append_child("Variable");
-                           ref.append_attribute("list") = "false";
-                           ref.append_attribute("local") = "false";
-                           ref.append_attribute("variableName") =
-                               v.value.c_str();
-                       }
+                    } else {
+                        auto ref = parent.append_child("Variable");
+                        ref.append_attribute("list") = "false";
+                        ref.append_attribute("local") = "false";
+                        ref.append_attribute("variableName") =
+                            resolveVariableName(v.value).c_str();
+                    }
                    },
                    [&](const BinaryOp &bop) {
                        auto el = parent.append_child("BinaryOp");
@@ -439,11 +519,11 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                        auto el = parent.append_child("ListOp");
                        el.append_attribute("op") = "get";
                        el.append_attribute("style") = "list-get";
-                       auto ref = el.append_child("Variable");
-                       ref.append_attribute("list") = "true";
-                       ref.append_attribute("local") = "false";
-                       ref.append_attribute("variableName") =
-                           li.identifier.c_str();
+                    auto ref = el.append_child("Variable");
+                        ref.append_attribute("list") = "true";
+                        ref.append_attribute("local") = "false";
+                        ref.append_attribute("variableName") =
+                            resolveVariableName(li.identifier).c_str();
                        if (li.index)
                            emitExpression(*li.index, el);
                    },
@@ -559,6 +639,29 @@ std::string Compiler::makeUnique(const std::string &name,
         candidate = std::format("{}_{:08x}_{}", name, hash, suffix);
     }
     return candidate;
+}
+
+std::string Compiler::resolveVariableName(const std::string &name) {
+    // Try from innermost scope outward, keeping the variable name:
+    // "start.1.if.a" → "start.1.a" → "start.a" → "a"
+    for (std::size_t i = mScopePath.size(); i > 0; --i) {
+        std::string key;
+        for (std::size_t j = 0; j < i; ++j) {
+            key += mScopePath[j];
+            key += '.';
+        }
+        key += name;
+        auto it = mVariables.find(key);
+        if (it != mVariables.end()) {
+            return it->second;
+        }
+    }
+    // Fall back to raw name (global or not yet registered)
+    auto it = mVariables.find(name);
+    if (it != mVariables.end()) {
+        return it->second;
+    }
+    return name;
 }
 
 void Compiler::collectBody(const Body &body) {
