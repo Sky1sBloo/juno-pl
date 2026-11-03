@@ -172,25 +172,14 @@ std::string Compiler::compileAST(const RootNode &root) {
                 },
                 [&](const FunctionNode &func) {
                     auto el = instrsEl.append_child("CustomInstruction");
-                    el.append_attribute("id") = nextId().c_str();
-                    el.append_attribute("name") = func.identifier.c_str();
-                    el.append_attribute("style") = "custom-instruction";
-                    std::string paramsStr;
-                    for (std::size_t k = 0; k < func.params.size(); ++k) {
-                        if (k)
-                            paramsStr += " ";
-                        paramsStr += "|" + func.params[k] + "|";
-                    }
-                    el.append_attribute("format") =
-                        (func.identifier + " " + paramsStr + "  ").c_str();
-                    std::string callFormat;
-                    for (std::size_t k = 0; k < func.params.size(); ++k) {
-                        if (k)
-                            callFormat += " ";
-                        callFormat += "(" + std::to_string(k) + ")";
-                    }
                     el.append_attribute("callFormat") =
-                        (func.identifier + " " + callFormat + " ").c_str();
+                        func.identifier.c_str();
+                    el.append_attribute("format") =
+                        func.identifier.c_str();
+                    el.append_attribute("name") = func.identifier.c_str();
+                    el.append_attribute("id") = nextId().c_str();
+                    el.append_attribute("style") = "custom-instruction";
+                    el.append_attribute("pos") = "-10,-20";
                     mScopePath.push_back(func.identifier);
                     emitBody(func.body, instrsEl, nextId);
                     mScopePath.pop_back();
@@ -304,12 +293,30 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                 }
             },
             [&](const PerformInstruction &instr) {
-                if (instr.qualifier == "Game" && instr.identifier == "display") {
-                    auto el = parent.append_child("DisplayMessage");
-                    el.append_attribute("id") = nextId().c_str();
-                    el.append_attribute("style") = "display";
-                    for (const auto &p : instr.params) {
-                        emitExpression(*p, el);
+                if (instr.qualifier == "Game") {
+                    if (instr.identifier == "display") {
+                        auto el = parent.append_child("DisplayMessage");
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "display";
+                        for (const auto &p : instr.params) {
+                            emitExpression(*p, el);
+                        }
+                    } else if (instr.identifier == "delay") {
+                        auto el = parent.append_child("WaitSeconds");
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "wait-seconds";
+                        el.append_attribute("pos") = "-10,-20";
+                        for (const auto &p : instr.params) {
+                            emitExpression(*p, el);
+                        }
+                    } else {
+                        auto el = parent.append_child("SetCraftProperty");
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "set-part";
+                        el.append_attribute("property") = instr.identifier.c_str();
+                        for (const auto &p : instr.params) {
+                            emitExpression(*p, el);
+                        }
                     }
                 } else {
                     auto el = parent.append_child("SetCraftProperty");
