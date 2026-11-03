@@ -427,10 +427,47 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                 whileEl.append_attribute("id") = nextId().c_str();
                 whileEl.append_attribute("style") = "while";
 
-                // Condition: i <= end (default; assume forward iteration)
+                // Determine loop direction from `by`: negative step means
+                // counting down, so condition should be i >= end instead
+                // of i <= end.
+                bool countingDown = false;
+                if (loop.by) {
+                    if (std::holds_alternative<Value>(loop.by->value)) {
+                        const Value &byVal = std::get<Value>(loop.by->value);
+                        if (byVal.kind == Value::Kind::Literal) {
+                            try {
+                                double byNum = std::stod(byVal.value);
+                                countingDown = byNum < 0;
+                            } catch (...) {
+                                countingDown = false;
+                            }
+                        }
+                    } else if (std::holds_alternative<UnaryOp>(
+                                   loop.by->value)) {
+                        const UnaryOp &un = std::get<UnaryOp>(loop.by->value);
+                        if (un.operation == UnaryOp::Operation::NEGATE &&
+                            un.value &&
+                            std::holds_alternative<Value>(un.value->value)) {
+                            const Value &byVal =
+                                std::get<Value>(un.value->value);
+                            if (byVal.kind == Value::Kind::Literal) {
+                                try {
+                                    double byNum = std::stod(byVal.value);
+                                    countingDown = byNum > 0;
+                                } catch (...) {
+                                    countingDown = false;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Condition: i <= end (forward) or i >= end (backward)
                 auto condEl = whileEl.append_child("Comparison");
-                condEl.append_attribute("op") = "<=";
-                condEl.append_attribute("style") = "op-lte";
+                condEl.append_attribute("op") =
+                    countingDown ? ">=" : "<=";
+                condEl.append_attribute("style") =
+                    countingDown ? "op-gte" : "op-lte";
                 {
                     auto lhsRef = condEl.append_child("Variable");
                     lhsRef.append_attribute("list") = "false";
@@ -509,12 +546,56 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                        if (bop.rhs)
                            emitExpression(*bop.rhs, el);
                    },
-                   [&](const UnaryOp &uop) {
-                       auto el = parent.append_child("Not");
-                       el.append_attribute("style") = "op-not";
-                       if (uop.value)
-                           emitExpression(*uop.value, el);
-                   },
+                    [&](const UnaryOp &uop) {
+                        if (uop.operation == UnaryOp::Operation::NEGATE &&
+                            uop.value &&
+                            std::holds_alternative<Value>(uop.value->value)) {
+                            const Value &v =
+                                std::get<Value>(uop.value->value);
+                            auto el = parent.append_child("Constant");
+                            if (v.kind == Value::Kind::Literal) {
+                                try {
+                                    double d = std::stod(v.value);
+                                    double neg = -d;
+                                    std::string numStr =
+                                        std::to_string(neg);
+                                    // Strip trailing zeros after decimal point
+                                    if (numStr.find('.') !=
+                                        std::string::npos) {
+                                        numStr.erase(
+                                            numStr.find_last_not_of('0') +
+                                            1, std::string::npos);
+                                        if (numStr.back() == '.') {
+                                            numStr.pop_back();
+                                        }
+                                    }
+                                    el.append_attribute("number") =
+                                        numStr.c_str();
+                                } catch (...) {
+                                    el.append_attribute("text") =
+                                        ("-" + v.value).c_str();
+                                }
+                            } else {
+                                el.append_attribute("text") =
+                                    ("-" + v.value).c_str();
+                            }
+                        } else if (uop.operation ==
+                                   UnaryOp::Operation::NEGATE) {
+                            // 0 - value for non-literal negate
+                            auto el = parent.append_child("BinaryOp");
+                            el.append_attribute("op") = "-";
+                            el.append_attribute("style") = "op-sub";
+                            auto c = el.append_child("Constant");
+                            c.append_attribute("number") = "0";
+                            if (uop.value)
+                                emitExpression(*uop.value, el);
+                        } else {
+                            auto el = parent.append_child("Not");
+                            el.append_attribute("style") = "op-not";
+                            if (uop.value)
+                                emitExpression(*uop.value, el);
+                        }
+                    },
                    [&](const ListIndex &li) {
                        auto el = parent.append_child("ListOp");
                        el.append_attribute("op") = "get";
