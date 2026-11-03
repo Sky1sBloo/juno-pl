@@ -229,6 +229,7 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
             {{1, 1}});
         add(Qualifiers::GAME, Operations::INSTRUCTION, "beep", {{3, 3}});
         add(Qualifiers::GAME, Operations::EXPRESSION, "frequencyOf", {{2, 2}});
+        add(Qualifiers::GAME, Operations::EXPRESSION, "speak", {{3, 3}});
 
         // Craft Instructions - camera controls
         add(Qualifiers::CAMERA, Operations::INSTRUCTION, "zoom", {{1, 1}});
@@ -261,6 +262,10 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::ATMOSPHERE, Operations::EXPRESSION, "speedOfSound",
             {{0, 0}});
         add(Qualifiers::ATMOSPHERE, Operations::EXPRESSION, "temperature",
+            {{0, 0}});
+        add(Qualifiers::ATMOSPHERE, Operations::EXPRESSION, "elements",
+            {{0, 0}});
+        add(Qualifiers::ATMOSPHERE, Operations::EXPRESSION, "composition",
             {{0, 0}});
 
         add(Qualifiers::PERFORMANCE, Operations::EXPRESSION, "engineThrust",
@@ -301,6 +306,8 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::NAV, Operations::EXPRESSION, "rollAxis", {{0, 0}});
         add(Qualifiers::NAV, Operations::EXPRESSION, "pitchAxis", {{0, 0}});
         add(Qualifiers::NAV, Operations::EXPRESSION, "yawAxis", {{0, 0}});
+        add(Qualifiers::NAV, Operations::EXPRESSION, "craftRight", {{0, 0}});
+        add(Qualifiers::NAV, Operations::EXPRESSION, "craftUp", {{0, 0}});
         add(Qualifiers::NAV, Operations::EXPRESSION, "toLatLongAGL", {{1, 1}});
         add(Qualifiers::NAV, Operations::EXPRESSION, "toLatLongASL", {{1, 1}});
         add(Qualifiers::NAV, Operations::EXPRESSION, "toPosition", {{1, 1}});
@@ -392,8 +399,11 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
             {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "atmosphereScaleHeight",
             {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "soiRadius", {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "solarPosition",
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "atmosphereElements",
+            {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION,
+            "atmosphereComposition", {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "soiRadius",
             {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "childPlanets",
             {{1, 1}});
@@ -401,6 +411,12 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::PLANET, Operations::EXPRESSION, "craftID", {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "parent", {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "structures", {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "hydrosphereElement",
+            {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION,
+            "hydrosphereComposition", {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "hydrosphereDensity",
+            {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "dayLength", {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "yearLength", {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "velocity", {{1, 1}});
