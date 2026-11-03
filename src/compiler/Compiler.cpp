@@ -547,48 +547,59 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                            emitExpression(*bop.rhs, el);
                    },
                     [&](const UnaryOp &uop) {
-                        if (uop.operation == UnaryOp::Operation::NEGATE &&
-                            uop.value &&
-                            std::holds_alternative<Value>(uop.value->value)) {
-                            const Value &v =
-                                std::get<Value>(uop.value->value);
-                            auto el = parent.append_child("Constant");
-                            if (v.kind == Value::Kind::Literal) {
-                                try {
-                                    double d = std::stod(v.value);
-                                    double neg = -d;
-                                    std::string numStr =
-                                        std::to_string(neg);
-                                    // Strip trailing zeros after decimal point
-                                    if (numStr.find('.') !=
-                                        std::string::npos) {
-                                        numStr.erase(
-                                            numStr.find_last_not_of('0') +
-                                            1, std::string::npos);
-                                        if (numStr.back() == '.') {
-                                            numStr.pop_back();
+                        if (uop.operation == UnaryOp::Operation::NEGATE) {
+                            if (uop.value &&
+                                std::holds_alternative<Value>(
+                                    uop.value->value)) {
+                                const Value &v =
+                                    std::get<Value>(uop.value->value);
+                                if (v.kind == Value::Kind::Literal) {
+                                    // Fold negation into a single constant
+                                    auto el =
+                                        parent.append_child("Constant");
+                                    try {
+                                        double d = std::stod(v.value);
+                                        double neg = -d;
+                                        std::string numStr =
+                                            std::to_string(neg);
+                                        if (numStr.find('.') !=
+                                            std::string::npos) {
+                                            numStr.erase(
+                                                numStr.find_last_not_of('0') +
+                                                1, std::string::npos);
+                                            if (numStr.back() == '.') {
+                                                numStr.pop_back();
+                                            }
                                         }
+                                        el.append_attribute("number") =
+                                            numStr.c_str();
+                                    } catch (...) {
+                                        el.append_attribute("text") =
+                                            ("-" + v.value).c_str();
                                     }
-                                    el.append_attribute("number") =
-                                        numStr.c_str();
-                                } catch (...) {
-                                    el.append_attribute("text") =
-                                        ("-" + v.value).c_str();
+                                } else {
+                                    // Non-literal: emit 0 - value
+                                    auto el = parent.append_child(
+                                        "BinaryOp");
+                                    el.append_attribute("op") = "-";
+                                    el.append_attribute("style") =
+                                        "op-sub";
+                                    auto c = el.append_child("Constant");
+                                    c.append_attribute("number") = "0";
+                                    if (uop.value)
+                                        emitExpression(*uop.value, el);
                                 }
                             } else {
-                                el.append_attribute("text") =
-                                    ("-" + v.value).c_str();
+                                // Non-Value (e.g. BinaryOp): emit 0 - value
+                                auto el =
+                                    parent.append_child("BinaryOp");
+                                el.append_attribute("op") = "-";
+                                el.append_attribute("style") = "op-sub";
+                                auto c = el.append_child("Constant");
+                                c.append_attribute("number") = "0";
+                                if (uop.value)
+                                    emitExpression(*uop.value, el);
                             }
-                        } else if (uop.operation ==
-                                   UnaryOp::Operation::NEGATE) {
-                            // 0 - value for non-literal negate
-                            auto el = parent.append_child("BinaryOp");
-                            el.append_attribute("op") = "-";
-                            el.append_attribute("style") = "op-sub";
-                            auto c = el.append_child("Constant");
-                            c.append_attribute("number") = "0";
-                            if (uop.value)
-                                emitExpression(*uop.value, el);
                         } else {
                             auto el = parent.append_child("Not");
                             el.append_attribute("style") = "op-not";
