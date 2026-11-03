@@ -165,10 +165,10 @@ std::string Compiler::compileAST(const RootNode &root) {
     }
 
     // ---- Expressions ----
-    auto exprsEl = prog.append_child("Expressions");
-
+    (void)prog.append_child("Expressions");
     std::ostringstream oss;
-    doc.save(oss, nullptr, pugi::format_default, pugi::encoding_utf8);
+    pugi::xml_writer_stream writer(oss);
+    doc.save(writer, PUGIXML_TEXT("\t"), pugi::format_default, pugi::encoding_utf8);
     return oss.str();
 }
 

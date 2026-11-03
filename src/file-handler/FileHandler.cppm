@@ -12,7 +12,11 @@ class FileHandler : public IFileHandler {
   public:
     static std::expected<FileHandler, FileHandlerError>
     open(const std::filesystem::path &path) {
-        return FileHandler(path);
+        FileHandler reader(path);
+        if (!reader.mFileStream.is_open()) {
+            return std::unexpected(FileHandlerError::FileNotFound);
+        }
+        return reader;
     }
 
     static std::expected<void, FileHandlerError>
@@ -34,7 +38,8 @@ class FileHandler : public IFileHandler {
     write(const std::string &data) override;
 
   private:
-    FileHandler(std::filesystem::path path) : mFileStream(path) {}
+    FileHandler(std::filesystem::path path)
+        : mFileStream(path), mPath(path) {}
     std::ifstream mFileStream;
     std::filesystem::path mPath;
 };
