@@ -118,8 +118,6 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         // Program Flow - instructions
         add(Qualifiers::GAME, Operations::INSTRUCTION, "delay", {{1, 1}});
         add(Qualifiers::GAME, Operations::INSTRUCTION, "delayUntil", {{1, 1}});
-        add(Qualifiers::GAME, Operations::INSTRUCTION, "display", {{1, 1}});
-        add(Qualifiers::GAME, Operations::INSTRUCTION, "localLog", {{1, 1}});
         add(Qualifiers::GAME, Operations::INSTRUCTION, "log", {{2, 2}});
 
         // Operators - math expressions

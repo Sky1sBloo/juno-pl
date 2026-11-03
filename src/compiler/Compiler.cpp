@@ -91,6 +91,44 @@ const char *binopStyle(BinaryOp::Operation o) {
     return "";
 }
 
+const char *comparisonOp(BinaryOp::Operation o) {
+    switch (o) {
+    case BinaryOp::Operation::EQUAL:
+        return "=";
+    case BinaryOp::Operation::NOT_EQUAL:
+        return "!=";
+    case BinaryOp::Operation::GREATER:
+        return "g";
+    case BinaryOp::Operation::LESS:
+        return "l";
+    case BinaryOp::Operation::GREATER_EQ:
+        return ">=";
+    case BinaryOp::Operation::LESS_EQ:
+        return "<=";
+    }
+    return "";
+}
+
+std::pair<std::string, std::string> eventName(const std::string &junoEvent) {
+    if (junoEvent == "start")
+        return {"FlightStart", "flight-start"};
+    if (junoEvent == "collision")
+        return {"PartCollision", "part-collision"};
+    if (junoEvent == "dock")
+        return {"Docked", "craft-docked"};
+    if (junoEvent == "explode")
+        return {"PartExplode", "part-explode"};
+    if (junoEvent == "enterSOI")
+        return {"ChangeSoi", "change-soi"};
+    if (junoEvent == "receiveMessage")
+        return {"ReceiveMessage", "receive-msg"};
+    // Unknown event: passthrough with kebab-style
+    std::string style = junoEvent;
+    for (auto &c : style)
+        c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    return {junoEvent, style};
+}
+
 } // namespace
 
 std::string Compiler::compileAST(const RootNode &root) {
@@ -115,15 +153,12 @@ std::string Compiler::compileAST(const RootNode &root) {
         std::visit(
             Overload{
                 [&](const EventNode &event) {
+                    auto [xmlEvent, xmlStyle] = eventName(event.identifier);
                     auto el = instrsEl.append_child("Event");
+                    el.append_attribute("event") = xmlEvent.c_str();
                     el.append_attribute("id") = nextId().c_str();
-                    el.append_attribute("event") = event.identifier.c_str();
-                    std::string style = event.identifier;
-                    for (auto &c : style)
-                        c = static_cast<char>(
-                            std::tolower(static_cast<unsigned char>(c)));
-                    el.append_attribute("style") = style.c_str();
-                    el.append_attribute("pos") = "-377.1133,-110.1246";
+                    el.append_attribute("style") = xmlStyle.c_str();
+                    el.append_attribute("pos") = "-10,-20";
 
                     if (!event.params.empty()) {
                         for (const auto &p : event.params) {
@@ -131,7 +166,7 @@ std::string Compiler::compileAST(const RootNode &root) {
                             pn.append_attribute("name") = p.c_str();
                         }
                     }
-                    emitBody(event.body, el, nextId);
+                    emitBody(event.body, instrsEl, nextId);
                 },
                 [&](const FunctionNode &func) {
                     auto el = instrsEl.append_child("CustomInstruction");
@@ -154,7 +189,7 @@ std::string Compiler::compileAST(const RootNode &root) {
                     }
                     el.append_attribute("callFormat") =
                         (func.identifier + " " + callFormat + " ").c_str();
-                    emitBody(func.body, el, nextId);
+                    emitBody(func.body, instrsEl, nextId);
                 },
                 [](const auto &) {
                     // imports, top-level vars, custom expressions
@@ -169,7 +204,16 @@ std::string Compiler::compileAST(const RootNode &root) {
     std::ostringstream oss;
     pugi::xml_writer_stream writer(oss);
     doc.save(writer, PUGIXML_TEXT("\t"), pugi::format_default, pugi::encoding_utf8);
-    return oss.str();
+    std::string xml = oss.str();
+    // pugixml writes <?xml version="1.0"?>, add encoding to match Vizzy format
+    size_t declPos = xml.find("<?xml");
+    if (declPos != std::string::npos) {
+        size_t endPos = xml.find("?>", declPos);
+        if (endPos != std::string::npos) {
+            xml.insert(endPos, " encoding=\"utf-8\"");
+        }
+    }
+    return xml;
 }
 
 std::expected<void, FileHandlerError> Compiler::writeToFile(
@@ -199,27 +243,27 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                 auto el = parent.append_child("SetVariable");
                 el.append_attribute("id") = nextId().c_str();
                 el.append_attribute("style") = "set-variable";
-                auto ref = el.append_child("Variable");
-                ref.append_attribute("variableName") =
-                    varDecl.identifier.c_str();
-                ref.append_attribute("list") = "false";
-                ref.append_attribute("local") = "false";
-                if (varDecl.value) {
-                    emitExpression(*varDecl.value, el);
-                } else {
-                    auto c = el.append_child("Constant");
-                    c.append_attribute("number") = "0";
-                }
-            },
-            [&](const VarAssignment &assign) {
-                auto el = parent.append_child("SetVariable");
-                el.append_attribute("id") = nextId().c_str();
-                el.append_attribute("style") = "set-variable";
-                auto ref = el.append_child("Variable");
-                ref.append_attribute("variableName") =
-                    assign.identifier.c_str();
-                ref.append_attribute("list") = "false";
-                ref.append_attribute("local") = "false";
+                       auto ref = el.append_child("Variable");
+                       ref.append_attribute("list") = "false";
+                       ref.append_attribute("local") = "false";
+                       ref.append_attribute("variableName") =
+                           varDecl.identifier.c_str();
+                       if (varDecl.value) {
+                           emitExpression(*varDecl.value, el);
+                       } else {
+                           auto c = el.append_child("Constant");
+                           c.append_attribute("number") = "0";
+                       }
+                   },
+                   [&](const VarAssignment &assign) {
+                       auto el = parent.append_child("SetVariable");
+                       el.append_attribute("id") = nextId().c_str();
+                       el.append_attribute("style") = "set-variable";
+                       auto ref = el.append_child("Variable");
+                       ref.append_attribute("list") = "false";
+                       ref.append_attribute("local") = "false";
+                       ref.append_attribute("variableName") =
+                           assign.identifier.c_str();
                 if (assign.value) {
                     emitExpression(*assign.value, el);
                 } else {
@@ -231,11 +275,11 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                 auto el = parent.append_child("SetVariable");
                 el.append_attribute("id") = nextId().c_str();
                 el.append_attribute("style") = "list-init";
-                auto ref = el.append_child("Variable");
-                ref.append_attribute("variableName") =
-                    listDecl.identifier.c_str();
-                ref.append_attribute("list") = "true";
-                ref.append_attribute("local") = "false";
+                       auto ref = el.append_child("Variable");
+                       ref.append_attribute("list") = "true";
+                       ref.append_attribute("local") = "false";
+                       ref.append_attribute("variableName") =
+                           listDecl.identifier.c_str();
                 auto listOp = el.append_child("ListOp");
                 listOp.append_attribute("op") = "create";
                 listOp.append_attribute("style") = "list-create";
@@ -254,12 +298,21 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                 }
             },
             [&](const PerformInstruction &instr) {
-                auto el = parent.append_child("SetCraftProperty");
-                el.append_attribute("id") = nextId().c_str();
-                el.append_attribute("style") = "set-part";
-                el.append_attribute("property") = instr.identifier.c_str();
-                for (const auto &p : instr.params) {
-                    emitExpression(*p, el);
+                if (instr.qualifier == "Game" && instr.identifier == "display") {
+                    auto el = parent.append_child("DisplayMessage");
+                    el.append_attribute("id") = nextId().c_str();
+                    el.append_attribute("style") = "display";
+                    for (const auto &p : instr.params) {
+                        emitExpression(*p, el);
+                    }
+                } else {
+                    auto el = parent.append_child("SetCraftProperty");
+                    el.append_attribute("id") = nextId().c_str();
+                    el.append_attribute("style") = "set-part";
+                    el.append_attribute("property") = instr.identifier.c_str();
+                    for (const auto &p : instr.params) {
+                        emitExpression(*p, el);
+                    }
                 }
             },
             [&](const BreakStatement &) {
@@ -271,7 +324,7 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                 auto ifEl = parent.append_child("If");
                 ifEl.append_attribute("id") = nextId().c_str();
                 ifEl.append_attribute("style") = "if";
-                emitExpression(*cond.ifStatement.condition, ifEl);
+                emitCondition(*cond.ifStatement.condition, ifEl);
                 auto ifBody = ifEl.append_child("Instructions");
                 emitBody(cond.ifStatement.body, ifBody, nextId);
 
@@ -279,7 +332,7 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                     auto ei = parent.append_child("ElseIf");
                     ei.append_attribute("id") = nextId().c_str();
                     ei.append_attribute("style") = "else-if";
-                    emitExpression(*cond.elifStatements[i].condition, ei);
+                    emitCondition(*cond.elifStatements[i].condition, ei);
                     auto eiBody = ei.append_child("Instructions");
                     emitBody(cond.elifStatements[i].body, eiBody, nextId);
                 }
@@ -288,6 +341,7 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                 elseEl.append_attribute("id") = nextId().c_str();
                 elseEl.append_attribute("style") = "else";
                 auto c = elseEl.append_child("Constant");
+                c.append_attribute("style") = "true";
                 c.append_attribute("bool") = "true";
                 auto elseBody = elseEl.append_child("Instructions");
                 emitBody(cond.elseStatement, elseBody, nextId);
@@ -325,7 +379,7 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                 auto el = parent.append_child("While");
                 el.append_attribute("id") = nextId().c_str();
                 el.append_attribute("style") = "while";
-                emitExpression(*loop.condition, el);
+                emitCondition(*loop.condition, el);
                 auto bodyEl = el.append_child("Instructions");
                 emitBody(loop.body, bodyEl, nextId);
             },
@@ -360,10 +414,10 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                            }
                        } else {
                            auto ref = parent.append_child("Variable");
-                           ref.append_attribute("variableName") =
-                               v.value.c_str();
                            ref.append_attribute("list") = "false";
                            ref.append_attribute("local") = "false";
+                           ref.append_attribute("variableName") =
+                               v.value.c_str();
                        }
                    },
                    [&](const BinaryOp &bop) {
@@ -386,10 +440,10 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                        el.append_attribute("op") = "get";
                        el.append_attribute("style") = "list-get";
                        auto ref = el.append_child("Variable");
-                       ref.append_attribute("variableName") =
-                           li.identifier.c_str();
                        ref.append_attribute("list") = "true";
                        ref.append_attribute("local") = "false";
+                       ref.append_attribute("variableName") =
+                           li.identifier.c_str();
                        if (li.index)
                            emitExpression(*li.index, el);
                    },
@@ -411,8 +465,22 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                            emitExpression(*p, el);
                        }
                    },
-               },
-               expr.value);
+                },
+                expr.value);
+}
+
+void Compiler::emitCondition(const Expression &expr, pugi::xml_node parent) {
+    if (const auto *bop = std::get_if<BinaryOp>(&expr.value)) {
+        auto el = parent.append_child("Comparison");
+        el.append_attribute("op") = comparisonOp(bop->operation);
+        el.append_attribute("style") = binopStyle(bop->operation);
+        if (bop->lhs)
+            emitExpression(*bop->lhs, el);
+        if (bop->rhs)
+            emitExpression(*bop->rhs, el);
+    } else {
+        emitExpression(expr, parent);
+    }
 }
 
 std::map<std::string, std::string>

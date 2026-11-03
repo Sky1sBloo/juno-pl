@@ -64,6 +64,7 @@ export class Compiler {
                        pugi::xml_node parent,
                        std::function<std::string()> nextId);
     void emitExpression(const Expression &expr, pugi::xml_node parent);
+    void emitCondition(const Expression &expr, pugi::xml_node parent);
 
     /** Key/value table built by getVariables. */
     std::map<std::string, std::string> mVariables;
