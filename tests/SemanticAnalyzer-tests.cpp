@@ -102,7 +102,7 @@ TEST_CASE("Semantic - arity diagnostics") {
                           "Lists.insert(items); }");
     REQUIRE(insert.size() == 1);
     CHECK(insert[0].message ==
-          "'Lists.insert' expects 2 arguments or 4 arguments, got 1");
+          "'Lists.insert' expects at least 2 arguments, got 1");
 
     auto join =
         analyze("program test; on start() { var s = String.join(\"a\"); }");

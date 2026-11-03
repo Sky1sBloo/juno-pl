@@ -87,13 +87,15 @@ TEST_CASE("STL - arity ranges") {
     CHECK(craftName->accepts(1));
     CHECK_FALSE(craftName->accepts(2));
 
-    // Lists.insert(ident, value) or Lists.insert(ident, value, value, value)
+    // Lists.insert(ident, value, ...) — variadic, at least 2 arguments
     auto insert =
         JunoSTL::find(Qualifiers::LISTS, "insert", Operations::INSTRUCTION);
     REQUIRE(insert.has_value());
+    CHECK_FALSE(insert->accepts(1));
     CHECK(insert->accepts(2));
-    CHECK_FALSE(insert->accepts(3));
+    CHECK(insert->accepts(3));
     CHECK(insert->accepts(4));
+    CHECK(insert->accepts(5));
 
     // Variadic: String.format(string, values...)
     auto format =
@@ -145,7 +147,7 @@ TEST_CASE("STL - arity descriptions") {
     auto insert =
         JunoSTL::find(Qualifiers::LISTS, "insert", Operations::INSTRUCTION);
     REQUIRE(insert.has_value());
-    CHECK(insert->describeArities() == "2 arguments or 4 arguments");
+    CHECK(insert->describeArities() == "at least 2 arguments");
 }
 
 TEST_CASE("STL - doc entries") {

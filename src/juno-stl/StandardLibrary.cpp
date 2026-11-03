@@ -471,7 +471,7 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
 
         // Lists - qualified form only: Lists.insert(ident, value, ...)
         add(Qualifiers::LISTS, Operations::INSTRUCTION, "insert",
-            {{2, 2}, {4, 4}});
+            {{2, kUnbounded}});
         add(Qualifiers::LISTS, Operations::INSTRUCTION, "remove", {{2, 2}});
         add(Qualifiers::LISTS, Operations::INSTRUCTION, "clear", {{1, 1}});
         add(Qualifiers::LISTS, Operations::INSTRUCTION, "sort", {{1, 1}});
