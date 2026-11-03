@@ -42,6 +42,9 @@ std::vector<Diagnostic> SemanticAnalyzer::analyze(const RootNode &root) {
                            popScope();
                        },
                        [this](const VarDeclaration &varDecl) {
+                           if (varDecl.value) {
+                               visitExpression(*varDecl.value);
+                           }
                            declare(Symbol{varDecl.identifier,
                                           Symbol::Kind::VALUE, 0, varDecl.loc});
                        },
@@ -57,6 +60,11 @@ std::vector<Diagnostic> SemanticAnalyzer::analyze(const RootNode &root) {
                            popScope();
                        },
                        [this](const ListDeclaration &listDecl) {
+                           for (const auto &value : listDecl.values) {
+                               if (value) {
+                                   visitExpression(*value);
+                               }
+                           }
                            declare(Symbol{listDecl.identifier,
                                           Symbol::Kind::LIST, 0, listDecl.loc});
                        },
@@ -100,14 +108,6 @@ void SemanticAnalyzer::visitExpression(const Expression &expr) {
                     }
                 }
             },
-            [this](const ListOp &listOp) {
-                expect(listOp.identifier, listOp.loc);
-                for (const auto &param : listOp.params) {
-                    if (param) {
-                        visitExpression(*param);
-                    }
-                }
-            },
             [this](const ListIndex &listIndex) {
                 expect(listIndex.identifier, listIndex.loc);
                 visitExpression(*listIndex.index);
@@ -131,13 +131,27 @@ void SemanticAnalyzer::visitStatement(const Statements &statement) {
     std::visit(
         Overload{[this](const Body &body) { visitBody(body); },
                  [this](const VarDeclaration &varDecl) {
+                     if (varDecl.value) {
+                         visitExpression(*varDecl.value);
+                     }
                      declare(Symbol{varDecl.identifier, Symbol::Kind::VALUE, 0,
                                     varDecl.loc});
                  },
                  [this](const VarAssignment &varAssign) {
                      expect(varAssign.identifier, varAssign.loc);
+                     if (varAssign.indexExpr) {
+                         visitExpression(*varAssign.indexExpr);
+                     }
+                     if (varAssign.value) {
+                         visitExpression(*varAssign.value);
+                     }
                  },
                  [this](const ListDeclaration &listDecl) {
+                     for (const auto &value : listDecl.values) {
+                         if (value) {
+                             visitExpression(*value);
+                         }
+                     }
                      declare(Symbol{listDecl.identifier, Symbol::Kind::LIST, 0,
                                     listDecl.loc});
                  },
@@ -150,6 +164,11 @@ void SemanticAnalyzer::visitStatement(const Statements &statement) {
                                          performInstr.loc);
                      } else {
                          expect(performInstr.identifier, performInstr.loc);
+                     }
+                     for (const auto &param : performInstr.params) {
+                         if (param) {
+                             visitExpression(*param);
+                         }
                      }
                  },
                  [this](const BreakStatement &) {},
@@ -192,12 +211,6 @@ void SemanticAnalyzer::visitStatement(const Statements &statement) {
                          }
                      }
                      popScope();
-                 },
-                 [this](const ListOp &listOp) {
-                     expectQualified(JunoSTL::Qualifiers::LISTS,
-                                     listOp.identifier, listOp.params.size(),
-                                     JunoSTL::Operations::INSTRUCTION,
-                                     listOp.loc);
                  }},
         statement.statement);
 }
@@ -233,10 +246,10 @@ bool SemanticAnalyzer::expectQualified(const std::string &qualifier,
                                        const SourceLocation &source) {
     if (auto func = JunoSTL::find(qualifier, identifier, op);
         func.has_value()) {
-        if (func->arity != argCount) {
+        if (!func->accepts(argCount)) {
             mDiagnostics.emplace_back(
-                std::format("'{}.{}' expects {} arguments, got {}", qualifier,
-                            identifier, func->arity, argCount),
+                std::format("'{}.{}' expects {}, got {}", qualifier, identifier,
+                            func->describeArities(), argCount),
                 source);
             return false;
         }
@@ -245,30 +258,6 @@ bool SemanticAnalyzer::expectQualified(const std::string &qualifier,
     mDiagnostics.emplace_back(
         std::format("'{}.{}' is not defined in the standard library", qualifier,
                     identifier),
-        source);
-    return false;
-}
-
-bool SemanticAnalyzer::expectQualified(JunoSTL::Qualifiers qualifier,
-                                       const std::string &identifier,
-                                       std::size_t argCount,
-                                       JunoSTL::Operations op,
-                                       const SourceLocation &source) {
-    if (auto func = JunoSTL::find(qualifier, identifier, op);
-        func.has_value()) {
-        if (func->arity != argCount) {
-            mDiagnostics.emplace_back(
-                std::format("'{}.{}' expects {} arguments, got {}",
-                            JunoSTL::qualifierToString(func->qualifier),
-                            identifier, func->arity, argCount),
-                source);
-            return false;
-        }
-        return true;
-    }
-    mDiagnostics.emplace_back(
-        std::format("'{}.{}' is not defined in the standard library",
-                    JunoSTL::qualifierToString(qualifier), identifier),
         source);
     return false;
 }

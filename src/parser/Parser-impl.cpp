@@ -253,7 +253,8 @@ std::optional<VarAssignment> Parser::parseVarAssignment(TokenList &tokens) {
     return node;
 }
 
-std::optional<ListOp> Parser::parseListOperationStatement(TokenList &tokens) {
+std::optional<PerformInstruction>
+Parser::parseQualifiedInstruction(TokenList &tokens) {
     mTokens = &tokens;
 
     auto ident = expectToken(TokenType::IDENT);
@@ -273,29 +274,8 @@ std::optional<ListOp> Parser::parseListOperationStatement(TokenList &tokens) {
         return std::nullopt;
     }
 
-    if (!expectToken(TokenType::OP_PAR_OP)) {
-        recoverTo(TokenType::OP_SEMICOLON);
-        return std::nullopt;
-    }
-
-    std::vector<ExpressionHandle> params;
-    if (mTokens->current().type != TokenType::OP_PAR_CLO) {
-        while (true) {
-            auto param = parseExpression(tokens);
-            if (!param) {
-                recoverTo(TokenType::OP_SEMICOLON);
-                return std::nullopt;
-            }
-            params.push_back(std::move(param.value()));
-            if (mTokens->current().type == TokenType::OP_COMMA) {
-                mTokens->advance();
-                continue;
-            }
-            break;
-        }
-    }
-
-    if (!expectToken(TokenType::OP_PAR_CLO)) {
+    auto params = parseParamExpr(tokens);
+    if (!params) {
         recoverTo(TokenType::OP_SEMICOLON);
         return std::nullopt;
     }
@@ -305,8 +285,12 @@ std::optional<ListOp> Parser::parseListOperationStatement(TokenList &tokens) {
         return std::nullopt;
     }
 
-    return ListOp{ident->value, method->value, std::move(params),
-                  locationOf(*ident)};
+    PerformInstruction instr;
+    instr.qualifier = ident->value;
+    instr.identifier = method->value;
+    instr.params = std::move(params.value());
+    instr.loc = locationOf(*ident);
+    return instr;
 }
 
 std::optional<BreakStatement> Parser::parseBreakStatement(TokenList &tokens) {

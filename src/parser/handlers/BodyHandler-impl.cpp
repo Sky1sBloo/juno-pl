@@ -113,8 +113,8 @@ std::optional<Body> Parser::parseBody(TokenList &tokens) {
         case TokenType::IDENT: {
             auto remaining = mTokens->remaining();
             if (remaining.size() > 1 && remaining[1].type == TokenType::OP_DOT) {
-                if (auto listOp = parseListOperationStatement(tokens)) {
-                    addStatement(body, std::move(listOp.value()));
+                if (auto instr = parseQualifiedInstruction(tokens)) {
+                    addStatement(body, std::move(instr.value()));
                 } else {
                     recoverTo(TokenType::OP_SEMICOLON);
                     if (!mTokens->empty()) mTokens->advance();

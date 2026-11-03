@@ -91,7 +91,7 @@ export struct ForLoop {
 export struct Statements {
     std::variant<Body, VarDeclaration, VarAssignment, ListDeclaration,
                  PerformInstruction, BreakStatement, ConditionalStatement,
-                 EmitEvent, RepeatLoop, WhileLoop, ForLoop, ListOp>
+                 EmitEvent, RepeatLoop, WhileLoop, ForLoop>
         statement;
 
     SourceLocation loc() const {

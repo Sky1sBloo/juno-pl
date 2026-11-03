@@ -64,13 +64,6 @@ export struct UnaryOp {
     SourceLocation loc;
 };
 
-export struct ListOp {
-    std::string identifier;
-    std::string action;
-    std::vector<ExpressionHandle> params;
-    SourceLocation loc;
-};
-
 export struct ListIndex {
     std::string identifier;
     ExpressionHandle index;
@@ -85,7 +78,7 @@ export struct TernaryOp {
 };
 
 export struct Expression {
-    std::variant<CallExpression, Value, BinaryOp, UnaryOp, ListOp, ListIndex,
+    std::variant<CallExpression, Value, BinaryOp, UnaryOp, ListIndex,
                  TernaryOp>
         value;
 

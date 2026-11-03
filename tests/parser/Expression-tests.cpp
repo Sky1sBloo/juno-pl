@@ -238,7 +238,7 @@ TEST_CASE("Parser Parenthesized Expression") {
 
 TEST_CASE("Parser List Operation Expression") {
     JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; expr getLen() items.length();");
+    fileReader.setSourceCode("program test; expr getLen() Lists.length(items);");
 
     JunoPL::Lexer lexer;
     auto lexOutput = lexer.tokenize(fileReader);
@@ -249,12 +249,13 @@ TEST_CASE("Parser List Operation Expression") {
 
     CHECK(parseOutput.errors.empty());
     const auto &expr = std::get<JunoPL::CustomExpression>(parseOutput.root->body.at(0));
-    REQUIRE(std::holds_alternative<JunoPL::ListOp>(expr.expression->value));
+    REQUIRE(std::holds_alternative<JunoPL::CallExpression>(expr.expression->value));
 
-    const auto &listOp = std::get<JunoPL::ListOp>(expr.expression->value);
-    CHECK(listOp.identifier == "items");
-    CHECK(listOp.action == "length");
-    CHECK(listOp.params.empty());
+    const auto &call = std::get<JunoPL::CallExpression>(expr.expression->value);
+    CHECK(call.qualifier == "Lists");
+    CHECK(call.identifier == "length");
+    REQUIRE(call.params.size() == 1);
+    CHECK(std::get<JunoPL::Value>(call.params[0]->value).value == "items");
 }
 
 TEST_CASE("Parser List Index Expression") {

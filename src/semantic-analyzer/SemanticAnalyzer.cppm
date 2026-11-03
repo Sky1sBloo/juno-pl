@@ -40,9 +40,6 @@ declare() and lookup() are only valid while at least that scope exists.
     bool expectQualified(const std::string &qualifier,
                          const std::string &identifier, std::size_t argCount,
                          JunoSTL::Operations op, const SourceLocation &source);
-    bool expectQualified(JunoSTL::Qualifiers qualifier,
-                         const std::string &identifier, std::size_t argCount,
-                         JunoSTL::Operations op, const SourceLocation &source);
     bool declare(Symbol symbol);
 
     std::vector<Scope> mScopes;

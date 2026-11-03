@@ -28,7 +28,8 @@ export class Parser {
     std::optional<EventNode> parseEvent(TokenList &tokens);
     std::optional<VarDeclaration> parseVarDeclaration(TokenList &tokens);
     std::optional<VarAssignment> parseVarAssignment(TokenList &tokens);
-    std::optional<ListOp> parseListOperationStatement(TokenList &tokens);
+    std::optional<PerformInstruction>
+    parseQualifiedInstruction(TokenList &tokens);
     std::optional<ListDeclaration> parseListDeclaration(TokenList &tokens);
     std::optional<PerformInstruction> parsePerformInstruction(TokenList &tokens);
     std::optional<BreakStatement> parseBreakStatement(TokenList &tokens);
