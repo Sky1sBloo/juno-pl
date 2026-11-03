@@ -228,8 +228,14 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::GAME, Operations::INSTRUCTION, "switchToCraft",
             {{1, 1}});
         add(Qualifiers::GAME, Operations::INSTRUCTION, "beep", {{3, 3}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "display", {{1, 2}});
         add(Qualifiers::GAME, Operations::EXPRESSION, "frequencyOf", {{2, 2}});
         add(Qualifiers::GAME, Operations::EXPRESSION, "speak", {{3, 3}});
+        add(Qualifiers::GAME, Operations::EXPRESSION, "sineBeep", {{3, 3}});
+        add(Qualifiers::GAME, Operations::EXPRESSION, "sineTriangle", {{3, 3}});
+        add(Qualifiers::GAME, Operations::EXPRESSION, "sineSaw", {{3, 3}});
+        add(Qualifiers::GAME, Operations::EXPRESSION, "sineSquare", {{3, 3}});
+        add(Qualifiers::GAME, Operations::EXPRESSION, "sineNoise", {{3, 3}});
 
         // Craft Instructions - camera controls
         add(Qualifiers::CAMERA, Operations::INSTRUCTION, "zoom", {{1, 1}});
@@ -349,6 +355,7 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
 
         add(Qualifiers::CRAFT, Operations::EXPRESSION, "name",
             {{0, 0}, {1, 1}});
+        add(Qualifiers::CRAFT, Operations::EXPRESSION, "idOf", {{1, 1}});
         add(Qualifiers::CRAFT, Operations::EXPRESSION, "currentStage",
             {{0, 0}});
         add(Qualifiers::CRAFT, Operations::EXPRESSION, "numStages", {{0, 0}});
@@ -404,6 +411,8 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::PLANET, Operations::EXPRESSION,
             "atmosphereComposition", {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "soiRadius",
+            {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "solarPosition",
             {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "childPlanets",
             {{1, 1}});
@@ -472,12 +481,14 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         // Lists - qualified form only: Lists.insert(ident, value, ...)
         add(Qualifiers::LISTS, Operations::INSTRUCTION, "insert",
             {{2, kUnbounded}});
+        add(Qualifiers::LISTS, Operations::INSTRUCTION, "set", {{3, 3}});
         add(Qualifiers::LISTS, Operations::INSTRUCTION, "remove", {{2, 2}});
         add(Qualifiers::LISTS, Operations::INSTRUCTION, "clear", {{1, 1}});
         add(Qualifiers::LISTS, Operations::INSTRUCTION, "sort", {{1, 1}});
         add(Qualifiers::LISTS, Operations::INSTRUCTION, "reverse", {{1, 1}});
         add(Qualifiers::LISTS, Operations::EXPRESSION, "length", {{1, 1}});
         add(Qualifiers::LISTS, Operations::EXPRESSION, "idxOf", {{2, 2}});
+        add(Qualifiers::LISTS, Operations::EXPRESSION, "index", {{2, 2}});
 
         return registry;
     }();

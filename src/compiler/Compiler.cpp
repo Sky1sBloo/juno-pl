@@ -443,7 +443,7 @@ Compiler::getVariables(const RootNode &root) {
                    node);
     }
 
-    return std::move(mVariables);
+    return mVariables;
 }
 
 void Compiler::reserveGlobals(const RootNode &root) {
@@ -560,7 +560,6 @@ void Compiler::collectStatement(const Statements &statement,
                        mScopePath.pop_back();
                    },
                },
-               statement.statement);
-}
-
+                statement.statement);
+    }
 }
