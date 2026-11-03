@@ -11,7 +11,8 @@ import junopl.tests.filereader;
 
 TEST_CASE("Parser List Operation - insert") {
     JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { list items = [1, 2]; items.insert(3); }");
+    fileReader.setSourceCode(
+        "program test; on start() { list items = [1, 2]; Lists.insert(items, 3); }");
 
     JunoPL::Lexer lexer;
     auto lexOutput = lexer.tokenize(fileReader);
@@ -25,18 +26,20 @@ TEST_CASE("Parser List Operation - insert") {
 
     const auto &event = std::get<JunoPL::EventNode>(parseOutput.root->body.at(0));
     REQUIRE(event.body.body.size() == 2);
-    REQUIRE(std::holds_alternative<JunoPL::ListOp>(event.body.body.at(1)->statement));
+    REQUIRE(std::holds_alternative<JunoPL::PerformInstruction>(event.body.body.at(1)->statement));
 
-    const auto &listOp = std::get<JunoPL::ListOp>(event.body.body.at(1)->statement);
-    CHECK(listOp.identifier == "items");
-    CHECK(listOp.action == "insert");
-    REQUIRE(listOp.params.size() == 1);
-    CHECK(std::get<JunoPL::Value>(listOp.params[0]->value).value == "3");
+    const auto &instr = std::get<JunoPL::PerformInstruction>(event.body.body.at(1)->statement);
+    CHECK(instr.qualifier == "Lists");
+    CHECK(instr.identifier == "insert");
+    REQUIRE(instr.params.size() == 2);
+    CHECK(std::get<JunoPL::Value>(instr.params[0]->value).value == "items");
+    CHECK(std::get<JunoPL::Value>(instr.params[1]->value).value == "3");
 }
 
 TEST_CASE("Parser List Operation - remove") {
     JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { list items = [1, 2]; items.remove(0); }");
+    fileReader.setSourceCode(
+        "program test; on start() { list items = [1, 2]; Lists.remove(items, 0); }");
 
     JunoPL::Lexer lexer;
     auto lexOutput = lexer.tokenize(fileReader);
@@ -49,13 +52,16 @@ TEST_CASE("Parser List Operation - remove") {
     REQUIRE(parseOutput.root);
 
     const auto &event = std::get<JunoPL::EventNode>(parseOutput.root->body.at(0));
-    const auto &listOp = std::get<JunoPL::ListOp>(event.body.body.at(1)->statement);
-    CHECK(listOp.action == "remove");
+    const auto &instr = std::get<JunoPL::PerformInstruction>(event.body.body.at(1)->statement);
+    CHECK(instr.qualifier == "Lists");
+    CHECK(instr.identifier == "remove");
+    CHECK(instr.params.size() == 2);
 }
 
 TEST_CASE("Parser List Operation - clear") {
     JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { list items = [1]; items.clear(); }");
+    fileReader.setSourceCode(
+        "program test; on start() { list items = [1]; Lists.clear(items); }");
 
     JunoPL::Lexer lexer;
     auto lexOutput = lexer.tokenize(fileReader);
@@ -68,14 +74,16 @@ TEST_CASE("Parser List Operation - clear") {
     REQUIRE(parseOutput.root);
 
     const auto &event = std::get<JunoPL::EventNode>(parseOutput.root->body.at(0));
-    const auto &listOp = std::get<JunoPL::ListOp>(event.body.body.at(1)->statement);
-    CHECK(listOp.action == "clear");
-    CHECK(listOp.params.empty());
+    const auto &instr = std::get<JunoPL::PerformInstruction>(event.body.body.at(1)->statement);
+    CHECK(instr.identifier == "clear");
+    REQUIRE(instr.params.size() == 1);
+    CHECK(std::get<JunoPL::Value>(instr.params[0]->value).value == "items");
 }
 
 TEST_CASE("Parser List Operation - sort") {
     JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { list items = [3, 1, 2]; items.sort(); }");
+    fileReader.setSourceCode(
+        "program test; on start() { list items = [3, 1, 2]; Lists.sort(items); }");
 
     JunoPL::Lexer lexer;
     auto lexOutput = lexer.tokenize(fileReader);
@@ -88,13 +96,15 @@ TEST_CASE("Parser List Operation - sort") {
     REQUIRE(parseOutput.root);
 
     const auto &event = std::get<JunoPL::EventNode>(parseOutput.root->body.at(0));
-    const auto &listOp = std::get<JunoPL::ListOp>(event.body.body.at(1)->statement);
-    CHECK(listOp.action == "sort");
+    const auto &instr = std::get<JunoPL::PerformInstruction>(event.body.body.at(1)->statement);
+    CHECK(instr.identifier == "sort");
+    CHECK(instr.params.size() == 1);
 }
 
 TEST_CASE("Parser List Operation - reverse") {
     JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { list items = [1, 2]; items.reverse(); }");
+    fileReader.setSourceCode(
+        "program test; on start() { list items = [1, 2]; Lists.reverse(items); }");
 
     JunoPL::Lexer lexer;
     auto lexOutput = lexer.tokenize(fileReader);
@@ -107,8 +117,9 @@ TEST_CASE("Parser List Operation - reverse") {
     REQUIRE(parseOutput.root);
 
     const auto &event = std::get<JunoPL::EventNode>(parseOutput.root->body.at(0));
-    const auto &listOp = std::get<JunoPL::ListOp>(event.body.body.at(1)->statement);
-    CHECK(listOp.action == "reverse");
+    const auto &instr = std::get<JunoPL::PerformInstruction>(event.body.body.at(1)->statement);
+    CHECK(instr.identifier == "reverse");
+    CHECK(instr.params.size() == 1);
 }
 
 TEST_CASE("Parser List Index - expression") {

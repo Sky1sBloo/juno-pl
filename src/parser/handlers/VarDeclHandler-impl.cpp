@@ -11,7 +11,8 @@ namespace JunoPL {
 std::optional<VarDeclaration> Parser::parseVarDeclaration(TokenList &tokens) {
     mTokens = &tokens;
 
-    if (!expectToken(TokenType::K_VAR)) {
+    auto varToken = expectToken(TokenType::K_VAR);
+    if (!varToken) {
         recoverTo(TokenType::OP_SEMICOLON);
         return std::nullopt;
     }
@@ -24,6 +25,7 @@ std::optional<VarDeclaration> Parser::parseVarDeclaration(TokenList &tokens) {
 
     VarDeclaration node;
     node.identifier = ident->value;
+    node.loc = locationOf(*varToken);
     auto next =
         expectToken({TokenType::OP_EQUAL, TokenType::OP_SEMICOLON});
     if (!next) {

@@ -77,11 +77,6 @@ std::optional<UnaryOp::Operation> unaryOperationForToken(const Token &token) {
         return std::nullopt;
     }
 }
-
-bool isListActionName(const std::string &name) {
-    return name == "insert" || name == "remove" || name == "clear" ||
-           name == "sort" || name == "reverse" || name == "length";
-}
 } // namespace
 
 std::optional<ExpressionHandle> Parser::parsePrimaryExpression() {
@@ -99,7 +94,9 @@ std::optional<ExpressionHandle> Parser::parsePrimaryExpression() {
         mTokens->advance();
 
         auto expression = std::make_unique<JunoPL::Expression>();
-        expression->value = JunoPL::Value{valueToken.value};
+        expression->value = JunoPL::Value{valueToken.value,
+                                          JunoPL::Value::Kind::Literal,
+                                          locationOf(valueToken)};
         return expression;
     }
     case TokenType::IDENT: {
@@ -117,7 +114,9 @@ std::optional<ExpressionHandle> Parser::parsePrimaryExpression() {
                 return std::nullopt;
             }
             auto expr = std::make_unique<JunoPL::Expression>();
-            expr->value = JunoPL::ListIndex{identToken.value, std::move(indexExpr.value())};
+            expr->value = JunoPL::ListIndex{identToken.value,
+                                            std::move(indexExpr.value()),
+                                            locationOf(identToken)};
             return expr;
         }
 
@@ -156,13 +155,9 @@ std::optional<ExpressionHandle> Parser::parsePrimaryExpression() {
                     return std::nullopt;
                 }
                 auto expr = std::make_unique<JunoPL::Expression>();
-                if (isListActionName(identifier)) {
-                    expr->value =
-                        JunoPL::ListOp{qualifier, identifier, std::move(params)};
-                } else {
-                    expr->value = JunoPL::CallExpression{
-                        qualifier, identifier, std::move(params)};
-                }
+                expr->value = JunoPL::CallExpression{
+                    qualifier, identifier, std::move(params),
+                    locationOf(identToken)};
                 return expr;
             }
         }
@@ -189,13 +184,17 @@ std::optional<ExpressionHandle> Parser::parsePrimaryExpression() {
                 return std::nullopt;
             }
             auto expr = std::make_unique<JunoPL::Expression>();
-            expr->value = JunoPL::CallExpression{qualifier, identifier, std::move(params)};
+            expr->value = JunoPL::CallExpression{qualifier, identifier,
+                                                 std::move(params),
+                                                 locationOf(identToken)};
             return expr;
         }
 
         // Plain identifier
         auto expression = std::make_unique<JunoPL::Expression>();
-        expression->value = JunoPL::Value{identToken.value};
+        expression->value = JunoPL::Value{identToken.value,
+                                          JunoPL::Value::Kind::Identifier,
+                                          locationOf(identToken)};
         return expression;
     }
     case TokenType::OP_PAR_OP: {
@@ -229,6 +228,7 @@ std::optional<ExpressionHandle> Parser::parseUnaryExpression() {
     switch (mTokens->current().type) {
     case TokenType::K_NOT:
     case TokenType::OP_MINUS: {
+        auto opToken = mTokens->current();
         auto operation = unaryOperationForToken(mTokens->current());
         if (!operation) {
             mErrors.emplace_back(ParserError::UnexpectedToken(
@@ -243,8 +243,9 @@ std::optional<ExpressionHandle> Parser::parseUnaryExpression() {
         }
 
         auto expression = std::make_unique<JunoPL::Expression>();
-        expression->value =
-            JunoPL::UnaryOp{operation.value(), std::move(value.value())};
+        expression->value = JunoPL::UnaryOp{operation.value(),
+                                            std::move(value.value()),
+                                            locationOf(opToken)};
         return expression;
     }
     default:
@@ -279,6 +280,7 @@ Parser::parseBinaryExpression(int minimumPrecedence) {
             return std::nullopt;
         }
 
+        auto opToken = mTokens->current();
         mTokens->advance();
 
         auto right = parseBinaryExpression(precedence + 1);
@@ -287,9 +289,9 @@ Parser::parseBinaryExpression(int minimumPrecedence) {
         }
 
         auto expression = std::make_unique<JunoPL::Expression>();
-        expression->value = JunoPL::BinaryOp{operation.value(),
-                                             std::move(left.value()),
-                                             std::move(right.value())};
+        expression->value =
+            JunoPL::BinaryOp{operation.value(), std::move(left.value()),
+                             std::move(right.value()), locationOf(opToken)};
         left = std::move(expression);
     }
 
@@ -306,6 +308,7 @@ std::optional<ExpressionHandle> Parser::parseTernaryExpression() {
         return condition;
     }
 
+    SourceLocation conditionLoc = condition.value()->loc();
     mTokens->advance();
 
     auto valueIfTrue = parseTernaryExpression();
@@ -323,9 +326,10 @@ std::optional<ExpressionHandle> Parser::parseTernaryExpression() {
     }
 
     auto expression = std::make_unique<JunoPL::Expression>();
-    expression->value = JunoPL::TernaryOp{std::move(condition.value()),
-                                          std::move(valueIfTrue.value()),
-                                          std::move(valueIfFalse.value())};
+    expression->value =
+        JunoPL::TernaryOp{std::move(condition.value()),
+                          std::move(valueIfTrue.value()),
+                          std::move(valueIfFalse.value()), conditionLoc};
     return expression;
 }
 

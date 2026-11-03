@@ -7,7 +7,8 @@ namespace JunoPL {
 std::optional<EmitEvent> Parser::parseEmitEvent(TokenList &tokens) {
     mTokens = &tokens;
 
-    if (!expectToken(TokenType::K_EMIT)) {
+    auto emitToken = expectToken(TokenType::K_EMIT);
+    if (!emitToken) {
         recoverTo(TokenType::OP_SEMICOLON);
         return std::nullopt;
     }
@@ -46,7 +47,8 @@ std::optional<EmitEvent> Parser::parseEmitEvent(TokenList &tokens) {
     if (mTokens->current().type == TokenType::OP_SEMICOLON) {
         mTokens->advance();
         return EmitEvent{identifier, std::move(params.value()),
-                         EmitEvent::Options::TO_SCRIPT};
+                         EmitEvent::Options::TO_SCRIPT,
+                         locationOf(*emitToken)};
     }
     mTokens->advance();
 
@@ -70,6 +72,7 @@ std::optional<EmitEvent> Parser::parseEmitEvent(TokenList &tokens) {
         return std::nullopt;
     }
 
-    return EmitEvent{identifier, std::move(params.value()), options};
+    return EmitEvent{identifier, std::move(params.value()), options,
+                     locationOf(*emitToken)};
 }
 }

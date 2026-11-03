@@ -7,7 +7,8 @@ std::optional<ConditionalStatement>
 Parser::parseConditionalStatement(TokenList &tokens) {
     mTokens = &tokens;
 
-    if (!expectToken(TokenType::K_IF)) {
+    auto ifToken = expectToken(TokenType::K_IF);
+    if (!ifToken) {
         recoverTo(TokenType::OP_CBRAC_CLO);
         return std::nullopt;
     }
@@ -34,11 +35,14 @@ Parser::parseConditionalStatement(TokenList &tokens) {
     }
 
     ConditionalStatement stmt;
-    stmt.ifStatement =
-        IfStatement{std::move(condition.value()), std::move(body.value())};
+    stmt.ifStatement = IfStatement{std::move(condition.value()),
+                                   std::move(body.value()),
+                                   locationOf(*ifToken)};
+    stmt.loc = locationOf(*ifToken);
 
     while (!mTokens->empty() &&
            mTokens->current().type == TokenType::K_ELIF) {
+        auto elifToken = mTokens->current();
         mTokens->advance();
         if (!expectToken(TokenType::OP_PAR_OP)) {
             recoverTo(TokenType::OP_CBRAC_CLO);
@@ -62,7 +66,8 @@ Parser::parseConditionalStatement(TokenList &tokens) {
         }
 
         stmt.elifStatements.emplace_back(IfStatement{
-            std::move(elifCond.value()), std::move(elifBody.value())});
+            std::move(elifCond.value()), std::move(elifBody.value()),
+            locationOf(elifToken)});
     }
 
     if (mTokens->empty() || mTokens->current().type != TokenType::K_ELSE) {

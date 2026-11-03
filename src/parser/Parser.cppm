@@ -5,6 +5,7 @@ module;
 #include <vector>
 export module junopl.parser;
 import junopl.lexer.tokens;
+import junopl.common.location;
 import junopl.parser.nodes;
 import junopl.parser.nodes.statements;
 import junopl.parser.nodes.expressions;
@@ -27,7 +28,8 @@ export class Parser {
     std::optional<EventNode> parseEvent(TokenList &tokens);
     std::optional<VarDeclaration> parseVarDeclaration(TokenList &tokens);
     std::optional<VarAssignment> parseVarAssignment(TokenList &tokens);
-    std::optional<ListOp> parseListOperationStatement(TokenList &tokens);
+    std::optional<PerformInstruction>
+    parseQualifiedInstruction(TokenList &tokens);
     std::optional<ListDeclaration> parseListDeclaration(TokenList &tokens);
     std::optional<PerformInstruction> parsePerformInstruction(TokenList &tokens);
     std::optional<BreakStatement> parseBreakStatement(TokenList &tokens);
@@ -47,6 +49,7 @@ export class Parser {
 
     std::optional<Token> expectToken(TokenType expectedType, bool advance = true);
     std::optional<Token> expectToken(std::initializer_list<TokenType> expectedTypes, bool advance = true);
+    static SourceLocation locationOf(const Token &token);
     void recoverTo(TokenType stopType);
     void pushError(ParserError error);
 

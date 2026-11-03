@@ -6,7 +6,8 @@ namespace JunoPL {
 std::optional<RepeatLoop> Parser::parseRepeatLoop(TokenList &tokens) {
     mTokens = &tokens;
 
-    if (!expectToken(TokenType::K_REPEAT)) {
+    auto repeatToken = expectToken(TokenType::K_REPEAT);
+    if (!repeatToken) {
         recoverTo(TokenType::OP_CBRAC_CLO);
         return std::nullopt;
     }
@@ -22,6 +23,7 @@ std::optional<RepeatLoop> Parser::parseRepeatLoop(TokenList &tokens) {
         return std::nullopt;
     }
 
-    return RepeatLoop{std::move(expr.value()), std::move(body.value())};
+    return RepeatLoop{std::move(expr.value()), std::move(body.value()),
+                      locationOf(*repeatToken)};
 }
 }

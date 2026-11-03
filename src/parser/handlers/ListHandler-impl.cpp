@@ -12,7 +12,8 @@ namespace JunoPL {
 std::optional<ListDeclaration> Parser::parseListDeclaration(TokenList &tokens) {
     mTokens = &tokens;
 
-    if (!expectToken(TokenType::K_LIST)) {
+    auto listToken = expectToken(TokenType::K_LIST);
+    if (!listToken) {
         recoverTo(TokenType::OP_SEMICOLON);
         return std::nullopt;
     }
@@ -25,6 +26,7 @@ std::optional<ListDeclaration> Parser::parseListDeclaration(TokenList &tokens) {
 
     ListDeclaration node;
     node.identifier = ident->value;
+    node.loc = locationOf(*listToken);
 
     auto next = expectToken({TokenType::OP_EQUAL, TokenType::OP_SEMICOLON});
     if (!next) {

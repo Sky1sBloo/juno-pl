@@ -6,7 +6,8 @@ namespace JunoPL {
 std::optional<WhileLoop> Parser::parseWhileLoop(TokenList &tokens) {
     mTokens = &tokens;
 
-    if (!expectToken(TokenType::K_WHILE)) {
+    auto whileToken = expectToken(TokenType::K_WHILE);
+    if (!whileToken) {
         recoverTo(TokenType::OP_CBRAC_CLO);
         return std::nullopt;
     }
@@ -22,6 +23,7 @@ std::optional<WhileLoop> Parser::parseWhileLoop(TokenList &tokens) {
         return std::nullopt;
     }
 
-    return WhileLoop{std::move(expr.value()), std::move(body.value())};
+    return WhileLoop{std::move(expr.value()), std::move(body.value()),
+                     locationOf(*whileToken)};
 }
 }

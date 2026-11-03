@@ -10,5 +10,6 @@ target_sources(juno-pl-tests PRIVATE
   Conditional-tests.cpp
   Loop-tests.cpp
   Expression-tests.cpp
-  ErrorRecovery-tests.cpp)
+  ErrorRecovery-tests.cpp
+  SourceLocation-tests.cpp)
 target_sources(juno-pl-tests PRIVATE Conditional-debug.cpp)
