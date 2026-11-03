@@ -1,9 +1,15 @@
 module;
+#include <cctype>
 #include <cstddef>
 #include <cstdint>
+#include <expected>
+#include <filesystem>
 #include <format>
+#include <functional>
 #include <map>
+#include <pugixml.hpp>
 #include <set>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <variant>
@@ -12,13 +18,402 @@ module junopl.compiler;
 
 /**
 For visitors
- */
+*/
 template <class... Ts> struct Overload : Ts... {
     using Ts::operator()...;
 };
 
 namespace JunoPL {
-void Compiler::compileAST(const RootNode &root) {}
+
+namespace {
+
+const char *binopOp(BinaryOp::Operation o) {
+    switch (o) {
+    case BinaryOp::Operation::ADD:
+        return "+";
+    case BinaryOp::Operation::SUBTRUCT:
+        return "-";
+    case BinaryOp::Operation::MULTIPLY:
+        return "*";
+    case BinaryOp::Operation::DIVIDE:
+        return "/";
+    case BinaryOp::Operation::MOD:
+        return "%";
+    case BinaryOp::Operation::AND:
+        return "and";
+    case BinaryOp::Operation::OR:
+        return "or";
+    case BinaryOp::Operation::EQUAL:
+        return "=";
+    case BinaryOp::Operation::NOT_EQUAL:
+        return "!=";
+    case BinaryOp::Operation::GREATER:
+        return ">";
+    case BinaryOp::Operation::LESS:
+        return "<";
+    case BinaryOp::Operation::GREATER_EQ:
+        return ">=";
+    case BinaryOp::Operation::LESS_EQ:
+        return "<=";
+    }
+    return "";
+}
+
+const char *binopStyle(BinaryOp::Operation o) {
+    switch (o) {
+    case BinaryOp::Operation::ADD:
+        return "op-add";
+    case BinaryOp::Operation::SUBTRUCT:
+        return "op-sub";
+    case BinaryOp::Operation::MULTIPLY:
+        return "op-mul";
+    case BinaryOp::Operation::DIVIDE:
+        return "op-div";
+    case BinaryOp::Operation::MOD:
+        return "op-mod";
+    case BinaryOp::Operation::AND:
+        return "op-and";
+    case BinaryOp::Operation::OR:
+        return "op-or";
+    case BinaryOp::Operation::EQUAL:
+        return "op-eq";
+    case BinaryOp::Operation::NOT_EQUAL:
+        return "op-ne";
+    case BinaryOp::Operation::GREATER:
+        return "op-gt";
+    case BinaryOp::Operation::LESS:
+        return "op-lt";
+    case BinaryOp::Operation::GREATER_EQ:
+        return "op-gte";
+    case BinaryOp::Operation::LESS_EQ:
+        return "op-lte";
+    }
+    return "";
+}
+
+} // namespace
+
+std::string Compiler::compileAST(const RootNode &root) {
+    pugi::xml_document doc;
+    auto prog = doc.append_child("Program");
+    prog.append_attribute("name") = root.programName.c_str();
+
+    // ---- Variables ----
+    auto varsEl = prog.append_child("Variables");
+    for (const auto &[key, name] : mVariables) {
+        auto v = varsEl.append_child("Variable");
+        v.append_attribute("name") = name.c_str();
+        v.append_attribute("number") = "0";
+    }
+
+    // ---- Instructions ----
+    auto instrsEl = prog.append_child("Instructions");
+    std::size_t id = 0;
+    auto nextId = [&id] { return std::to_string(id++); };
+
+    for (const auto &node : root.body) {
+        std::visit(
+            Overload{
+                [&](const EventNode &event) {
+                    auto el = instrsEl.append_child("Event");
+                    el.append_attribute("id") = nextId().c_str();
+                    el.append_attribute("event") = event.identifier.c_str();
+                    std::string style = event.identifier;
+                    for (auto &c : style)
+                        c = static_cast<char>(
+                            std::tolower(static_cast<unsigned char>(c)));
+                    el.append_attribute("style") = style.c_str();
+                    el.append_attribute("pos") = "-377.1133,-110.1246";
+
+                    if (!event.params.empty()) {
+                        for (const auto &p : event.params) {
+                            auto pn = el.append_child("Parameter");
+                            pn.append_attribute("name") = p.c_str();
+                        }
+                    }
+                    emitBody(event.body, el, nextId);
+                },
+                [&](const FunctionNode &func) {
+                    auto el = instrsEl.append_child("CustomInstruction");
+                    el.append_attribute("id") = nextId().c_str();
+                    el.append_attribute("name") = func.identifier.c_str();
+                    el.append_attribute("style") = "custom-instruction";
+                    std::string paramsStr;
+                    for (std::size_t k = 0; k < func.params.size(); ++k) {
+                        if (k)
+                            paramsStr += " ";
+                        paramsStr += "|" + func.params[k] + "|";
+                    }
+                    el.append_attribute("format") =
+                        (func.identifier + " " + paramsStr + "  ").c_str();
+                    std::string callFormat;
+                    for (std::size_t k = 0; k < func.params.size(); ++k) {
+                        if (k)
+                            callFormat += " ";
+                        callFormat += "(" + std::to_string(k) + ")";
+                    }
+                    el.append_attribute("callFormat") =
+                        (func.identifier + " " + callFormat + " ").c_str();
+                    emitBody(func.body, el, nextId);
+                },
+                [](const auto &) {
+                    // imports, top-level vars, custom expressions
+                    // handled elsewhere
+                },
+            },
+            node);
+    }
+
+    // ---- Expressions ----
+    auto exprsEl = prog.append_child("Expressions");
+
+    std::ostringstream oss;
+    doc.save(oss, nullptr, pugi::format_default, pugi::encoding_utf8);
+    return oss.str();
+}
+
+std::expected<void, FileHandlerError> Compiler::writeToFile(
+    const std::filesystem::path &path, const std::string &xml) {
+    return FileHandler::writeToFile(path, xml);
+}
+
+void Compiler::emitBody(const Body &body, pugi::xml_node parent,
+                        std::function<std::string()> nextId) {
+    for (std::size_t index = 0; index < body.body.size(); ++index) {
+        if (body.body[index]) {
+            emitStatement(*body.body[index], index, parent, nextId);
+        }
+    }
+}
+
+void Compiler::emitStatement(const Statements &statement, std::size_t index,
+                             pugi::xml_node parent,
+                             std::function<std::string()> nextId) {
+    std::visit(
+        Overload{
+            [&](const Body &body) {
+                auto inner = parent.append_child("Instructions");
+                emitBody(body, inner, nextId);
+            },
+            [&](const VarDeclaration &varDecl) {
+                auto el = parent.append_child("SetVariable");
+                el.append_attribute("id") = nextId().c_str();
+                el.append_attribute("style") = "set-variable";
+                auto ref = el.append_child("Variable");
+                ref.append_attribute("variableName") =
+                    varDecl.identifier.c_str();
+                ref.append_attribute("list") = "false";
+                ref.append_attribute("local") = "false";
+                if (varDecl.value) {
+                    emitExpression(*varDecl.value, el);
+                } else {
+                    auto c = el.append_child("Constant");
+                    c.append_attribute("number") = "0";
+                }
+            },
+            [&](const VarAssignment &assign) {
+                auto el = parent.append_child("SetVariable");
+                el.append_attribute("id") = nextId().c_str();
+                el.append_attribute("style") = "set-variable";
+                auto ref = el.append_child("Variable");
+                ref.append_attribute("variableName") =
+                    assign.identifier.c_str();
+                ref.append_attribute("list") = "false";
+                ref.append_attribute("local") = "false";
+                if (assign.value) {
+                    emitExpression(*assign.value, el);
+                } else {
+                    auto c = el.append_child("Constant");
+                    c.append_attribute("number") = "0";
+                }
+            },
+            [&](const ListDeclaration &listDecl) {
+                auto el = parent.append_child("SetVariable");
+                el.append_attribute("id") = nextId().c_str();
+                el.append_attribute("style") = "list-init";
+                auto ref = el.append_child("Variable");
+                ref.append_attribute("variableName") =
+                    listDecl.identifier.c_str();
+                ref.append_attribute("list") = "true";
+                ref.append_attribute("local") = "false";
+                auto listOp = el.append_child("ListOp");
+                listOp.append_attribute("op") = "create";
+                listOp.append_attribute("style") = "list-create";
+                auto c = listOp.append_child("Constant");
+                std::string csv;
+                for (std::size_t k = 0; k < listDecl.values.size(); ++k) {
+                    if (k)
+                        csv += ",";
+                    csv += std::visit(
+                        Overload{
+                            [](const Value &v) { return v.value; },
+                            [](const auto &) { return std::string(""); },
+                        },
+                        listDecl.values[k]->value);
+                    c.append_attribute("text") = csv.c_str();
+                }
+            },
+            [&](const PerformInstruction &instr) {
+                auto el = parent.append_child("SetCraftProperty");
+                el.append_attribute("id") = nextId().c_str();
+                el.append_attribute("style") = "set-part";
+                el.append_attribute("property") = instr.identifier.c_str();
+                for (const auto &p : instr.params) {
+                    emitExpression(*p, el);
+                }
+            },
+            [&](const BreakStatement &) {
+                auto el = parent.append_child("Break");
+                el.append_attribute("id") = nextId().c_str();
+                el.append_attribute("style") = "break";
+            },
+            [&](const ConditionalStatement &cond) {
+                auto ifEl = parent.append_child("If");
+                ifEl.append_attribute("id") = nextId().c_str();
+                ifEl.append_attribute("style") = "if";
+                emitExpression(*cond.ifStatement.condition, ifEl);
+                auto ifBody = ifEl.append_child("Instructions");
+                emitBody(cond.ifStatement.body, ifBody, nextId);
+
+                for (std::size_t i = 0; i < cond.elifStatements.size(); ++i) {
+                    auto ei = parent.append_child("ElseIf");
+                    ei.append_attribute("id") = nextId().c_str();
+                    ei.append_attribute("style") = "else-if";
+                    emitExpression(*cond.elifStatements[i].condition, ei);
+                    auto eiBody = ei.append_child("Instructions");
+                    emitBody(cond.elifStatements[i].body, eiBody, nextId);
+                }
+
+                auto elseEl = parent.append_child("ElseIf");
+                elseEl.append_attribute("id") = nextId().c_str();
+                elseEl.append_attribute("style") = "else";
+                auto c = elseEl.append_child("Constant");
+                c.append_attribute("bool") = "true";
+                auto elseBody = elseEl.append_child("Instructions");
+                emitBody(cond.elseStatement, elseBody, nextId);
+            },
+            [&](const EmitEvent &emit) {
+                auto el = parent.append_child("BroadcastMessage");
+                el.append_attribute("id") = nextId().c_str();
+                el.append_attribute("style") = "broadcast-msg";
+                el.append_attribute("message") = emit.identifier.c_str();
+                el.append_attribute("global") =
+                    (emit.option == EmitEvent::TO_NEARBY_CRAFTS) ? "true"
+                                                                 : "false";
+                el.append_attribute("local") =
+                    (emit.option == EmitEvent::TO_SCRIPT) ? "true" : "false";
+                auto mc = el.append_child("Constant");
+                mc.append_attribute("text") = emit.identifier.c_str();
+                for (const auto &p : emit.params) {
+                    emitExpression(*p, el);
+                }
+            },
+            [&](const RepeatLoop &repeat) {
+                auto el = parent.append_child("Repeat");
+                el.append_attribute("id") = nextId().c_str();
+                el.append_attribute("style") = "repeat";
+                if (repeat.repeatNumber) {
+                    emitExpression(*repeat.repeatNumber, el);
+                } else {
+                    auto c = el.append_child("Constant");
+                    c.append_attribute("number") = "1";
+                }
+                auto bodyEl = el.append_child("Instructions");
+                emitBody(repeat.body, bodyEl, nextId);
+            },
+            [&](const WhileLoop &loop) {
+                auto el = parent.append_child("While");
+                el.append_attribute("id") = nextId().c_str();
+                el.append_attribute("style") = "while";
+                emitExpression(*loop.condition, el);
+                auto bodyEl = el.append_child("Instructions");
+                emitBody(loop.body, bodyEl, nextId);
+            },
+            [&](const ForLoop &loop) {
+                auto el = parent.append_child("For");
+                el.append_attribute("id") = nextId().c_str();
+                el.append_attribute("style") = "for";
+                el.append_attribute("var") = loop.iterator.c_str();
+                if (loop.start)
+                    emitExpression(*loop.start, el);
+                if (loop.end)
+                    emitExpression(*loop.end, el);
+                if (loop.by)
+                    emitExpression(*loop.by, el);
+                auto bodyEl = el.append_child("Instructions");
+                emitBody(loop.body, bodyEl, nextId);
+            },
+        },
+        statement.statement);
+}
+
+void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
+    std::visit(Overload{
+                   [&](const Value &v) {
+                       if (v.kind == Value::Kind::Literal) {
+                           auto el = parent.append_child("Constant");
+                           try {
+                               std::stod(v.value);
+                               el.append_attribute("number") = v.value.c_str();
+                           } catch (...) {
+                               el.append_attribute("text") = v.value.c_str();
+                           }
+                       } else {
+                           auto ref = parent.append_child("Variable");
+                           ref.append_attribute("variableName") =
+                               v.value.c_str();
+                           ref.append_attribute("list") = "false";
+                           ref.append_attribute("local") = "false";
+                       }
+                   },
+                   [&](const BinaryOp &bop) {
+                       auto el = parent.append_child("BinaryOp");
+                       el.append_attribute("op") = binopOp(bop.operation);
+                       el.append_attribute("style") = binopStyle(bop.operation);
+                       if (bop.lhs)
+                           emitExpression(*bop.lhs, el);
+                       if (bop.rhs)
+                           emitExpression(*bop.rhs, el);
+                   },
+                   [&](const UnaryOp &uop) {
+                       auto el = parent.append_child("Not");
+                       el.append_attribute("style") = "op-not";
+                       if (uop.value)
+                           emitExpression(*uop.value, el);
+                   },
+                   [&](const ListIndex &li) {
+                       auto el = parent.append_child("ListOp");
+                       el.append_attribute("op") = "get";
+                       el.append_attribute("style") = "list-get";
+                       auto ref = el.append_child("Variable");
+                       ref.append_attribute("variableName") =
+                           li.identifier.c_str();
+                       ref.append_attribute("list") = "true";
+                       ref.append_attribute("local") = "false";
+                       if (li.index)
+                           emitExpression(*li.index, el);
+                   },
+                   [&](const TernaryOp &t) {
+                       auto el = parent.append_child("Conditional");
+                       el.append_attribute("style") = "conditional";
+                       if (t.condition)
+                           emitExpression(*t.condition, el);
+                       if (t.valueIfTrue)
+                           emitExpression(*t.valueIfTrue, el);
+                       if (t.valueIfFalse)
+                           emitExpression(*t.valueIfFalse, el);
+                   },
+                   [&](const CallExpression &call) {
+                       auto el = parent.append_child("CallCustomExpression");
+                       el.append_attribute("call") = call.identifier.c_str();
+                       el.append_attribute("style") = "call-custom-expression";
+                       for (const auto &p : call.params) {
+                           emitExpression(*p, el);
+                       }
+                   },
+               },
+               expr.value);
+}
 
 std::map<std::string, std::string>
 Compiler::getVariables(const RootNode &root) {
@@ -32,12 +427,12 @@ Compiler::getVariables(const RootNode &root) {
         std::visit(Overload{
                        [this](const EventNode &event) {
                            mScopePath.push_back(event.identifier);
-                           visitBody(event.body);
+                           collectBody(event.body);
                            mScopePath.pop_back();
                        },
                        [this](const FunctionNode &function) {
                            mScopePath.push_back(function.identifier);
-                           visitBody(function.body);
+                           collectBody(function.body);
                            mScopePath.pop_back();
                        },
                        [](const auto &) {
@@ -98,22 +493,22 @@ std::string Compiler::makeUnique(const std::string &name,
     return candidate;
 }
 
-void Compiler::visitBody(const Body &body) {
+void Compiler::collectBody(const Body &body) {
     for (std::size_t index = 0; index < body.body.size(); ++index) {
         if (body.body[index]) {
-            visitStatement(*body.body[index], index);
+            collectStatement(*body.body[index], index);
         }
     }
 }
 
-void Compiler::visitStatement(const Statements &statement, std::size_t index) {
-    // Path component of every scope this statement opens.
+void Compiler::collectStatement(const Statements &statement,
+                                std::size_t index) {
     const auto scope = std::to_string(index);
 
     std::visit(Overload{
                    [this, scope](const Body &body) {
                        mScopePath.push_back(scope);
-                       visitBody(body);
+                       collectBody(body);
                        mScopePath.pop_back();
                    },
                    [this](const VarDeclaration &varDecl) {
@@ -129,30 +524,30 @@ void Compiler::visitStatement(const Statements &statement, std::size_t index) {
                    [](const BreakStatement &) {},
                    [this, scope](const ConditionalStatement &conditional) {
                        mScopePath.push_back(scope + ".if");
-                       visitBody(conditional.ifStatement.body);
+                       collectBody(conditional.ifStatement.body);
                        mScopePath.pop_back();
 
                        for (std::size_t i = 0;
                             i < conditional.elifStatements.size(); ++i) {
                            mScopePath.push_back(scope + ".elif" +
                                                 std::to_string(i));
-                           visitBody(conditional.elifStatements[i].body);
+                           collectBody(conditional.elifStatements[i].body);
                            mScopePath.pop_back();
                        }
 
                        mScopePath.push_back(scope + ".else");
-                       visitBody(conditional.elseStatement);
+                       collectBody(conditional.elseStatement);
                        mScopePath.pop_back();
                    },
                    [](const EmitEvent &) {},
                    [this, scope](const RepeatLoop &repeatLoop) {
                        mScopePath.push_back(scope);
-                       visitBody(repeatLoop.body);
+                       collectBody(repeatLoop.body);
                        mScopePath.pop_back();
                    },
                    [this, scope](const WhileLoop &whileLoop) {
                        mScopePath.push_back(scope);
-                       visitBody(whileLoop.body);
+                       collectBody(whileLoop.body);
                        mScopePath.pop_back();
                    },
                    [this, scope](const ForLoop &forLoop) {
@@ -161,10 +556,11 @@ void Compiler::visitStatement(const Statements &statement, std::size_t index) {
                        // the iterator is a redeclaration rather than a shadow.
                        mScopePath.push_back(scope);
                        declareScoped(forLoop.iterator);
-                       visitBody(forLoop.body);
+                       collectBody(forLoop.body);
                        mScopePath.pop_back();
                    },
                },
                statement.statement);
 }
+
 }

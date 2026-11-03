@@ -4,7 +4,7 @@ add_subdirectory(tests-impl)
 add_executable(juno-pl-tests)
 target_sources(juno-pl-tests PRIVATE 
 doctest_main.cpp
-FileReader-tests.cpp
+FileHandler-tests.cpp
 Lexer-tests.cpp
 StandardLibrary-tests.cpp
 SemanticAnalyzer-tests.cpp

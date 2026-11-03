@@ -7,14 +7,14 @@ import junopl.parser;
 import junopl.parser.nodes;
 import junopl.parser.nodes.statements;
 import junopl.parser.nodes.expressions;
-import junopl.tests.filereader;
+import junopl.tests.filehandler;
 
 TEST_CASE("Parser Var Assignment - simple assign") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { var x = 1; x = 5; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { var x = 1; x = 5; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -34,11 +34,11 @@ TEST_CASE("Parser Var Assignment - simple assign") {
 }
 
 TEST_CASE("Parser Var Assignment - plus assign") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { var x = 1; x += 3; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { var x = 1; x += 3; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -53,11 +53,11 @@ TEST_CASE("Parser Var Assignment - plus assign") {
 }
 
 TEST_CASE("Parser Var Assignment - minus assign") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { var x = 1; x -= 2; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { var x = 1; x -= 2; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -72,11 +72,11 @@ TEST_CASE("Parser Var Assignment - minus assign") {
 }
 
 TEST_CASE("Parser Var Assignment - mult assign") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { var x = 1; x *= 2; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { var x = 1; x *= 2; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -91,11 +91,11 @@ TEST_CASE("Parser Var Assignment - mult assign") {
 }
 
 TEST_CASE("Parser Var Assignment - divide assign") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { var x = 1; x /= 2; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { var x = 1; x /= 2; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -110,11 +110,11 @@ TEST_CASE("Parser Var Assignment - divide assign") {
 }
 
 TEST_CASE("Parser Var Assignment - with expression") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { var x = 1; x = 2 + 3 * 4; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { var x = 1; x = 2 + 3 * 4; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -130,11 +130,11 @@ TEST_CASE("Parser Var Assignment - with expression") {
 }
 
 TEST_CASE("Parser Var Assignment - list index assign") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { list items = [1, 2, 3]; items[0] = 10; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { list items = [1, 2, 3]; items[0] = 10; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -154,11 +154,11 @@ TEST_CASE("Parser Var Assignment - list index assign") {
 }
 
 TEST_CASE("Parser Var Assignment - missing semicolon") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { var x = 1; x = 5 }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { var x = 1; x = 5 }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;

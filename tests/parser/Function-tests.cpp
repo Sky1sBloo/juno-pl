@@ -6,14 +6,14 @@ import junopl.lexer.tokens;
 import junopl.parser;
 import junopl.parser.nodes;
 import junopl.parser.nodes.statements;
-import junopl.tests.filereader;
+import junopl.tests.filehandler;
 
 TEST_CASE("Parser Function - basic") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; instr doNothing() { }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; instr doNothing() { }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -31,11 +31,11 @@ TEST_CASE("Parser Function - basic") {
 }
 
 TEST_CASE("Parser Function - with params") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; instr add(a, b) { }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; instr add(a, b) { }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -53,11 +53,11 @@ TEST_CASE("Parser Function - with params") {
 }
 
 TEST_CASE("Parser Function - with body statements") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; instr main() { var x = 1; var y = 2; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; instr main() { var x = 1; var y = 2; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -73,11 +73,11 @@ TEST_CASE("Parser Function - with body statements") {
 }
 
 TEST_CASE("Parser Function - missing identifier") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; instr () { }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; instr () { }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -87,11 +87,11 @@ TEST_CASE("Parser Function - missing identifier") {
 }
 
 TEST_CASE("Parser Function - missing body") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; instr main()");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; instr main()");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -101,11 +101,11 @@ TEST_CASE("Parser Function - missing body") {
 }
 
 TEST_CASE("Parser Multiple functions") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; instr a() { } instr b() { } instr c() { }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; instr a() { } instr b() { } instr c() { }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;

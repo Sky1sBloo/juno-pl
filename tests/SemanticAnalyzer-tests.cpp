@@ -7,15 +7,15 @@ import junopl.parser;
 import junopl.parser.nodes;
 import junopl.semantic;
 import junopl.semantic.diagnostic;
-import junopl.tests.filereader;
+import junopl.tests.filehandler;
 
 namespace {
 std::vector<JunoPL::Diagnostic> analyze(const std::string &source) {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode(source);
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode(source);
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;

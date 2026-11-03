@@ -3,7 +3,7 @@ module;
 #include <vector>
 
 export module junopl.lexer;
-import junopl.ifilereader;
+import junopl.ifilehandler;
 import junopl.lexer.tokens;
 import junopl.lexer.statehandler;
 import junopl.lexer.error;
@@ -19,7 +19,7 @@ class Lexer {
 
   public:
     Lexer();
-    Output tokenize(IFileReader &fileReader);
+    Output tokenize(IFileHandler &fileHandler);
     void reset();
 
   private:

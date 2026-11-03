@@ -6,14 +6,14 @@ import junopl.lexer.tokens.identifier;
 
 namespace JunoPL {
 Lexer::Lexer() : mStateHandler(), mLine(0), mCol(0), mColStart(0), mLexeme() {}
-Lexer::Output Lexer::tokenize(IFileReader &fileReader) {
+Lexer::Output Lexer::tokenize(IFileHandler &fileHandler) {
     using StateResult = LexerStateHandler::Result;
     using StateAction = StateResult::Action;
 
     Output output;
 
     reset();
-    auto c = fileReader.read();
+    auto c = fileHandler.read();
     if (!c.has_value()) {
         return output;
     }
@@ -62,7 +62,7 @@ Lexer::Output Lexer::tokenize(IFileReader &fileReader) {
             mLine++;
             mCol = 0;
         }
-        c = fileReader.read();
+        c = fileHandler.read();
     }
     if (mLexeme.empty()) {
         return output;

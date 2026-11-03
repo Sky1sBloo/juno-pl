@@ -5,14 +5,14 @@ import junopl.lexer;
 import junopl.lexer.tokens;
 import junopl.parser;
 import junopl.parser.nodes;
-import junopl.tests.filereader;
+import junopl.tests.filehandler;
 
 TEST_CASE("Parser Program - program name only") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program myApp;");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program myApp;");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -25,11 +25,11 @@ TEST_CASE("Parser Program - program name only") {
 }
 
 TEST_CASE("Parser Program - with imports") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program myApp; import \"utils.js\"; import \"math.js\";");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program myApp; import \"utils.js\"; import \"math.js\";");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -46,11 +46,11 @@ TEST_CASE("Parser Program - with imports") {
 }
 
 TEST_CASE("Parser Program - missing program keyword") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("myApp;");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("myApp;");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -60,11 +60,11 @@ TEST_CASE("Parser Program - missing program keyword") {
 }
 
 TEST_CASE("Parser Program - missing semicolon after program name") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program myApp import \"utils.js\";");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program myApp import \"utils.js\";");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -74,11 +74,11 @@ TEST_CASE("Parser Program - missing semicolon after program name") {
 }
 
 TEST_CASE("Parser Program - empty input") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
 
     JunoPL::Parser parser;
     auto parseOutput = parser.parse(lexOutput.tokens);

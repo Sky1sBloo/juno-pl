@@ -7,14 +7,14 @@ import junopl.parser;
 import junopl.parser.nodes;
 import junopl.parser.nodes.statements;
 import junopl.parser.nodes.expressions;
-import junopl.tests.filereader;
+import junopl.tests.filehandler;
 
 TEST_CASE("Parser Conditional - if only") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { var x = 1; if (x == 1) { } }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { var x = 1; if (x == 1) { } }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -34,11 +34,11 @@ TEST_CASE("Parser Conditional - if only") {
 }
 
 TEST_CASE("Parser Conditional - if/else") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { if (true) { } else { var z = 1; } }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { if (true) { } else { var z = 1; } }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -54,11 +54,11 @@ TEST_CASE("Parser Conditional - if/else") {
 }
 
 TEST_CASE("Parser Conditional - if/elif") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { if (true) { } elif (false) { } }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { if (true) { } elif (false) { } }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -74,11 +74,11 @@ TEST_CASE("Parser Conditional - if/elif") {
 }
 
 TEST_CASE("Parser Conditional - if/elif/else") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { if (true) { } elif (false) { } else { var z = 1; } }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { if (true) { } elif (false) { } else { var z = 1; } }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -94,11 +94,11 @@ TEST_CASE("Parser Conditional - if/elif/else") {
 }
 
 TEST_CASE("Parser Conditional - multiple elif") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { if (a) { } elif (b) { } elif (c) { } else { var z = 1; } }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { if (a) { } elif (b) { } elif (c) { } else { var z = 1; } }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -114,11 +114,11 @@ TEST_CASE("Parser Conditional - multiple elif") {
 }
 
 TEST_CASE("Parser Conditional - with body content") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { if (x > 0) { var y = 1; } }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { if (x > 0) { var y = 1; } }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -134,11 +134,11 @@ TEST_CASE("Parser Conditional - with body content") {
 }
 
 TEST_CASE("Parser Ternary - with else keyword") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; expr max(a, b) a > b ? a else b;");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; expr max(a, b) a > b ? a else b;");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;

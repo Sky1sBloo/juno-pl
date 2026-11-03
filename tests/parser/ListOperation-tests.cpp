@@ -7,15 +7,15 @@ import junopl.parser;
 import junopl.parser.nodes;
 import junopl.parser.nodes.statements;
 import junopl.parser.nodes.expressions;
-import junopl.tests.filereader;
+import junopl.tests.filehandler;
 
 TEST_CASE("Parser List Operation - insert") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode(
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode(
         "program test; on start() { list items = [1, 2]; Lists.insert(items, 3); }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -37,12 +37,12 @@ TEST_CASE("Parser List Operation - insert") {
 }
 
 TEST_CASE("Parser List Operation - remove") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode(
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode(
         "program test; on start() { list items = [1, 2]; Lists.remove(items, 0); }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -59,12 +59,12 @@ TEST_CASE("Parser List Operation - remove") {
 }
 
 TEST_CASE("Parser List Operation - clear") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode(
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode(
         "program test; on start() { list items = [1]; Lists.clear(items); }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -81,12 +81,12 @@ TEST_CASE("Parser List Operation - clear") {
 }
 
 TEST_CASE("Parser List Operation - sort") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode(
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode(
         "program test; on start() { list items = [3, 1, 2]; Lists.sort(items); }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -102,12 +102,12 @@ TEST_CASE("Parser List Operation - sort") {
 }
 
 TEST_CASE("Parser List Operation - reverse") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode(
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode(
         "program test; on start() { list items = [1, 2]; Lists.reverse(items); }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -123,11 +123,11 @@ TEST_CASE("Parser List Operation - reverse") {
 }
 
 TEST_CASE("Parser List Index - expression") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { list items = [10, 20, 30]; perform show(items[1]); }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { list items = [10, 20, 30]; perform show(items[1]); }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -147,11 +147,11 @@ TEST_CASE("Parser List Index - expression") {
 }
 
 TEST_CASE("Parser List Declaration - empty") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { list items = []; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { list items = []; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -167,11 +167,11 @@ TEST_CASE("Parser List Declaration - empty") {
 }
 
 TEST_CASE("Parser List Declaration - no value") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { list items; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { list items; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;

@@ -8,14 +8,14 @@ import junopl.parser;
 import junopl.parser.nodes;
 import junopl.parser.nodes.statements;
 import junopl.parser.nodes.expressions;
-import junopl.tests.filereader;
+import junopl.tests.filehandler;
 
 TEST_CASE("Error Recovery - multiple errors in body") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { var x = ; var y = 2; var z = ; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { var x = ; var y = 2; var z = ; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -31,11 +31,11 @@ TEST_CASE("Error Recovery - multiple errors in body") {
 }
 
 TEST_CASE("Error Recovery - bad statement then good statement") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { 123 ; var y = 2; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { 123 ; var y = 2; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -57,11 +57,11 @@ TEST_CASE("Error Recovery - bad statement then good statement") {
 }
 
 TEST_CASE("Error Recovery - multiple bad statements") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { 123 ; 456 ; var y = 2; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { 123 ; 456 ; var y = 2; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -77,11 +77,11 @@ TEST_CASE("Error Recovery - multiple bad statements") {
 }
 
 TEST_CASE("Error Recovery - recovery to semicolon") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { var x = ; ; var y = 2; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { var x = ; ; var y = 2; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -102,11 +102,11 @@ TEST_CASE("Error Recovery - recovery to semicolon") {
 }
 
 TEST_CASE("Error Recovery - bad expression in func call") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { perform doStuff(; var y = 2; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { perform doStuff(; var y = 2; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;

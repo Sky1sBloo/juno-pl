@@ -1,18 +1,30 @@
 module;
 #include <cstddef>
+#include <expected>
+#include <filesystem>
+#include <functional>
 #include <map>
+#include <pugixml.hpp>
 #include <set>
 #include <string>
 #include <vector>
 export module junopl.compiler;
+
 import junopl.parser.nodes;
 import junopl.parser.nodes.statements;
 import junopl.parser.nodes.expressions;
+import junopl.filehandler;
 
 namespace JunoPL {
 export class Compiler {
   public:
-    void compileAST(const RootNode &root);
+    /** Returns the compiled Vizzy XML as a string. */
+    std::string compileAST(const RootNode &root);
+
+    /** Writes the compiled XML string to a file. */
+    std::expected<void, FileHandlerError>
+    writeToFile(const std::filesystem::path &path,
+                const std::string &xml);
 
     /**
     Traverses the AST and collects every variable declaration so the codegen
@@ -40,6 +52,18 @@ export class Compiler {
      */
     void writeHeader();
     void loadFunctions();
+
+    /** Scope-tracking traversal used by getVariables. */
+    void collectBody(const Body &body);
+    void collectStatement(const Statements &stmt, std::size_t index);
+
+    /** pugixml-emitting traversal used by compileAST. */
+    void emitBody(const Body &body, pugi::xml_node parent,
+                  std::function<std::string()> nextId);
+    void emitStatement(const Statements &stmt, std::size_t index,
+                       pugi::xml_node parent,
+                       std::function<std::string()> nextId);
+    void emitExpression(const Expression &expr, pugi::xml_node parent);
 
     /** Key/value table built by getVariables. */
     std::map<std::string, std::string> mVariables;
