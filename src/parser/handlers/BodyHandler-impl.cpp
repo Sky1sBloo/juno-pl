@@ -111,21 +111,11 @@ std::optional<Body> Parser::parseBody(TokenList &tokens) {
             break;
         }
         case TokenType::IDENT: {
-            auto remaining = mTokens->remaining();
-            if (remaining.size() > 1 && remaining[1].type == TokenType::OP_DOT) {
-                if (auto instr = parseQualifiedInstruction(tokens)) {
-                    addStatement(body, std::move(instr.value()));
-                } else {
-                    recoverTo(TokenType::OP_SEMICOLON);
-                    if (!mTokens->empty()) mTokens->advance();
-                }
+            if (auto varAssign = parseVarAssignment(tokens)) {
+                addStatement(body, std::move(varAssign.value()));
             } else {
-                if (auto varAssign = parseVarAssignment(tokens)) {
-                    addStatement(body, std::move(varAssign.value()));
-                } else {
-                    recoverTo(TokenType::OP_SEMICOLON);
-                    if (!mTokens->empty()) mTokens->advance();
-                }
+                recoverTo(TokenType::OP_SEMICOLON);
+                if (!mTokens->empty()) mTokens->advance();
             }
             break;
         }
