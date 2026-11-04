@@ -38,7 +38,12 @@ export class JunoSTL {
         ATMOSPHERE,
         FUEL,
         TIME,
-        PERFORMANCE
+        PERFORMANCE,
+        TERRAIN,
+        LISTOP,
+        RAYCAST,
+        TARGET,
+        MISC
     };
 
     // To identify if its part of perform or not

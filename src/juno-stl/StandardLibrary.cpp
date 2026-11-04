@@ -297,6 +297,14 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::FUEL, Operations::EXPRESSION, "monoProp", {{0, 0}});
         add(Qualifiers::FUEL, Operations::EXPRESSION, "totalFuel", {{0, 0}});
 
+        add(Qualifiers::TERRAIN, Operations::EXPRESSION, "height", {{1, 1}});
+        add(Qualifiers::TERRAIN, Operations::EXPRESSION, "color", {{1, 1}});
+
+        add(Qualifiers::LISTOP, Operations::EXPRESSION, "create", {{1, 1}});
+        add(Qualifiers::LISTOP, Operations::EXPRESSION, "get", {{2, 2}});
+        add(Qualifiers::LISTOP, Operations::EXPRESSION, "length", {{1, 1}});
+        add(Qualifiers::LISTOP, Operations::EXPRESSION, "index", {{2, 2}});
+
         add(Qualifiers::NAV, Operations::EXPRESSION, "nav", {{0, 0}});
         add(Qualifiers::NAV, Operations::EXPRESSION, "target", {{0, 0}});
         add(Qualifiers::NAV, Operations::EXPRESSION, "heading", {{0, 0}});
@@ -315,6 +323,8 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::NAV, Operations::EXPRESSION, "yawAxis", {{0, 0}});
         add(Qualifiers::NAV, Operations::EXPRESSION, "craftRight", {{0, 0}});
         add(Qualifiers::NAV, Operations::EXPRESSION, "craftUp", {{0, 0}});
+        add(Qualifiers::NAV, Operations::EXPRESSION, "craftDirection",
+            {{0, 0}});
         add(Qualifiers::NAV, Operations::EXPRESSION, "toLatLongAGL", {{1, 1}});
         add(Qualifiers::NAV, Operations::EXPRESSION, "toLatLongASL", {{1, 1}});
         add(Qualifiers::NAV, Operations::EXPRESSION, "toPosition", {{1, 1}});
@@ -338,12 +348,18 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::VELOCITY, Operations::EXPRESSION, "vertical", {{0, 0}});
         add(Qualifiers::VELOCITY, Operations::EXPRESSION, "mach", {{0, 0}});
 
+        add(Qualifiers::TARGET, Operations::EXPRESSION, "name", {{0, 0}});
+        add(Qualifiers::TARGET, Operations::EXPRESSION, "planet", {{0, 0}});
+
         add(Qualifiers::INPUT, Operations::EXPRESSION, "throttle", {{0, 0}});
         add(Qualifiers::INPUT, Operations::EXPRESSION, "pitch", {{0, 0}});
         add(Qualifiers::INPUT, Operations::EXPRESSION, "roll", {{0, 0}});
         add(Qualifiers::INPUT, Operations::EXPRESSION, "yaw", {{0, 0}});
         add(Qualifiers::INPUT, Operations::EXPRESSION, "brake", {{0, 0}});
         add(Qualifiers::INPUT, Operations::EXPRESSION, "slider", {{1, 1}});
+        add(Qualifiers::INPUT, Operations::EXPRESSION, "slider2", {{0, 0}});
+        add(Qualifiers::INPUT, Operations::EXPRESSION, "slider3", {{0, 0}});
+        add(Qualifiers::INPUT, Operations::EXPRESSION, "slider4", {{0, 0}});
         add(Qualifiers::INPUT, Operations::EXPRESSION, "translateForward",
             {{0, 0}});
         add(Qualifiers::INPUT, Operations::EXPRESSION, "translateRight",
@@ -382,14 +398,48 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
             {{1, 1}});
         add(Qualifiers::CRAFT, Operations::EXPRESSION, "boundingBoxMax",
             {{1, 1}});
+        add(Qualifiers::CRAFT, Operations::EXPRESSION, "ap", {{1, 1}});
+        add(Qualifiers::CRAFT, Operations::EXPRESSION, "pe", {{1, 1}});
         add(Qualifiers::CRAFT, Operations::EXPRESSION, "orbitAp", {{1, 1}});
         add(Qualifiers::CRAFT, Operations::EXPRESSION, "orbitPe", {{1, 1}});
+        add(Qualifiers::CRAFT, Operations::EXPRESSION, "period", {{1, 1}});
+        add(Qualifiers::CRAFT, Operations::EXPRESSION, "period", {{1, 1}});
         add(Qualifiers::CRAFT, Operations::EXPRESSION, "orbitPeriod", {{1, 1}});
+        add(Qualifiers::CRAFT, Operations::EXPRESSION, "apoapsisTime",
+            {{1, 1}});
+        add(Qualifiers::CRAFT, Operations::EXPRESSION, "periapsisTime",
+            {{1, 1}});
+        add(Qualifiers::CRAFT, Operations::EXPRESSION, "inclination",
+            {{1, 1}});
+        add(Qualifiers::CRAFT, Operations::EXPRESSION, "eccentricity",
+            {{1, 1}});
 
         add(Qualifiers::CAMERA, Operations::EXPRESSION, "position", {{0, 0}});
         add(Qualifiers::CAMERA, Operations::EXPRESSION, "pointing", {{0, 0}});
-        add(Qualifiers::CAMERA, Operations::EXPRESSION, "upDirection",
+        add(Qualifiers::CAMERA, Operations::EXPRESSION, "upDirection", {{0, 0}});
+        add(Qualifiers::CAMERA, Operations::EXPRESSION, "mode", {{0, 0}});
+        add(Qualifiers::CAMERA, Operations::EXPRESSION, "modeIndex", {{0, 0}});
+        add(Qualifiers::CAMERA, Operations::EXPRESSION, "rotationX", {{0, 0}});
+        add(Qualifiers::CAMERA, Operations::EXPRESSION, "rotationY", {{0, 0}});
+        add(Qualifiers::CAMERA, Operations::EXPRESSION, "tilt", {{0, 0}});
+        add(Qualifiers::CAMERA, Operations::EXPRESSION, "zoom", {{0, 0}});
+        add(Qualifiers::CAMERA, Operations::EXPRESSION, "soundFrequency",
+            {{2, 2}});
+        add(Qualifiers::CAMERA, Operations::EXPRESSION, "targetOffset",
             {{0, 0}});
+
+        add(Qualifiers::MISC, Operations::EXPRESSION, "grounded", {{0, 0}});
+        add(Qualifiers::MISC, Operations::EXPRESSION, "stage", {{0, 0}});
+        add(Qualifiers::MISC, Operations::EXPRESSION, "numStages", {{0, 0}});
+        add(Qualifiers::MISC, Operations::EXPRESSION, "solarRadiation",
+            {{0, 0}});
+        add(Qualifiers::MISC, Operations::EXPRESSION, "cameraPosition",
+            {{0, 0}});
+        add(Qualifiers::MISC, Operations::EXPRESSION, "cameraPointing",
+            {{0, 0}});
+        add(Qualifiers::MISC, Operations::EXPRESSION, "cameraUp", {{0, 0}});
+        add(Qualifiers::MISC, Operations::EXPRESSION, "pidPitch", {{0, 0}});
+        add(Qualifiers::MISC, Operations::EXPRESSION, "pidRoll", {{0, 0}});
 
         add(Qualifiers::TIME, Operations::EXPRESSION, "sinceLaunch", {{0, 0}});
         add(Qualifiers::TIME, Operations::EXPRESSION, "delta", {{0, 0}});
@@ -448,6 +498,71 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
             {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION,
             "orbitPeriapsisArgument", {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION,
+            "orbitRightAscension", {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION,
+            "orbitTrueAnomaly", {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION,
+            "orbitSemiMajorAxis", {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitSemiMinorAxis",
+            {{1, 1}});
+
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "hasTerrain",
+            {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION,
+            "atmosphereDensity", {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION,
+            "atmosphereScale", {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "soiradius",
+            {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "day", {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "year", {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "apoapsis",
+            {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "periapsis",
+            {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "period", {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "inclination",
+            {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "eccentricity",
+            {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "meananomaly",
+            {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "meanmotion",
+            {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "semimajoraxis",
+            {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "semiminoraxis",
+            {{1, 1}});
+
+        add(Qualifiers::CRAFT, Operations::EXPRESSION, "boundMin",
+            {{1, 1}});
+        add(Qualifiers::CRAFT, Operations::EXPRESSION, "boundMax",
+            {{1, 1}});
+        add(Qualifiers::CRAFT, Operations::EXPRESSION, "meanAnomaly",
+            {{1, 1}});
+        add(Qualifiers::CRAFT, Operations::EXPRESSION, "meanMotion",
+            {{1, 1}});
+        add(Qualifiers::CRAFT, Operations::EXPRESSION, "periapsisArgument",
+            {{1, 1}});
+        add(Qualifiers::CRAFT, Operations::EXPRESSION, "rightAscension",
+            {{1, 1}});
+        add(Qualifiers::CRAFT, Operations::EXPRESSION, "trueAnomaly",
+            {{1, 1}});
+        add(Qualifiers::CRAFT, Operations::EXPRESSION, "semiMajorAxis",
+            {{1, 1}});
+        add(Qualifiers::CRAFT, Operations::EXPRESSION, "semiMinorAxis",
+            {{1, 1}});
+        add(Qualifiers::CRAFT, Operations::EXPRESSION, "nameToID",
+            {{1, 1}});
+
+        add(Qualifiers::PART, Operations::EXPRESSION, "thisID", {{1, 1}});
+        add(Qualifiers::PART, Operations::EXPRESSION, "nameToID",
+            {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitMeanMotion",
+            {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION,
+            "orbitPeriapsisArgument", {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitRightAscension",
             {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitTrueAnomaly",
@@ -456,6 +571,8 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
             {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitSemiMinorAxis",
             {{1, 1}});
+
+        add(Qualifiers::RAYCAST, Operations::EXPRESSION, "raycast", {{2, 2}});
 
         add(Qualifiers::PART, Operations::EXPRESSION, "idOf", {{1, 1}});
         add(Qualifiers::PART, Operations::EXPRESSION, "activated", {{1, 1}});
@@ -467,6 +584,9 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::PART, Operations::EXPRESSION, "position", {{1, 1}});
         add(Qualifiers::PART, Operations::EXPRESSION, "temperature", {{1, 1}});
         add(Qualifiers::PART, Operations::EXPRESSION, "drag", {{1, 1}});
+        add(Qualifiers::PART, Operations::EXPRESSION, "fuelTransfer",
+            {{1, 1}});
+        add(Qualifiers::PART, Operations::EXPRESSION, "idToName", {{1, 1}});
         add(Qualifiers::PART, Operations::EXPRESSION, "programPartId",
             {{1, 1}});
         add(Qualifiers::PART, Operations::EXPRESSION, "minPartId", {{1, 1}});
@@ -501,10 +621,12 @@ const std::unordered_map<std::string, JunoSTL::Qualifiers>
         {"Strings", JunoSTL::Qualifiers::STRINGS},
         {"Input", JunoSTL::Qualifiers::INPUT},
         {"Lists", JunoSTL::Qualifiers::LISTS},
+        {"ListOp", JunoSTL::Qualifiers::LISTOP},
         {"Vector", JunoSTL::Qualifiers::VECTOR},
         {"Game", JunoSTL::Qualifiers::GAME},
         {"Craft", JunoSTL::Qualifiers::CRAFT},
         {"Part", JunoSTL::Qualifiers::PART},
+        {"Terrain", JunoSTL::Qualifiers::TERRAIN},
         {"Camera", JunoSTL::Qualifiers::CAMERA},
         {"Nav", JunoSTL::Qualifiers::NAV},
         {"Altitude", JunoSTL::Qualifiers::ALTITUDE},
@@ -514,7 +636,12 @@ const std::unordered_map<std::string, JunoSTL::Qualifiers>
         {"Atmosphere", JunoSTL::Qualifiers::ATMOSPHERE},
         {"Fuel", JunoSTL::Qualifiers::FUEL},
         {"Time", JunoSTL::Qualifiers::TIME},
-        {"Performance", JunoSTL::Qualifiers::PERFORMANCE}};
+        {"Performance", JunoSTL::Qualifiers::PERFORMANCE},
+        {"Terrain", JunoSTL::Qualifiers::TERRAIN},
+        {"ListOp", JunoSTL::Qualifiers::LISTOP},
+        {"Raycast", JunoSTL::Qualifiers::RAYCAST},
+        {"Target", JunoSTL::Qualifiers::TARGET},
+        {"Misc", JunoSTL::Qualifiers::MISC}};
 
 const std::map<JunoSTL::Qualifiers, std::string> JunoSTL::kQualifierReverseMap =
     {{JunoSTL::Qualifiers::COMMON, "Common"},
@@ -535,5 +662,10 @@ const std::map<JunoSTL::Qualifiers, std::string> JunoSTL::kQualifierReverseMap =
      {JunoSTL::Qualifiers::ATMOSPHERE, "Atmosphere"},
      {JunoSTL::Qualifiers::FUEL, "Fuel"},
      {JunoSTL::Qualifiers::TIME, "Time"},
-     {JunoSTL::Qualifiers::PERFORMANCE, "Performance"}};
+     {JunoSTL::Qualifiers::PERFORMANCE, "Performance"},
+     {JunoSTL::Qualifiers::TERRAIN, "Terrain"},
+     {JunoSTL::Qualifiers::LISTOP, "ListOp"},
+     {JunoSTL::Qualifiers::RAYCAST, "Raycast"},
+     {JunoSTL::Qualifiers::TARGET, "Target"},
+     {JunoSTL::Qualifiers::MISC, "Misc"}};
 }
