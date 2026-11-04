@@ -370,7 +370,12 @@ std::string Compiler::compileAST(const RootNode &root) {
                     el.append_attribute("style") = "custom-instruction";
                     el.append_attribute("pos") = nextThreadPos().c_str();
                     mScopePath.push_back(func.identifier);
+                    // Instruction parameters are local references bound by
+                    // Vizzy itself, referenced as local="true"
+                    for (const auto &p : func.params)
+                        mHandlerParams[p] = -1;
                     emitBody(func.body, threadEl, nextId);
+                    mHandlerParams.clear();
                     mScopePath.pop_back();
                 },
                 [](const auto &) {
@@ -413,8 +418,14 @@ std::string Compiler::compileAST(const RootNode &root) {
                     el.append_attribute("style") = "custom-expression";
                     el.append_attribute("pos") = nextThreadPos().c_str();
 
+                    // Expression parameters are local references bound by
+                    // Vizzy itself, referenced as local="true"
+                    for (const auto &p : customExpr.params)
+                        mHandlerParams[p] = -1;
+
                     if (customExpr.expression)
                         emitExpression(*customExpr.expression, el);
+                    mHandlerParams.clear();
                 },
                 [](const auto &) {},
             },
