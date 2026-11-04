@@ -56,6 +56,7 @@ instruction, `Input.throttle()` as an expression).
 | `String.strContains` | `(s, sub)` | Whether s contains sub. |
 | `String.format` | `(template, ...)` | Format string with substitutions (variadic). |
 | `String.friendly` | `(a, b)` | Friendly comparison/formatting. |
+| `String.friendly` | `(a, b)` | Friendly comparison/formatting. |
 
 ## Vectors — `Vector` (expressions)
 

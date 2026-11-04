@@ -1572,6 +1572,14 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                                     emitExpression(*p, el);
                                 }
                             }
+                        } else if (call.qualifier == "String" &&
+                                   call.identifier == "format") {
+                            auto el = parent.append_child("StringOp");
+                            el.append_attribute("op") = "format";
+                            el.append_attribute("style") = "format";
+                            for (const auto &p : call.params) {
+                                emitExpression(*p, el);
+                            }
                         } else if (auto stdExpr = findStdExpr(call.qualifier,
                                                               call.identifier.c_str())) {
                             auto el = parent.append_child("CraftProperty");
