@@ -79,7 +79,13 @@ on start() {
     // Event is self-closing, statements are siblings
     CHECK(xml.find("<Event event=\"FlightStart\" id=\"0\" style=\"flight-start\" "
                    "pos=\"-10,-20\" />") != std::string::npos);
-    CHECK(xml.find("<DisplayMessage id=\"1\" style=\"display\">") !=
+    // Top level initializers are assigned at the top of start, before the
+    // handler's own statements
+    CHECK(xml.find("<SetVariable id=\"1\" style=\"set-variable\">") !=
+          std::string::npos);
+    CHECK(xml.find("<SetVariable id=\"2\" style=\"set-variable\">") !=
+          std::string::npos);
+    CHECK(xml.find("<DisplayMessage id=\"3\" style=\"display\">") !=
           std::string::npos);
     CHECK(xml.find("<Constant text=\"Hello world\" />") != std::string::npos);
     CHECK(xml.find("<Constant number=\"7\" />") != std::string::npos);
@@ -196,15 +202,24 @@ on start() {
     std::size_t firstHash = xml.find_first_of("_");
     REQUIRE(firstHash != std::string::npos);
 
-    // Count occurrences of the hashed variable name
+    // Count occurrences of the hashed variable name. The first variableName
+    // in the XML may be the top level global (top level initializers are
+    // emitted first), so pick the first hashed local name instead.
     std::string hashedName;
-    // Find the pattern: variableName="NAME_" followed by hex
-    std::size_t varNamePos = xml.find("variableName=\"");
-    REQUIRE(varNamePos != std::string::npos);
-    varNamePos += std::string("variableName=\"").size();
-    std::size_t endQuote = xml.find('"', varNamePos);
-    REQUIRE(endQuote != std::string::npos);
-    hashedName = xml.substr(varNamePos, endQuote - varNamePos);
+    std::size_t searchPos = 0;
+    const std::string prefix = "variableName=\"";
+    while ((searchPos = xml.find(prefix, searchPos)) != std::string::npos) {
+        const std::size_t start = searchPos + prefix.size();
+        const std::size_t endQuote = xml.find('"', start);
+        REQUIRE(endQuote != std::string::npos);
+        const std::string candidate = xml.substr(start, endQuote - start);
+        if (candidate.find('_') != std::string::npos) {
+            hashedName = candidate;
+            break;
+        }
+        searchPos = endQuote + 1;
+    }
+    REQUIRE(!hashedName.empty());
 
     // Every variableName reference should use this same name
     int count = 0;
@@ -335,7 +350,7 @@ on start() {
           std::string::npos);
     CHECK(xml.find("list=\"true\"") != std::string::npos);
     CHECK(xml.find("variableName=\"nums\"") != std::string::npos);
-    CHECK(xml.find("<Constant number=\"0\" />") != std::string::npos);
+    CHECK(xml.find("<Constant number=\"1\" />") != std::string::npos);
 }
 
 TEST_CASE("Compiler XML - comparison operators") {
@@ -574,8 +589,8 @@ on start() {
 TEST_CASE("Compiler XML - compound assignment keeps its operator") {
     const auto xml = compileSource(R"(
 program test;
-var c = 0;
-var d = 0;
+var c;
+var d;
 
 on start() {
     c += 1;
@@ -605,7 +620,7 @@ on start() {
 TEST_CASE("Compiler XML - list element assignment uses SetList") {
     const auto xml = compileSource(R"(
 program test;
-list nums = [1, 2, 3];
+list nums;
 
 on start() {
     nums[0] = 5;
@@ -627,4 +642,69 @@ on start() {
     CHECK(xml.find("<BinaryOp op=\"+\" style=\"op-add\">") !=
           std::string::npos);
     CHECK(xml.find("<SetVariable") == std::string::npos);
+}
+
+TEST_CASE("Compiler XML - top level initializers without a start handler "
+          "get their own FlightStart thread") {
+    const auto xml = compileSource(R"(
+program test;
+var x = 5;
+list nums = [1, 2];
+)");
+
+    // No on start: the declarations get a FlightStart thread of their own,
+    // with the initializers assigned at the top of it
+    CHECK(xml.find("<Event event=\"FlightStart\" id=\"0\" style=\"flight-start\" "
+                   "pos=\"-10,-20\" />") != std::string::npos);
+    CHECK(xml.find("<SetVariable id=\"1\" style=\"set-variable\">") !=
+          std::string::npos);
+    CHECK(xml.find("<Constant number=\"5\" />") != std::string::npos);
+    CHECK(xml.find("<SetVariable id=\"2\" style=\"list-init\">") !=
+          std::string::npos);
+    CHECK(xml.find("<ListOp op=\"create\" style=\"list-create\">") !=
+          std::string::npos);
+    CHECK(xml.find("<Constant text=\"1,2\" />") != std::string::npos);
+}
+
+TEST_CASE("Compiler XML - emit to script parses and broadcasts") {
+    const auto xml = compileSource(R"(
+program test;
+on start() {
+    emit testEvent() to script;
+}
+)");
+
+    // `to script` is accepted and uses the same broadcast-msg shape as a
+    // plain emit: message name as a child constant, empty data list
+    CHECK(xml.find("<BroadcastMessage global=\"false\" local=\"true\" "
+                   "id=\"1\" style=\"broadcast-msg\">") !=
+          std::string::npos);
+    CHECK(xml.find("<Constant text=\"testEvent\" />") != std::string::npos);
+    CHECK(xml.find("<Constant number=\"0\" />") != std::string::npos);
+}
+
+TEST_CASE("Compiler XML - custom event params resolve to data positions") {
+    const auto xml = compileSource(R"(
+program test;
+var x = 0;
+var y = 0;
+
+on customEvent(a, b) {
+    x = a;
+    y = b;
+}
+)");
+
+    // Custom events deliver their parameters through Vizzy's built-in data
+    // list, indexed by 1 based position, referenced as local data
+    CHECK(xml.find("<Event event=\"ReceiveMessage\" id=\"0\" "
+                   "style=\"receive-msg\"") != std::string::npos);
+    CHECK(xml.find("<Constant canReplace=\"false\" text=\"customEvent\" />") !=
+          std::string::npos);
+    CHECK(xml.find("<ListOp op=\"get\" style=\"list-get\">") !=
+          std::string::npos);
+    CHECK(xml.find("variableName=\"data\"") != std::string::npos);
+    CHECK(xml.find("<Constant number=\"1\" />") != std::string::npos);
+    CHECK(xml.find("<Constant number=\"2\" />") != std::string::npos);
+    CHECK(xml.find("local=\"true\"") != std::string::npos);
 }

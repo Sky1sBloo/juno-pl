@@ -247,6 +247,25 @@ std::pair<std::string, std::string> eventName(const std::string &junoEvent) {
     return {"ReceiveMessage", "receive-msg"};
 }
 
+/**
+True when a top level declaration carries a value that Vizzy would not
+know about: globals always start at 0 and lists start empty, so the source
+values have to be assigned from inside a handler.
+ */
+bool hasTopLevelInits(const RootNode &root) {
+    for (const auto &node : root.body) {
+        if (const auto *varDecl = std::get_if<VarDeclaration>(&node)) {
+            if (varDecl->value)
+                return true;
+        } else if (const auto *listDecl =
+                       std::get_if<ListDeclaration>(&node)) {
+            if (!listDecl->values.empty())
+                return true;
+        }
+    }
+    return false;
+}
+
 } // namespace
 
 std::string Compiler::nextThreadPos() {
@@ -259,6 +278,7 @@ std::string Compiler::nextThreadPos() {
 
 std::string Compiler::compileAST(const RootNode &root) {
     mThreadX = -10;
+    mHandlerParams.clear();
 
     pugi::xml_document doc;
     auto prog = doc.append_child("Program");
@@ -291,11 +311,14 @@ std::string Compiler::compileAST(const RootNode &root) {
     // definition in its own <Instructions> thread instead of piling them
     // into one container.
     bool hasThread = false;
+    bool hasStart = false;
     for (const auto &node : root.body) {
         std::visit(
             Overload{
                 [&](const EventNode &event) {
                     hasThread = true;
+                    const bool isStart = event.identifier == "start";
+                    hasStart = hasStart || isStart;
                     auto threadEl = prog.append_child("Instructions");
                     auto [xmlEvent, xmlStyle] = eventName(event.identifier);
                     auto el = threadEl.append_child("Event");
@@ -315,7 +338,23 @@ std::string Compiler::compileAST(const RootNode &root) {
                     }
 
                     mScopePath.push_back(event.identifier);
+
+                    // Top level declarations keep the values they were
+                    // compiled with by assigning them at the very top of
+                    // start, before anything else the program does
+                    if (isStart)
+                        emitTopLevelInits(root, threadEl, nextId);
+
+                    // A custom event carries its parameters in Vizzy's
+                    // built-in data list, indexed by position; the internal
+                    // events bind names Vizzy provides itself
+                    const bool isMessage = xmlStyle == "receive-msg";
+                    for (std::size_t k = 0; k < event.params.size(); ++k)
+                        mHandlerParams[event.params[k]] =
+                            isMessage ? static_cast<int>(k) + 1 : -1;
+
                     emitBody(event.body, threadEl, nextId);
+                    mHandlerParams.clear();
                     mScopePath.pop_back();
                 },
                 [&](const FunctionNode &func) {
@@ -341,9 +380,21 @@ std::string Compiler::compileAST(const RootNode &root) {
             node);
     }
 
-    // A program without any handler still needs the container Vizzy reads
-    if (!hasThread)
+    if (!hasStart && hasTopLevelInits(root)) {
+        // Values to assign but no start handler to assign them from: the
+        // declarations get a FlightStart thread of their own
+        hasThread = true;
+        auto threadEl = prog.append_child("Instructions");
+        auto el = threadEl.append_child("Event");
+        el.append_attribute("event") = "FlightStart";
+        el.append_attribute("id") = nextId().c_str();
+        el.append_attribute("style") = "flight-start";
+        el.append_attribute("pos") = nextThreadPos().c_str();
+        emitTopLevelInits(root, threadEl, nextId);
+    } else if (!hasThread) {
+        // A program without any handler still needs the container Vizzy reads
         prog.append_child("Instructions");
+    }
 
     // ---- Expressions ----
     auto exprsEl = prog.append_child("Expressions");
@@ -400,6 +451,83 @@ void Compiler::emitBody(const Body &body, pugi::xml_node parent,
     }
 }
 
+bool Compiler::emitTopLevelInits(const RootNode &root,
+                                 pugi::xml_node parent,
+                                 std::function<std::string()> nextId) {
+    bool emitted = false;
+    for (const auto &node : root.body) {
+        std::visit(
+            Overload{
+                [&](const VarDeclaration &varDecl) {
+                    // Without a value the declaration already matches the
+                    // 0 every Vizzy global starts at
+                    if (!varDecl.value)
+                        return;
+                    emitVarDeclaration(varDecl, parent, nextId);
+                    emitted = true;
+                },
+                [&](const ListDeclaration &listDecl) {
+                    // An empty list already matches the empty <Items/>
+                    if (listDecl.values.empty())
+                        return;
+                    emitListDeclaration(listDecl, parent, nextId);
+                    emitted = true;
+                },
+                [](const auto &) {},
+            },
+            node);
+    }
+    return emitted;
+}
+
+void Compiler::emitVarDeclaration(const VarDeclaration &varDecl,
+                                  pugi::xml_node parent,
+                                  std::function<std::string()> nextId) {
+    auto el = parent.append_child("SetVariable");
+    el.append_attribute("id") = nextId().c_str();
+    el.append_attribute("style") = "set-variable";
+    auto ref = el.append_child("Variable");
+    ref.append_attribute("list") = "false";
+    ref.append_attribute("local") = "false";
+    ref.append_attribute("variableName") =
+        resolveVariableName(varDecl.identifier).c_str();
+    if (varDecl.value) {
+        emitExpression(*varDecl.value, el);
+    } else {
+        auto c = el.append_child("Constant");
+        c.append_attribute("number") = "0";
+    }
+}
+
+void Compiler::emitListDeclaration(const ListDeclaration &listDecl,
+                                   pugi::xml_node parent,
+                                   std::function<std::string()> nextId) {
+    auto el = parent.append_child("SetVariable");
+    el.append_attribute("id") = nextId().c_str();
+    el.append_attribute("style") = "list-init";
+    auto ref = el.append_child("Variable");
+    ref.append_attribute("list") = "true";
+    ref.append_attribute("local") = "false";
+    ref.append_attribute("variableName") =
+        resolveVariableName(listDecl.identifier).c_str();
+    auto listOp = el.append_child("ListOp");
+    listOp.append_attribute("op") = "create";
+    listOp.append_attribute("style") = "list-create";
+    std::string csv;
+    for (std::size_t k = 0; k < listDecl.values.size(); ++k) {
+        if (k)
+            csv += ",";
+        csv += std::visit(
+            Overload{
+                [](const Value &v) { return v.value; },
+                [](const auto &) { return std::string(""); },
+            },
+            listDecl.values[k]->value);
+    }
+    auto c = listOp.append_child("Constant");
+    c.append_attribute("text") = csv.c_str();
+}
+
 void Compiler::emitStatement(const Statements &statement, std::size_t index,
                              pugi::xml_node parent,
                              std::function<std::string()> nextId) {
@@ -412,20 +540,7 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                 mScopePath.pop_back();
             },
             [&](const VarDeclaration &varDecl) {
-                auto el = parent.append_child("SetVariable");
-                el.append_attribute("id") = nextId().c_str();
-                el.append_attribute("style") = "set-variable";
-                auto ref = el.append_child("Variable");
-                ref.append_attribute("list") = "false";
-                ref.append_attribute("local") = "false";
-                ref.append_attribute("variableName") =
-                    resolveVariableName(varDecl.identifier).c_str();
-                if (varDecl.value) {
-                    emitExpression(*varDecl.value, el);
-                } else {
-                    auto c = el.append_child("Constant");
-                    c.append_attribute("number") = "0";
-                }
+                emitVarDeclaration(varDecl, parent, nextId);
             },
             [&](const VarAssignment &assign) {
                 // Vizzy splits writing a variable in two: SetVariable
@@ -449,7 +564,7 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                     get.append_attribute("style") = "list-get";
                     appendVarRef(get, "true");
                     if (assign.indexExpr)
-                        emitExpression(*assign.indexExpr, get);
+                        emitListIndex(*assign.indexExpr, get);
                 };
 
                 auto appendValue = [&](pugi::xml_node into) {
@@ -494,7 +609,7 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                     el.append_attribute("id") = nextId().c_str();
                     el.append_attribute("style") = "list-set";
                     appendVarRef(el, "true");
-                    emitExpression(*assign.indexExpr, el);
+                    emitListIndex(*assign.indexExpr, el);
                     if (assign.op == VarAssignment::ASSIGN) {
                         appendValue(el);
                     } else {
@@ -552,30 +667,7 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                 }
             },
             [&](const ListDeclaration &listDecl) {
-                auto el = parent.append_child("SetVariable");
-                el.append_attribute("id") = nextId().c_str();
-                el.append_attribute("style") = "list-init";
-                auto ref = el.append_child("Variable");
-                ref.append_attribute("list") = "true";
-                ref.append_attribute("local") = "false";
-                ref.append_attribute("variableName") =
-                    resolveVariableName(listDecl.identifier).c_str();
-                auto listOp = el.append_child("ListOp");
-                listOp.append_attribute("op") = "create";
-                listOp.append_attribute("style") = "list-create";
-                std::string csv;
-                for (std::size_t k = 0; k < listDecl.values.size(); ++k) {
-                    if (k)
-                        csv += ",";
-                    csv += std::visit(
-                        Overload{
-                            [](const Value &v) { return v.value; },
-                            [](const auto &) { return std::string(""); },
-                        },
-                        listDecl.values[k]->value);
-                }
-                auto c = listOp.append_child("Constant");
-                c.append_attribute("text") = csv.c_str();
+                emitListDeclaration(listDecl, parent, nextId);
             },
             [&](const PerformInstruction &instr) {
                 if (instr.qualifier == "Game") {
@@ -695,13 +787,51 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                 el.append_attribute("style") = style;
                 auto mc = el.append_child("Constant");
                 mc.append_attribute("text") = emit.identifier.c_str();
-                // The block always carries a data input
+                // The block always carries a data input, and a custom event
+                // reads it as Vizzy's `data` list, so the parameters travel
+                // as one list: nothing to index with no parameters, the
+                // single value on its own, one CSV constant when they are
+                // all literals, and a join with "," separators otherwise
                 if (emit.params.empty()) {
                     auto dc = el.append_child("Constant");
                     dc.append_attribute("number") = "0";
-                }
-                for (const auto &p : emit.params) {
-                    emitExpression(*p, el);
+                } else if (emit.params.size() == 1) {
+                    auto data = el.append_child("ListOp");
+                    data.append_attribute("op") = "create";
+                    data.append_attribute("style") = "list-create";
+                    emitExpression(*emit.params[0], data);
+                } else {
+                    auto data = el.append_child("ListOp");
+                    data.append_attribute("op") = "create";
+                    data.append_attribute("style") = "list-create";
+                    bool allLiterals = true;
+                    for (const auto &p : emit.params) {
+                        const auto *v = std::get_if<Value>(&p->value);
+                        if (!v || v->kind != Value::Kind::Literal)
+                            allLiterals = false;
+                    }
+                    if (allLiterals) {
+                        std::string csv;
+                        for (const auto &p : emit.params) {
+                            if (!csv.empty())
+                                csv += ",";
+                            csv += std::get<Value>(p->value).value;
+                        }
+                        auto c = data.append_child("Constant");
+                        c.append_attribute("text") = csv.c_str();
+                    } else {
+                        auto join = data.append_child("StringOp");
+                        join.append_attribute("op") = "join";
+                        join.append_attribute("style") = "join";
+                        for (std::size_t k = 0; k < emit.params.size(); ++k) {
+                            if (k) {
+                                auto sep =
+                                    join.append_child("Constant");
+                                sep.append_attribute("text") = ",";
+                            }
+                            emitExpression(*emit.params[k], join);
+                        }
+                    }
                 }
             },
             [&](const RepeatLoop &repeat) {
@@ -852,13 +982,51 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                    [&](const Value &v) {
                        if (v.kind == Value::Kind::Literal) {
                            appendConstant(parent, v.value);
-                       } else {
+                           return;
+                       }
+
+                       const std::string resolved =
+                           resolveVariableName(v.value);
+                       auto param = mHandlerParams.find(v.value);
+                       // A parameter only wins while no local of the same
+                       // name shadows it inside the handler
+                       if (param != mHandlerParams.end() &&
+                           resolved == v.value) {
+                           if (param->second > 0) {
+                               // A custom event delivers its parameters
+                               // through Vizzy's built-in data list
+                               auto get = parent.append_child("ListOp");
+                               get.append_attribute("op") = "get";
+                               get.append_attribute("style") =
+                                   "list-get";
+                               auto ref = get.append_child("Variable");
+                               ref.append_attribute("list") = "false";
+                               ref.append_attribute("local") = "true";
+                               ref.append_attribute("variableName") =
+                                   "data";
+                               auto index =
+                                   get.append_child("Constant");
+                               index.append_attribute("number") =
+                                   std::to_string(param->second)
+                                       .c_str();
+                               return;
+                           }
+                           // Internal events bind their own names (part,
+                           // planet, ...) which Vizzy already provides
                            auto ref = parent.append_child("Variable");
                            ref.append_attribute("list") = "false";
-                           ref.append_attribute("local") = "false";
+                           ref.append_attribute("local") = "true";
                            ref.append_attribute("variableName") =
-                               resolveVariableName(v.value).c_str();
+                               v.value.c_str();
+                           return;
                        }
+
+                       auto ref = parent.append_child("Variable");
+                       ref.append_attribute("list") =
+                           mLists.count(resolved) ? "true" : "false";
+                       ref.append_attribute("local") = "false";
+                       ref.append_attribute("variableName") =
+                           resolved.c_str();
                    },
                    [&](const BinaryOp &bop) {
                        // Vizzy keeps comparisons and boolean operators in
@@ -954,7 +1122,7 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                         ref.append_attribute("variableName") =
                             resolveVariableName(li.identifier).c_str();
                        if (li.index)
-                           emitExpression(*li.index, el);
+                           emitListIndex(*li.index, el);
                    },
                    [&](const TernaryOp &t) {
                        auto el = parent.append_child("Conditional");
@@ -983,6 +1151,34 @@ void Compiler::emitCondition(const Expression &expr, pugi::xml_node parent) {
     // stores a comparison as <Comparison>, and/or as <BoolOp>, a bare true
     // as a constant, and so on.
     emitExpression(expr, parent);
+}
+
+void Compiler::emitListIndex(const Expression &index,
+                             pugi::xml_node parent) {
+    // Vizzy reads the first element as 1, Juno writes it as 0, so an
+    // integer index can simply be written as the next number
+    if (const auto *v = std::get_if<Value>(&index.value);
+        v && v->kind == Value::Kind::Literal) {
+        try {
+            std::size_t used = 0;
+            const long long n = std::stoll(v->value, &used);
+            if (used == v->value.size()) {
+                auto c = parent.append_child("Constant");
+                c.append_attribute("number") =
+                    std::to_string(n + 1).c_str();
+                return;
+            }
+        } catch (...) {
+            // not an integer: use the general form below
+        }
+    }
+
+    auto bin = parent.append_child("BinaryOp");
+    bin.append_attribute("op") = "+";
+    bin.append_attribute("style") = "op-add";
+    emitExpression(index, bin);
+    auto c = bin.append_child("Constant");
+    c.append_attribute("number") = "1";
 }
 
 std::map<std::string, std::string>
