@@ -16,60 +16,86 @@ namespace JunoPL {
 std::vector<Diagnostic> SemanticAnalyzer::analyze(const RootNode &root) {
     pushScope(); // global scope
 
+    // Pass 1: hoist / declare every top-level symbol so definitions can be
+    // referenced from anywhere, regardless of source order.
     for (const auto &node : root.body) {
-        std::visit(Overload{
-                       [](const ImportNode &) {
-                           // resolved by the file reader
-                       },
-                       [this](const EventNode &event) {
-                           pushScope();
-                           for (const auto &param : event.params) {
-                               declare(Symbol{param, Symbol::Kind::VALUE, 0,
-                                              event.loc});
-                           }
-                           visitBody(event.body);
-                           popScope();
-                       },
-                       [this](const FunctionNode &func) {
-                           declare(Symbol{func.identifier, Symbol::Kind::VALUE,
-                                          func.params.size(), func.loc});
-                           pushScope();
-                           for (const auto &param : func.params) {
-                               declare(Symbol{param, Symbol::Kind::VALUE, 0,
-                                              func.loc});
-                           }
-                           visitBody(func.body);
-                           popScope();
-                       },
-                       [this](const VarDeclaration &varDecl) {
-                           if (varDecl.value) {
-                               visitExpression(*varDecl.value);
-                           }
-                           declare(Symbol{varDecl.identifier,
-                                          Symbol::Kind::VALUE, 0, varDecl.loc});
-                       },
-                       [this](const CustomExpression &expr) {
-                           declare(Symbol{expr.identifier, Symbol::Kind::VALUE,
-                                          expr.params.size(), expr.loc});
-                           pushScope();
-                           for (const auto &param : expr.params) {
-                               declare(Symbol{param, Symbol::Kind::VALUE, 0,
-                                              expr.loc});
-                           }
-                           visitExpression(*expr.expression);
-                           popScope();
-                       },
-                       [this](const ListDeclaration &listDecl) {
-                           for (const auto &value : listDecl.values) {
-                               if (value) {
-                                   visitExpression(*value);
-                               }
-                           }
-                           declare(Symbol{listDecl.identifier,
-                                          Symbol::Kind::LIST, 0, listDecl.loc});
-                       },
-                   },
-                   node);
+        std::visit(
+            Overload{
+                [](const ImportNode &) {
+                    // resolved by the file reader
+                },
+                [](const EventNode &) {
+                    // event names are not referenced by other Juno code
+                },
+                [this](const FunctionNode &func) {
+                    declare(Symbol{func.identifier, Symbol::Kind::VALUE,
+                                   func.params.size(), func.loc});
+                },
+                [this](const VarDeclaration &varDecl) {
+                    declare(Symbol{varDecl.identifier, Symbol::Kind::VALUE, 0,
+                                   varDecl.loc});
+                },
+                [this](const CustomExpression &expr) {
+                    declare(Symbol{expr.identifier, Symbol::Kind::VALUE,
+                                   expr.params.size(), expr.loc});
+                },
+                [this](const ListDeclaration &listDecl) {
+                    declare(Symbol{listDecl.identifier, Symbol::Kind::LIST, 0,
+                                   listDecl.loc});
+                },
+            },
+            node);
+    }
+
+    // Pass 2: visit bodies and initializer expressions — all symbols are now
+    // in scope, so forward references resolve.
+    for (const auto &node : root.body) {
+        std::visit(
+            Overload{
+                [](const ImportNode &) {
+                    // resolved by the file reader
+                },
+                [this](const EventNode &event) {
+                    pushScope();
+                    for (const auto &param : event.params) {
+                        declare(Symbol{param, Symbol::Kind::VALUE, 0,
+                                       event.loc});
+                    }
+                    visitBody(event.body);
+                    popScope();
+                },
+                [this](const FunctionNode &func) {
+                    pushScope();
+                    for (const auto &param : func.params) {
+                        declare(Symbol{param, Symbol::Kind::VALUE, 0,
+                                       func.loc});
+                    }
+                    visitBody(func.body);
+                    popScope();
+                },
+                [this](const VarDeclaration &varDecl) {
+                    if (varDecl.value) {
+                        visitExpression(*varDecl.value);
+                    }
+                },
+                [this](const CustomExpression &expr) {
+                    pushScope();
+                    for (const auto &param : expr.params) {
+                        declare(Symbol{param, Symbol::Kind::VALUE, 0,
+                                       expr.loc});
+                    }
+                    visitExpression(*expr.expression);
+                    popScope();
+                },
+                [this](const ListDeclaration &listDecl) {
+                    for (const auto &value : listDecl.values) {
+                        if (value) {
+                            visitExpression(*value);
+                        }
+                    }
+                },
+            },
+            node);
     }
 
     popScope(); // global scope
