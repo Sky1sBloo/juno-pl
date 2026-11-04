@@ -62,7 +62,7 @@ var Test1 = 0;
 var Test2 = 0;
 
 on start() {
-    perform Game.display("Hello world", 7);
+    perform Game.display("Hello world");
     Test1 = 1;
 })");
 

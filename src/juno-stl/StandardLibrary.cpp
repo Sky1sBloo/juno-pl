@@ -229,7 +229,7 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::GAME, Operations::INSTRUCTION, "beep", {{3, 3}});
         add(Qualifiers::GAME, Operations::INSTRUCTION, "flightLog",
             {{1, 2}});
-        add(Qualifiers::GAME, Operations::INSTRUCTION, "display", {{1, 2}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "display", {{1, 1}});
         add(Qualifiers::GAME, Operations::EXPRESSION, "frequencyOf", {{2, 2}});
         add(Qualifiers::GAME, Operations::EXPRESSION, "speak", {{3, 3}});
         add(Qualifiers::GAME, Operations::EXPRESSION, "sineBeep", {{3, 3}});
