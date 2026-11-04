@@ -169,7 +169,7 @@ while (x > 0) {
 /**
 This internally converts to a while loop with a custom local variable to allow multiple types of iterator i.
 */
-for (i = 0; i < 10; i += 1) {
+for i from 0 to 10 by 1 {
     ...
 }
 ```
@@ -267,7 +267,8 @@ Emits `thrust = 0` and `engines = [1,2,3]` at the top of `start`, then
 Qualified calls use the form `<Qualifier>.<name>(<args>)`. Qualifiers:
 `Math`, `String`/`Strings`, `Input`, `Lists`, `Vector`, `Game`, `Craft`,
 `Part`, `Camera`, `Nav`, `Altitude`, `Velocity`, `Orbit`, `Planet`,
-`Atmosphere`, `Fuel`, `Time`, `Performance`.
+`Atmosphere`, `Fuel`, `Time`, `Performance`, `Terrain`, `ListOp`, `Raycast`,
+`Target`, `Misc`.
 
 See `docs/stdlib-reference.md` for the complete function catalog with
 signatures and descriptions.

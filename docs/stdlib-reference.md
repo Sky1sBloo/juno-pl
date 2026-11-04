@@ -141,7 +141,7 @@ instruction, `Input.throttle()` as an expression).
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `Game.setVariable` | `(name, value)` | Set a Vizzy variable (input qualifier context). |
+| `Input.setVariable` | `(name, value)` | Set a Vizzy variable (input qualifier context). |
 
 ## Camera controls — `Camera` (instructions)
 
@@ -172,6 +172,14 @@ instruction, `Input.throttle()` as an expression).
 | `Lists.length` | `(list)` | Number of elements. |
 | `Lists.idxOf` | `(list, value)` | Index of a value. |
 | `Lists.index` | `(list, value)` | Index of a value. |
+
+### `ListOp` (expressions)
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `ListOp.create` | `(size)` | Create a list. |
+| `ListOp.get` | `(list, index)` | Get list element. |
+| `ListOp.index` | `(list, value)` | Index of a value. |
+| `ListOp.length` | `(list)` | Number of elements. |
 
 ## Craft information — expressions
 
@@ -246,6 +254,7 @@ instruction, `Input.throttle()` as an expression).
 | `Nav.yawAxis` | `()` | Yaw axis vector. |
 | `Nav.craftRight` | `()` | Craft right vector. |
 | `Nav.craftUp` | `()` | Craft up vector. |
+| `Nav.craftDirection` | `()` | Craft direction vector. |
 | `Nav.toLatLongAGL` | `(pos)` | Position to lat/long AGL. |
 | `Nav.toLatLongASL` | `(pos)` | Position to lat/long ASL. |
 | `Nav.toPosition` | `(lat, long)` | Lat/long to position. |
@@ -282,6 +291,9 @@ instruction, `Input.throttle()` as an expression).
 | `Input.translateUp` | `()` | Up translation input. |
 | `Input.translationMode` | `()` | Current translation mode. |
 | `Input.activationGroup` | `(group)` | Activation group state. |
+| `Input.slider2` | `()` | Slider 2 value. |
+| `Input.slider3` | `()` | Slider 3 value. |
+| `Input.slider4` | `()` | Slider 4 value. |
 
 ### `Craft` (expressions)
 | Function | Signature | Description |
@@ -306,9 +318,27 @@ instruction, `Input.throttle()` as an expression).
 | `Craft.planet` | `(id)` | Planet of craft/part. |
 | `Craft.boundingBoxMin` | `(id)` | Bounding box minimum. |
 | `Craft.boundingBoxMax` | `(id)` | Bounding box maximum. |
+| `Craft.boundMin` | `(id)` | Bounding box minimum. |
+| `Craft.boundMax` | `(id)` | Bounding box maximum. |
 | `Craft.orbitAp` | `(id)` | Apoapsis of craft/part. |
 | `Craft.orbitPe` | `(id)` | Periapsis of craft/part. |
 | `Craft.orbitPeriod` | `(id)` | Orbital period of craft/part. |
+| `Craft.timeToAp` | `(id)` | Time to apoapsis of craft/part. |
+| `Craft.timeToPe` | `(id)` | Time to periapsis of craft/part. |
+| `Craft.apoapsisTime` | `(id)` | Apoapsis time of craft/part. |
+| `Craft.periapsisTime` | `(id)` | Periapsis time of craft/part. |
+| `Craft.eccentricity` | `(id)` | Orbital eccentricity of craft/part. |
+| `Craft.inclination` | `(id)` | Orbital inclination of craft/part. |
+| `Craft.meanAnomaly` | `(id)` | Mean anomaly of craft/part. |
+| `Craft.meanMotion` | `(id)` | Mean motion of craft/part. |
+| `Craft.periapsisArgument` | `(id)` | Argument of periapsis of craft/part. |
+| `Craft.rightAscension` | `(id)` | Right ascension of craft/part. |
+| `Craft.semiMajorAxis` | `(id)` | Semi-major axis of craft/part. |
+| `Craft.semiMinorAxis` | `(id)` | Semi-minor axis of craft/part. |
+| `Craft.trueAnomaly` | `(id)` | True anomaly of craft/part. |
+| `Craft.boundingBoxMin` | `(id)` | Bounding box minimum of craft/part. |
+| `Craft.boundingBoxMax` | `(id)` | Bounding box maximum of craft/part. |
+| `Craft.nameToID` | `(name)` | ID of a named craft. |
 
 ### `Camera` (expressions)
 | Function | Signature | Description |
@@ -316,6 +346,14 @@ instruction, `Input.throttle()` as an expression).
 | `Camera.position` | `()` | Camera position. |
 | `Camera.pointing` | `()` | Camera pointing direction. |
 | `Camera.upDirection` | `()` | Camera up direction. |
+| `Camera.mode` | `()` | Camera mode. |
+| `Camera.modeIndex` | `()` | Camera mode index. |
+| `Camera.rotationX` | `()` | Camera rotation X. |
+| `Camera.rotationY` | `()` | Camera rotation Y. |
+| `Camera.tilt` | `()` | Camera tilt. |
+| `Camera.zoom` | `()` | Camera zoom. |
+| `Camera.soundFrequency` | `(note, octave)` | Sound frequency for a musical note and octave. |
+| `Camera.targetOffset` | `()` | Camera target offset. |
 
 ### `Time` (expressions)
 | Function | Signature | Description |
@@ -325,6 +363,19 @@ instruction, `Input.throttle()` as an expression).
 | `Time.total` | `()` | Total mission time. |
 | `Time.warpAmount` | `()` | Current warp factor. |
 | `Time.realTime` | `()` | Real-world time. |
+
+### `Misc` (expressions)
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `Misc.grounded` | `()` | Whether craft is grounded. |
+| `Misc.stage` | `()` | Current stage. |
+| `Misc.numStages` | `()` | Total stage count. |
+| `Misc.solarRadiation` | `()` | Solar radiation level. |
+| `Misc.cameraPosition` | `()` | Camera position. |
+| `Misc.cameraPointing` | `()` | Camera pointing direction. |
+| `Misc.cameraUp` | `()` | Camera up direction. |
+| `Misc.pidPitch` | `()` | Pitch PID values. |
+| `Misc.pidRoll` | `()` | Roll PID values. |
 
 ### `Planet` (expressions)
 | Function | Signature | Description |
@@ -336,7 +387,6 @@ instruction, `Input.throttle()` as an expression).
 | `Planet.atmosphereHeight` | `(id)` | Atmosphere height. |
 | `Planet.atmosphereScaleHeight` | `(id)` | Atmosphere scale height. |
 | `Planet.atmosphereElements` | `(id)` | Atmospheric elements. |
-| `Planet.atmosphereComposition` | `(id)` | Atmospheric composition. |
 | `Planet.soiRadius` | `(id)` | Sphere of influence radius. |
 | `Planet.solarPosition` | `(id)` | Solar position relative to planet. |
 | `Planet.childPlanets` | `(id)` | Child planets/moons. |
@@ -345,11 +395,19 @@ instruction, `Input.throttle()` as an expression).
 | `Planet.parent` | `(id)` | Parent body. |
 | `Planet.structures` | `(id)` | Structures on planet. |
 | `Planet.hydrosphereElement` | `(id)` | Hydrosphere element. |
-| `Planet.hydrosphereComposition` | `(id)` | Hydrosphere composition. |
 | `Planet.hydrosphereDensity` | `(id)` | Hydrosphere density. |
+| `Planet.day` | `(id)` | Day length. |
 | `Planet.dayLength` | `(id)` | Day length. |
+| `Planet.year` | `(id)` | Year length. |
 | `Planet.yearLength` | `(id)` | Year length. |
 | `Planet.velocity` | `(id)` | Planet velocity. |
+| `Planet.apoapsis` | `(id)` | Apoapsis around parent. |
+| `Planet.periapsis` | `(id)` | Periapsis around parent. |
+| `Planet.period` | `(id)` | Orbital period around parent. |
+| `Planet.eccentricity` | `(id)` | Orbital eccentricity. |
+| `Planet.inclination` | `(id)` | Orbital inclination. |
+| `Planet.meananomaly` | `(id)` | Mean anomaly. |
+| `Planet.meanmotion` | `(id)` | Mean motion. |
 | `Planet.orbitAp` | `(id)` | Apoapsis around parent. |
 | `Planet.orbitPe` | `(id)` | Periapsis around parent. |
 | `Planet.orbitPeriod` | `(id)` | Orbital period around parent. |
@@ -359,16 +417,39 @@ instruction, `Input.throttle()` as an expression).
 | `Planet.orbitEccentricity` | `(id)` | Orbital eccentricity. |
 | `Planet.orbitMeanAnomaly` | `(id)` | Mean anomaly. |
 | `Planet.orbitMeanMotion` | `(id)` | Mean motion. |
-| `Planet.orbitPeriapsisArgument` | `(id)` | Argument of periapsis. |
+| `Planet.periapsisargument` | `(id)` | Argument of periapsis. |
 | `Planet.orbitRightAscension` | `(id)` | Right ascension of ascending node. |
 | `Planet.orbitTrueAnomaly` | `(id)` | True anomaly. |
 | `Planet.orbitSemiMajorAxis` | `(id)` | Semi-major axis. |
 | `Planet.orbitSemiMinorAxis` | `(id)` | Semi-minor axis. |
+| `Planet.soiradius` | `(id)` | Sphere of influence radius. |
+| `Planet.hasTerrain` | `(id)` | Whether planet has terrain. |
+
+### `Raycast` (expressions)
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `Raycast.raycast` | `(origin, dir)` | Raycast from origin in direction. |
+
+### `Target` (expressions)
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `Target.name` | `()` | Target name. |
+| `Target.planet` | `()` | Target planet. |
+
+### `Terrain` (expressions)
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `Terrain.height` | `(id)` | Terrain height at a position. |
+| `Terrain.color` | `(id)` | Terrain color at a position. |
 
 ### `Part` (expressions)
 | Function | Signature | Description |
 |----------|-----------|-------------|
 | `Part.idOf` | `(name)` | ID of a named part. |
+| `Part.idToName` | `(id)` | Name of a part by ID. |
+| `Part.nameToID` | `(name)` | ID of a named part. |
+| `Part.thisID` | `(id)` | ID of the part running the program. |
+| `Part.fuelTransfer` | `(id)` | Fuel transfer of a part. |
 | `Part.activated` | `(id)` | Whether part is activated. |
 | `Part.name` | `(id)` | Part name. |
 | `Part.mass` | `(id)` | Part mass. |
