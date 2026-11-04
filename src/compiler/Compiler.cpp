@@ -737,6 +737,61 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                         auto el = parent.append_child("ActivateStage");
                         el.append_attribute("id") = nextId().c_str();
                         el.append_attribute("style") = "activate-stage";
+                    } else if (instr.identifier == "lockPrograde") {
+                        auto el = parent.append_child("LockNavSphere");
+                        el.append_attribute("indicatorType") = "Prograde";
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "lock-nav-sphere";
+                    } else if (instr.identifier == "lockRetrograde") {
+                        auto el = parent.append_child("LockNavSphere");
+                        el.append_attribute("indicatorType") = "Retrograde";
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "lock-nav-sphere";
+                    } else if (instr.identifier == "lockNone") {
+                        auto el = parent.append_child("LockNavSphere");
+                        el.append_attribute("indicatorType") = "None";
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "lock-nav-sphere";
+                    } else if (instr.identifier == "lockTarget") {
+                        auto el = parent.append_child("LockNavSphere");
+                        el.append_attribute("indicatorType") = "Target";
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "lock-nav-sphere";
+                    } else if (instr.identifier == "lockBurnNode") {
+                        auto el = parent.append_child("LockNavSphere");
+                        el.append_attribute("indicatorType") = "BurnNode";
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "lock-nav-sphere";
+                    } else if (instr.identifier == "lockCurrent") {
+                        auto el = parent.append_child("LockNavSphere");
+                        el.append_attribute("indicatorType") = "Current";
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "lock-nav-sphere";
+                    } else if (instr.identifier == "lockVector") {
+                        auto el = parent.append_child("LockNavSphere");
+                        el.append_attribute("indicatorType") = "Vector";
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") =
+                            "lock-nav-sphere-vector";
+                        for (const auto &p : instr.params) {
+                            emitExpression(*p, el);
+                        }
+                    } else if (instr.identifier == "pitchTo") {
+                        auto el = parent.append_child("SetTargetHeading");
+                        el.append_attribute("property") = "pitch";
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "set-heading";
+                        for (const auto &p : instr.params) {
+                            emitExpression(*p, el);
+                        }
+                    } else if (instr.identifier == "headingTo") {
+                        auto el = parent.append_child("SetTargetHeading");
+                        el.append_attribute("property") = "heading";
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "set-heading";
+                        for (const auto &p : instr.params) {
+                            emitExpression(*p, el);
+                        }
                     } else {
                         auto el = parent.append_child("SetCraftProperty");
                         el.append_attribute("property") =
