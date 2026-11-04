@@ -33,7 +33,7 @@ TEST_CASE("Semantic - valid standard library calls") {
     CHECK(
         analyze("program test; on start() { perform Game.delay(1); }").empty());
     CHECK(analyze("program test; on start() { Game.delay(1); }").empty());
-    CHECK(analyze("program test; on start() { Game.log(\"hi\", true); }")
+    CHECK(analyze("program test; on start() { Game.flightLog(\"hi\", true); }")
               .empty());
     CHECK(
         analyze("program test; on start() { Craft.lockPrograde(); }").empty());

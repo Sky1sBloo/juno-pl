@@ -705,6 +705,13 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                         for (const auto &p : instr.params) {
                             emitExpression(*p, el);
                         }
+                    } else if (instr.identifier == "flightLog") {
+                        auto el = parent.append_child("LogFlight");
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "flightlog";
+                        for (const auto &p : instr.params) {
+                            emitExpression(*p, el);
+                        }
                     } else {
                         auto el = parent.append_child("SetCraftProperty");
                         el.append_attribute("property") =

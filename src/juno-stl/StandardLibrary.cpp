@@ -118,7 +118,6 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         // Program Flow - instructions
         add(Qualifiers::GAME, Operations::INSTRUCTION, "delay", {{1, 1}});
         add(Qualifiers::GAME, Operations::INSTRUCTION, "delayUntil", {{1, 1}});
-        add(Qualifiers::GAME, Operations::INSTRUCTION, "log", {{2, 2}});
 
         // Operators - math expressions
         add(Qualifiers::MATH, Operations::EXPRESSION, "random", {{2, 2}});
@@ -228,6 +227,8 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::GAME, Operations::INSTRUCTION, "switchToCraft",
             {{1, 1}});
         add(Qualifiers::GAME, Operations::INSTRUCTION, "beep", {{3, 3}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "flightLog",
+            {{1, 2}});
         add(Qualifiers::GAME, Operations::INSTRUCTION, "display", {{1, 2}});
         add(Qualifiers::GAME, Operations::EXPRESSION, "frequencyOf", {{2, 2}});
         add(Qualifiers::GAME, Operations::EXPRESSION, "speak", {{3, 3}});
