@@ -132,6 +132,243 @@ bool isComparisonOp(BinaryOp::Operation o) {
 }
 
 /**
+Standard library expression calls (e.g. Orbit.ap()) compile to Vizzy
+CraftProperty blocks, not CallCustomExpression. This maps qualifier+identifier
+to the Vizzy property name and style block.
+*/
+struct StdExpr {
+    const char *property;
+    const char *style;
+};
+
+const StdExpr *findStdExpr(const std::string &qualifier,
+                           const char *identifier) {
+    static const std::map<std::pair<std::string, std::string>, StdExpr>
+        kStdExprs = {
+            // Orbit expressions
+            {{"Orbit", "ap"}, {"Orbit.Apoapsis", "prop-orbit"}},
+            {{"Orbit", "pe"}, {"Orbit.Periapsis", "prop-orbit"}},
+            {{"Orbit", "timeToAp"}, {"Orbit.TimeToApoapsis", "prop-orbit"}},
+            {{"Orbit", "timeToPe"}, {"Orbit.TimeToPeriapsis", "prop-orbit"}},
+            {{"Orbit", "eccentricity"}, {"Orbit.Eccentricity", "prop-orbit"}},
+            {{"Orbit", "inclination"}, {"Orbit.Inclination", "prop-orbit"}},
+            {{"Orbit", "period"}, {"Orbit.Period", "prop-orbit"}},
+            {{"Orbit", "planetName"}, {"Orbit.Planet", "prop-name"}},
+            // Altitude expressions
+            {{"Altitude", "getAGL"}, {"Altitude.AGL", "prop-altitude"}},
+            {{"Altitude", "getASL"}, {"Altitude.ASL", "prop-altitude"}},
+            {{"Altitude", "getASF"}, {"Altitude.ASF", "prop-altitude"}},
+            // Atmosphere expressions
+            {{"Atmosphere", "density"}, {"Atmosphere.AirDensity", "prop-atmosphere"}},
+            {{"Atmosphere", "pressure"}, {"Atmosphere.AirPressure", "prop-atmosphere"}},
+            {{"Atmosphere", "speedOfSound"}, {"Atmosphere.SpeedOfSound", "prop-atmosphere"}},
+            {{"Atmosphere", "temperature"}, {"Atmosphere.Temperature", "prop-atmosphere"}},
+            {{"Atmosphere", "elements"}, {"Atmosphere.Elements", "prop-atmosphere"}},
+            {{"Atmosphere", "composition"}, {"Atmosphere.Composition", "prop-atmosphere"}},
+            // Performance expressions
+            {{"Performance", "engineThrust"}, {"Performance.CurrentEngineThrust", "prop-performance"}},
+            {{"Performance", "mass"}, {"Performance.Mass", "prop-performance"}},
+            {{"Performance", "dryMass"}, {"Performance.DryMass", "prop-performance"}},
+            {{"Performance", "fuelMass"}, {"Performance.FuelMass", "prop-performance"}},
+            {{"Performance", "maxEngineThrust"}, {"Performance.MaxActiveEngineThrust", "prop-performance"}},
+            {{"Performance", "twr"}, {"Performance.TWR", "prop-performance"}},
+            {{"Performance", "currentISP"}, {"Performance.CurrentIsp", "prop-performance"}},
+            {{"Performance", "stageDeltaV"}, {"Performance.StageDeltaV", "prop-performance"}},
+            {{"Performance", "stageBurnTime"}, {"Performance.BurnTime", "prop-performance"}},
+            // Fuel expressions
+            {{"Fuel", "battery"}, {"Fuel.Battery", "prop-fuel"}},
+            {{"Fuel", "stageFuel"}, {"Fuel.FuelInStage", "prop-fuel"}},
+            {{"Fuel", "monoProp"}, {"Fuel.Mono", "prop-fuel"}},
+            {{"Fuel", "totalFuel"}, {"Fuel.AllStages", "prop-fuel"}},
+            // Nav expressions
+            {{"Nav", "nav"}, {"Nav.Position", "prop-nav"}},
+            {{"Nav", "target"}, {"Target.Position", "prop-nav"}},
+            {{"Nav", "heading"}, {"Nav.CraftHeading", "prop-nav"}},
+            {{"Nav", "pitch"}, {"Nav.Pitch", "prop-nav"}},
+            {{"Nav", "autopilotHeading"}, {"Nav.AutopilotHeading", "prop-nav"}},
+            {{"Nav", "autopilotPitch"}, {"Nav.AutopilotPitch", "prop-nav"}},
+            {{"Nav", "bankAngle"}, {"Nav.BankAngle", "prop-nav"}},
+            {{"Nav", "angleOfAttack"}, {"Nav.AngleOfAttack", "prop-nav"}},
+            {{"Nav", "sideSlip"}, {"Nav.SideSlip", "prop-nav"}},
+            {{"Nav", "northVector"}, {"Nav.North", "prop-nav"}},
+            {{"Nav", "eastVector"}, {"Nav.East", "prop-nav"}},
+            {{"Nav", "rollAxis"}, {"Nav.CraftDirection", "prop-nav"}},
+            {{"Nav", "pitchAxis"}, {"Nav.CraftRight", "prop-nav"}},
+            {{"Nav", "yawAxis"}, {"Nav.CraftUp", "prop-nav"}},
+            {{"Nav", "craftRight"}, {"Nav.CraftRight", "prop-nav"}},
+            {{"Nav", "craftUp"}, {"Nav.CraftUp", "prop-nav"}},
+            // Velocity expressions
+            {{"Velocity", "orbit"}, {"Vel.OrbitVelocity", "prop-velocity"}},
+            {{"Velocity", "surface"}, {"Vel.SurfaceVelocity", "prop-velocity"}},
+            {{"Velocity", "target"}, {"Target.Velocity", "prop-velocity"}},
+            {{"Velocity", "gravity"}, {"Vel.Gravity", "prop-velocity"}},
+            {{"Velocity", "drag"}, {"Vel.Drag", "prop-velocity"}},
+            {{"Velocity", "acceleration"}, {"Vel.Acceleration", "prop-velocity"}},
+            {{"Velocity", "angular"}, {"Vel.AngularVelocity", "prop-velocity"}},
+            {{"Velocity", "lateral"}, {"Vel.LateralSurfaceVelocity", "prop-velocity"}},
+            {{"Velocity", "vertical"}, {"Vel.VerticalSurfaceVelocity", "prop-velocity"}},
+            {{"Velocity", "mach"}, {"Vel.MachNumber", "prop-velocity"}},
+            // Input expressions
+            {{"Input", "throttle"}, {"Input.Throttle", "prop-input"}},
+            {{"Input", "pitch"}, {"Input.Pitch", "prop-input"}},
+            {{"Input", "roll"}, {"Input.Roll", "prop-input"}},
+            {{"Input", "yaw"}, {"Input.Yaw", "prop-input"}},
+            {{"Input", "brake"}, {"Input.Brake", "prop-input"}},
+            {{"Input", "slider"}, {"Input.Slider1", "prop-input"}},
+            {{"Input", "translateForward"}, {"Input.TranslateForward", "prop-input"}},
+            {{"Input", "translateRight"}, {"Input.TranslateRight", "prop-input"}},
+            {{"Input", "translateUp"}, {"Input.TranslateUp", "prop-input"}},
+            {{"Input", "translationMode"}, {"Input.TranslationMode", "prop-input"}},
+            {{"Input", "activationGroup"}, {"Input.ActivationGroup", "prop-input"}},
+            // Camera expressions
+            {{"Camera", "position"}, {"Camera.Position", "prop-camera"}},
+            {{"Camera", "pointing"}, {"Camera.Pointing", "prop-camera"}},
+            {{"Camera", "upDirection"}, {"Camera.UpDirection", "prop-camera"}},
+            // Time expressions
+            {{"Time", "sinceLaunch"}, {"Time.SinceLaunch", "prop-time"}},
+            {{"Time", "delta"}, {"Time.Delta", "prop-time"}},
+            {{"Time", "total"}, {"Time.Total", "prop-time"}},
+            {{"Time", "warpAmount"}, {"Time.WarpAmount", "prop-time"}},
+            {{"Time", "realTime"}, {"Time.RealTime", "prop-time"}},
+            // Craft expressions
+            {{"Craft", "ap"}, {"Craft.Apoapsis", "craft"}},
+            {{"Craft", "pe"}, {"Craft.Periapsis", "craft"}},
+            {{"Craft", "timeToAp"}, {"Craft.ApoapsisTime", "craft"}},
+            {{"Craft", "timeToPe"}, {"Craft.PeriapsisTime", "craft"}},
+            {{"Craft", "eccentricity"}, {"Craft.Eccentricity", "craft"}},
+            {{"Craft", "inclination"}, {"Craft.Inclination", "craft"}},
+            {{"Craft", "period"}, {"Craft.Period", "craft"}},
+            {{"Craft", "planetName"}, {"Craft.Planet", "craft"}},
+            {{"Craft", "mass"}, {"Craft.Mass", "craft"}},
+            {{"Craft", "altitude"}, {"Craft.Altitude", "craft"}},
+            {{"Craft", "destroyed"}, {"Craft.Destroyed", "craft"}},
+            {{"Craft", "grounded"}, {"Craft.Grounded", "craft"}},
+            {{"Craft", "partCount"}, {"Craft.PartCount", "craft"}},
+            {{"Craft", "position"}, {"Craft.Position", "craft"}},
+            {{"Craft", "velocity"}, {"Craft.Velocity", "craft"}},
+            {{"Craft", "isPlayer"}, {"Craft.IsPlayer", "craft"}},
+            {{"Craft", "boundMin"}, {"Craft.BoundMin", "craft"}},
+            {{"Craft", "boundMax"}, {"Craft.BoundMax", "craft"}},
+            {{"Craft", "meanAnomaly"}, {"Craft.MeanAnomaly", "craft"}},
+            {{"Craft", "meanMotion"}, {"Craft.MeanMotion", "craft"}},
+            {{"Craft", "periapsisArgument"}, {"Craft.PeriapsisArgument", "craft"}},
+            {{"Craft", "rightAscension"}, {"Craft.RightAscension", "craft"}},
+            {{"Craft", "trueAnomaly"}, {"Craft.TrueAnomaly", "craft"}},
+            {{"Craft", "semiMajorAxis"}, {"Craft.SemiMajorAxis", "craft"}},
+            {{"Craft", "semiMinorAxis"}, {"Craft.SemiMinorAxis", "craft"}},
+            {{"Craft", "name"}, {"Name.Craft", "prop-name"}},
+            {{"Craft", "idToName"}, {"Craft.IDToName", "craft-id"}},
+            // Part expressions
+            {{"Part", "activated"}, {"Part.Activated", "part"}},
+            {{"Part", "dryMass"}, {"Part.DryMass", "part"}},
+            {{"Part", "drag"}, {"Part.Drag", "part"}},
+            {{"Part", "fuelTransfer"}, {"Part.FuelTransfer", "set-part"}},
+            {{"Part", "mass"}, {"Part.Mass", "part"}},
+            {{"Part", "name"}, {"Part.Name", "set-part"}},
+            {{"Part", "partType"}, {"Part.PartType", "part"}},
+            {{"Part", "position"}, {"Part.Position", "part"}},
+            {{"Part", "temperature"}, {"Part.Temperature", "part"}},
+            {{"Part", "thisID"}, {"Part.ThisID", "part"}},
+            {{"Part", "underWater"}, {"Part.UnderWater", "part"}},
+            {{"Part", "wetMass"}, {"Part.WetMass", "part"}},
+            {{"Part", "idToName"}, {"Part.IDToName", "part-id"}},
+            {{"Part", "localToPci"}, {"Part.LocalToPci", "part-transform"}},
+            {{"Part", "pciToLocal"}, {"Part.PciToLocal", "part-transform"}},
+            {{"Part", "minID"}, {"Part.MinID", "part"}},
+            {{"Part", "maxID"}, {"Part.MaxID", "part"}},
+            {{"Part", "nameToID"}, {"Part.NameToID", "part-id"}},
+            // Terrain expressions
+            {{"Terrain", "height"}, {"Terrain.Height", "terrain-query"}},
+            {{"Terrain", "color"}, {"Terrain.Color", "terrain-query"}},
+        };
+    auto it = kStdExprs.find({qualifier, identifier});
+    if (it == kStdExprs.end()) {
+        return nullptr;
+    }
+    return &it->second;
+}
+
+/**
+Planet expressions (e.g. Planet.radius("Droo")) compile to Vizzy
+<Planet op="..." style="..."> blocks.
+*/
+struct PlanetOp {
+    const char *op;
+    const char *style;
+};
+
+const PlanetOp *findPlanetOp(const std::string &identifier) {
+    static const std::map<std::string, PlanetOp> kPlanetOps = {
+        {"toLatLongAgl", {"toLatLongAgl", "planet-to-lat-long-agl"}},
+        {"toLatLongAsl", {"toLatLongAsl", "planet-to-lat-long-asl"}},
+        {"toPosition", {"toPosition", "planet-to-position"}},
+        {"toPositionOverSea", {"toPositionOverSea", "planet-to-position-asl"}},
+        {"radius", {"radius", "planet"}},
+        {"mass", {"mass", "planet"}},
+        {"hasTerrain", {"hasTerrain", "planet"}},
+        {"atmosphereDensity", {"atmosphereDensity", "planet"}},
+        {"atmosphereHeight", {"atmosphereHeight", "planet"}},
+        {"atmosphereScale", {"atmosphereScale", "planet"}},
+        {"atmosphereElements", {"atmosphereElements", "planet"}},
+        {"atmosphereComposition", {"atmosphereComposition", "planet"}},
+        {"hydrosphereElement", {"hydrosphereElement", "planet"}},
+        {"hydrosphereDensity", {"hydrosphereDensity", "planet"}},
+        {"soiradius", {"soiradius", "planet"}},
+        {"solarPosition", {"solarPosition", "planet"}},
+        {"childPlanets", {"childPlanets", "planet"}},
+        {"crafts", {"crafts", "planet"}},
+        {"craftids", {"craftids", "planet"}},
+        {"parent", {"parent", "planet"}},
+        {"structures", {"structures", "planet"}},
+        {"day", {"day", "planet"}},
+        {"year", {"year", "planet"}},
+        {"velocity", {"velocity", "planet"}},
+        {"apoapsis", {"apoapsis", "planet"}},
+        {"periapsis", {"periapsis", "planet"}},
+        {"period", {"period", "planet"}},
+        {"apoapsistime", {"apoapsistime", "planet"}},
+        {"periapsistime", {"periapsistime", "planet"}},
+        {"inclination", {"inclination", "planet"}},
+        {"eccentricity", {"eccentricity", "planet"}},
+        {"meananomaly", {"meananomaly", "planet"}},
+        {"meanmotion", {"meanmotion", "planet"}},
+        {"periapsisargument", {"periapsisargument", "planet"}},
+        {"rightascension", {"rightascension", "planet"}},
+        {"trueanomaly", {"trueanomaly", "planet"}},
+        {"semimajoraxis", {"semimajoraxis", "planet"}},
+        {"semiminoraxis", {"semiminoraxis", "planet"}},
+    };
+    auto it = kPlanetOps.find(identifier);
+    if (it == kPlanetOps.end()) {
+        return nullptr;
+    }
+    return &it->second;
+}
+
+/**
+List expressions (e.g. ListOp.create("a,b,c")) compile to Vizzy
+<ListOp op="..." style="..."> blocks.
+*/
+struct ListOp {
+    const char *op;
+    const char *style;
+};
+
+const ListOp *findListOp(const std::string &identifier) {
+    static const std::map<std::string, ListOp> kListOps = {
+        {"create", {"create", "list-create"}},
+        {"get", {"get", "list-get"}},
+        {"length", {"length", "list-length"}},
+        {"index", {"index", "list-index"}},
+    };
+    auto it = kListOps.find(identifier);
+    if (it == kListOps.end()) {
+        return nullptr;
+    }
+    return &it->second;
+}
+
+/**
 format/callFormat of a custom definition. Vizzy writes both as
 "name |a| |b| " (instructions) or "name |a| |b|  return (0)"
 (expressions), and drops the trailing gap entirely when there are no
@@ -712,6 +949,37 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                         for (const auto &p : instr.params) {
                             emitExpression(*p, el);
                         }
+                    } else if (instr.identifier == "beep"
+                               || instr.identifier == "sineBeep"
+                               || instr.identifier == "sineTriangle"
+                               || instr.identifier == "sineSaw"
+                               || instr.identifier == "sineSquare"
+                               || instr.identifier == "sineNoise") {
+                        auto el = parent.append_child("PlayBeep");
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "play-beep-waveform";
+                        if (instr.identifier == "beep"
+                            || instr.identifier == "sineBeep") {
+                            el.append_attribute("waveform") = "Sine";
+                        } else if (instr.identifier == "sineTriangle") {
+                            el.append_attribute("waveform") = "Triangle";
+                        } else if (instr.identifier == "sineSaw") {
+                            el.append_attribute("waveform") = "Saw";
+                        } else if (instr.identifier == "sineSquare") {
+                            el.append_attribute("waveform") = "Square";
+                        } else if (instr.identifier == "sineNoise") {
+                            el.append_attribute("waveform") = "Noise";
+                        }
+                        for (const auto &p : instr.params) {
+                            emitExpression(*p, el);
+                        }
+                    } else if (instr.identifier == "speak") {
+                        auto el = parent.append_child("Speak");
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "speak";
+                        for (const auto &p : instr.params) {
+                            emitExpression(*p, el);
+                        }
                     } else {
                         auto el = parent.append_child("SetCraftProperty");
                         el.append_attribute("property") =
@@ -721,6 +989,17 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                         for (const auto &p : instr.params) {
                             emitExpression(*p, el);
                         }
+                    }
+                } else if (instr.qualifier == "Input") {
+                    // Vizzy uses SetInput for input controls, not
+                    // SetCraftProperty
+                    auto el = parent.append_child("SetInput");
+                    el.append_attribute("input") =
+                        instr.identifier.c_str();
+                    el.append_attribute("id") = nextId().c_str();
+                    el.append_attribute("style") = "set-input";
+                    for (const auto &p : instr.params) {
+                        emitExpression(*p, el);
                     }
                 } else if (instr.qualifier.empty()) {
                     // An unqualified perform is a call to a user defined
@@ -1215,13 +1494,67 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                            emitExpression(*t.valueIfFalse, el);
                    },
                    [&](const CallExpression &call) {
-                       auto el = parent.append_child("CallCustomExpression");
-                       el.append_attribute("call") = call.identifier.c_str();
-                       el.append_attribute("style") = "call-custom-expression";
-                       for (const auto &p : call.params) {
-                           emitExpression(*p, el);
-                       }
-                   },
+                        if (call.qualifier == "Planet") {
+                            if (auto planetOp = findPlanetOp(call.identifier)) {
+                                auto el = parent.append_child("Planet");
+                                el.append_attribute("op") = planetOp->op;
+                                el.append_attribute("style") = planetOp->style;
+                                for (const auto &p : call.params) {
+                                    emitExpression(*p, el);
+                                }
+                            } else {
+                                auto el = parent.append_child(
+                                    "CallCustomExpression");
+                                el.append_attribute("call") =
+                                    call.identifier.c_str();
+                                el.append_attribute("style") =
+                                    "call-custom-expression";
+                                for (const auto &p : call.params) {
+                                    emitExpression(*p, el);
+                                }
+                            }
+                        } else if (call.qualifier == "ListOp") {
+                            if (auto listOp = findListOp(call.identifier)) {
+                                auto el = parent.append_child("ListOp");
+                                el.append_attribute("op") = listOp->op;
+                                el.append_attribute("style") = listOp->style;
+                                for (const auto &p : call.params) {
+                                    emitExpression(*p, el);
+                                }
+                            } else {
+                                auto el = parent.append_child(
+                                    "CallCustomExpression");
+                                el.append_attribute("call") =
+                                    call.identifier.c_str();
+                                el.append_attribute("style") =
+                                    "call-custom-expression";
+                                for (const auto &p : call.params) {
+                                    emitExpression(*p, el);
+                                }
+                            }
+                        } else if (auto stdExpr = findStdExpr(call.qualifier,
+                                                              call.identifier.c_str())) {
+                            auto el = parent.append_child("CraftProperty");
+                            el.append_attribute("property") =
+                                stdExpr->property;
+                            el.append_attribute("style") = stdExpr->style;
+                            if (!call.params.empty()) {
+                                for (const auto &p : call.params) {
+                                    emitExpression(*p, el);
+                                }
+                            }
+                        } else {
+                            auto el = parent.append_child(
+                                "CallCustomExpression");
+                            el.append_attribute("call") =
+                                call.identifier.c_str();
+                            el.append_attribute("style") =
+                                "call-custom-expression";
+                            for (const auto &p : call.params) {
+                                emitExpression(*p, el);
+                            }
+                        }
+                    },
                 },
                 expr.value);
 }
