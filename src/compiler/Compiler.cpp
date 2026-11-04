@@ -989,6 +989,11 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                         for (const auto &p : instr.params) {
                             emitExpression(*p, el);
                         }
+                        if (instr.params.size() == 1) {
+                            auto def = el.append_child("Constant");
+                            def.append_attribute("style") = "true";
+                            def.append_attribute("bool") = "true";
+                        }
                     } else if (instr.identifier == "beep"
                                || instr.identifier == "sineBeep"
                                || instr.identifier == "sineTriangle"
