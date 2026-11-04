@@ -144,7 +144,7 @@ on start() {
     CHECK(xml.find("variableName=\"i_") != std::string::npos);
 
     // While condition: i <= 2
-    CHECK(xml.find("<Comparison op=\"&lt;=\" style=\"op-lte\">") !=
+    CHECK(xml.find("<Comparison op=\"le\" style=\"op-lte\">") !=
           std::string::npos);
     CHECK(xml.find("<Constant number=\"2\" />") != std::string::npos);
 
@@ -170,7 +170,7 @@ on start() {
     CHECK(xml.find("</For>") == std::string::npos);
 
     // Condition: i >= 0 (negative step)
-    CHECK(xml.find("<Comparison op=\">=\" style=\"op-gte\">") !=
+    CHECK(xml.find("<Comparison op=\"ge\" style=\"op-gte\">") !=
           std::string::npos);
     CHECK(xml.find("<Constant number=\"0\" />") != std::string::npos);
 
@@ -289,7 +289,9 @@ on start() {
     CHECK(xml.find("style=\"if\"") != std::string::npos);
     CHECK(xml.find("<ElseIf id=\"") != std::string::npos);
     CHECK(xml.find("style=\"else\"") != std::string::npos);
-    CHECK(xml.find("<Constant style=\"true\" bool=\"true\" />") !=
+    // Vizzy marks the else branch with a bare true constant
+    CHECK(xml.find("<Constant bool=\"true\" />") != std::string::npos);
+    CHECK(xml.find("<Constant style=\"true\" bool=\"true\" />") ==
           std::string::npos);
 }
 
@@ -316,7 +318,7 @@ on start() {
     perform Craft.setInput("throttle", 1);
 })");
 
-    CHECK(xml.find("<SetCraftProperty id=\"") != std::string::npos);
+    CHECK(xml.find("<SetCraftProperty property=") != std::string::npos);
     CHECK(xml.find("property=\"setInput\"") != std::string::npos);
 }
 
@@ -363,12 +365,14 @@ on start() {
 })");
 
     CHECK(xml.find("<Comparison op=\"=\" style=\"op-eq\">") != std::string::npos);
-    CHECK(xml.find("<Comparison op=\"!=\" style=\"op-ne\">") != std::string::npos);
+    // Vizzy has no not-equal operator: != is emitted as Not(=)
+    CHECK(xml.find("op=\"!=\"") == std::string::npos);
+    CHECK(xml.find("<Not style=\"op-not\">") != std::string::npos);
     CHECK(xml.find("<Comparison op=\"g\" style=\"op-gt\">") != std::string::npos);
     CHECK(xml.find("<Comparison op=\"l\" style=\"op-lt\">") != std::string::npos);
-    CHECK(xml.find("<Comparison op=\">=\" style=\"op-gte\">") !=
+    CHECK(xml.find("<Comparison op=\"ge\" style=\"op-gte\">") !=
           std::string::npos);
-    CHECK(xml.find("<Comparison op=\"&lt;=\" style=\"op-lte\">") !=
+    CHECK(xml.find("<Comparison op=\"le\" style=\"op-lte\">") !=
           std::string::npos);
 }
 
@@ -394,15 +398,15 @@ expr myExpr(x) x + 1;
 expr add3(a, b, c) a + b + c;
 )");
 
-    CHECK(xml.find("<CustomExpression name=\"myExpr\"") != std::string::npos);
+    // Vizzy writes callFormat first and ends the format with the return slot
+    CHECK(xml.find("<CustomExpression callFormat=\"myExpr (0) \"") !=
+          std::string::npos);
     CHECK(xml.find("style=\"custom-expression\"") != std::string::npos);
-    CHECK(xml.find("callFormat=\"myExpr (0) \"") != std::string::npos);
-    CHECK(xml.find("format=\"myExpr |x|  \"") != std::string::npos);
+    CHECK(xml.find("format=\"myExpr |x|  return (0)\"") != std::string::npos);
     CHECK(xml.find("<BinaryOp op=\"+\" style=\"op-add\">") != std::string::npos);
 
-    CHECK(xml.find("<CustomExpression name=\"add3\"") != std::string::npos);
     CHECK(xml.find("callFormat=\"add3 (0) (1) (2) \"") != std::string::npos);
-    CHECK(xml.find("format=\"add3 |a| |b| |c|  \"") !=
+    CHECK(xml.find("format=\"add3 |a| |b| |c|  return (0)\"") !=
           std::string::npos);
 }
 
@@ -414,9 +418,213 @@ on start() {
     emit testEvent();
 })");
 
-    CHECK(xml.find("<BroadcastMessage id=\"") != std::string::npos);
+    // global/local lead the attribute list and the message name is a
+    // child constant, never a message attribute
+    CHECK(xml.find("<BroadcastMessage global=\"false\" local=\"true\" "
+                   "id=\"") != std::string::npos);
     CHECK(xml.find("style=\"broadcast-msg\"") != std::string::npos);
-    CHECK(xml.find("message=\"testEvent\"") != std::string::npos);
-    CHECK(xml.find("global=\"false\"") != std::string::npos);
-    CHECK(xml.find("local=\"true\"") != std::string::npos);
+    CHECK(xml.find("<Constant text=\"testEvent\" />") != std::string::npos);
+    CHECK(xml.find("<Constant number=\"0\" />") != std::string::npos);
+    CHECK(xml.find("message=\"testEvent\"") == std::string::npos);
+}
+
+TEST_CASE("Compiler XML - emit targets map to the three sample styles") {
+    const auto xml = compileSource(R"(
+program test;
+
+on start() {
+    emit localEvent();
+    emit craftEvent() to craft;
+    emit nearbyEvent() to nearby;
+})");
+
+    // Only these three style/flag combinations occur in the reference games
+    CHECK(xml.find("<BroadcastMessage global=\"false\" local=\"true\" "
+                   "id=\"") != std::string::npos);
+    CHECK(xml.find("style=\"broadcast-msg\"") != std::string::npos);
+
+    CHECK(xml.find("<BroadcastMessage global=\"false\" local=\"false\" "
+                   "id=\"") != std::string::npos);
+    CHECK(xml.find("style=\"broadcast-msg-craft\"") != std::string::npos);
+
+    CHECK(xml.find("<BroadcastMessage global=\"true\" local=\"true\" "
+                   "id=\"") != std::string::npos);
+    CHECK(xml.find("style=\"broadcast-msg-all-crafts\"") != std::string::npos);
+
+    CHECK(xml.find("broadcast-msg-nearby") == std::string::npos);
+}
+
+TEST_CASE("Compiler XML - one thread per handler with its own position") {
+    // Reference programs keep every handler in its own <Instructions>
+    // container, each starting in its own canvas column.
+    const auto xml = compileSource(R"(
+program test;
+
+on start() {
+    x = 1;
+}
+
+on update() {
+    x = 2;
+}
+
+instr helper() {
+    x = 3;
+})");
+
+    std::size_t threads = 0;
+    std::size_t pos = 0;
+    while ((pos = xml.find("<Instructions>", pos)) != std::string::npos) {
+        threads++;
+        pos += 13;
+    }
+    CHECK(threads == 3);
+
+    CHECK(xml.find("pos=\"-10,-20\"") != std::string::npos);
+    CHECK(xml.find("pos=\"390,-20\"") != std::string::npos);
+    CHECK(xml.find("pos=\"790,-20\"") != std::string::npos);
+
+    // only the head block of a thread carries a position
+    CHECK(xml.find("<SetVariable id=\"1\" style=\"set-variable\" pos=") ==
+          std::string::npos);
+}
+
+TEST_CASE("Compiler XML - event parameters are not written as Parameter") {
+    const auto xml = compileSource(R"(
+program test;
+
+on update() {
+    x = 1;
+})");
+
+    CHECK(xml.find("<Parameter") == std::string::npos);
+    CHECK(xml.find("<Event event=\"ReceiveMessage\" id=\"0\" "
+                   "style=\"receive-msg\"") != std::string::npos);
+    // receive-msg carries its message name as a child constant
+    CHECK(xml.find("<Constant canReplace=\"false\" text=\"update\" />") !=
+          std::string::npos);
+}
+
+TEST_CASE("Compiler XML - list declaration keeps Items container") {
+    const auto xml = compileSource(R"(
+program test;
+list engines = [1, 2, 3];
+var fuel = 0;
+
+on start() {
+    x = 1;
+})");
+
+    CHECK(xml.find("<Variable name=\"engines\">\n      <Items />\n    "
+                   "</Variable>") != std::string::npos);
+    // a list never carries the number attribute a plain variable has
+    CHECK(xml.find("<Variable name=\"engines\" number=") ==
+          std::string::npos);
+    CHECK(xml.find("<Variable name=\"fuel\" number=\"0\" />") !=
+          std::string::npos);
+
+    // Variables follow declaration order, not alphabetical order
+    const auto engines = xml.find("<Variable name=\"engines\"");
+    const auto fuel = xml.find("<Variable name=\"fuel\"");
+    REQUIRE(engines != std::string::npos);
+    REQUIRE(fuel != std::string::npos);
+    CHECK(engines < fuel);
+}
+
+TEST_CASE("Compiler XML - instruction definition format") {
+    const auto xml = compileSource(R"(
+program test;
+
+instr burn(fuelRate) {
+    fuel = fuel - fuelRate;
+}
+
+instr noop() {
+    fuel = fuel;
+})");
+
+    CHECK(xml.find("<CustomInstruction callFormat=\"burn (0) \" "
+                   "format=\"burn |fuelRate| \" name=\"burn\" id=\"0\" "
+                   "style=\"custom-instruction\"") != std::string::npos);
+    // no parameters: the trailing gap disappears entirely
+    CHECK(xml.find("callFormat=\"noop\" format=\"noop\" name=\"noop\"") !=
+          std::string::npos);
+    CHECK(xml.find("<CallCustomInstruction call=\"burn\"") ==
+          std::string::npos);
+}
+
+TEST_CASE("Compiler XML - perform of a user instruction") {
+    const auto xml = compileSource(R"(
+program test;
+
+instr burn(fuelRate) {
+    fuel = fuel - fuelRate;
+}
+
+on start() {
+    perform burn(2);
+})");
+
+    CHECK(xml.find("<CallCustomInstruction call=\"burn\" id=\"") !=
+          std::string::npos);
+    CHECK(xml.find("style=\"call-custom-instruction\"") != std::string::npos);
+    CHECK(xml.find("<Constant number=\"2\" />") != std::string::npos);
+}
+
+TEST_CASE("Compiler XML - compound assignment keeps its operator") {
+    const auto xml = compileSource(R"(
+program test;
+var c = 0;
+var d = 0;
+
+on start() {
+    c += 1;
+    c -= 2;
+    d *= 3;
+    d /= 4;
+})");
+
+    // += and -= lower to Vizzy's "change by" block, not a plain store
+    CHECK(xml.find("<ChangeVariable id=\"1\" style=\"change-variable\">") !=
+          std::string::npos);
+    CHECK(xml.find("<ChangeVariable id=\"2\" style=\"change-variable\">") !=
+          std::string::npos);
+    CHECK(xml.find("<Constant number=\"-2\" />") != std::string::npos);
+
+    // *= and /= have no dedicated block: keep the operator in a BinaryOp
+    CHECK(xml.find("<BinaryOp op=\"*\" style=\"op-mul\">") !=
+          std::string::npos);
+    CHECK(xml.find("<BinaryOp op=\"/\" style=\"op-div\">") !=
+          std::string::npos);
+
+    // none of the four may collapse into "c = 1"
+    CHECK(xml.find("<SetVariable id=\"1\"") == std::string::npos);
+    CHECK(xml.find("<SetVariable id=\"2\"") == std::string::npos);
+}
+
+TEST_CASE("Compiler XML - list element assignment uses SetList") {
+    const auto xml = compileSource(R"(
+program test;
+list nums = [1, 2, 3];
+
+on start() {
+    nums[0] = 5;
+    nums[1] += 2;
+})");
+
+    // list, index and new value in that order, never SetVariable on the
+    // whole list
+    CHECK(xml.find("<SetList op=\"set\" id=\"1\" style=\"list-set\">") !=
+          std::string::npos);
+    CHECK(xml.find("<SetList op=\"set\" id=\"2\" style=\"list-set\">") !=
+          std::string::npos);
+    CHECK(xml.find("<Variable list=\"true\" local=\"false\" "
+                   "variableName=\"nums\" />") != std::string::npos);
+
+    // the compound form reads the old element first
+    CHECK(xml.find("<ListOp op=\"get\" style=\"list-get\">") !=
+          std::string::npos);
+    CHECK(xml.find("<BinaryOp op=\"+\" style=\"op-add\">") !=
+          std::string::npos);
+    CHECK(xml.find("<SetVariable") == std::string::npos);
 }

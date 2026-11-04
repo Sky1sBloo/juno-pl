@@ -57,6 +57,10 @@ export class Compiler {
     void collectBody(const Body &body);
     void collectStatement(const Statements &stmt, std::size_t index);
 
+    /** Canvas position of the next top level thread. Vizzy stores a pos on
+     * the first block of every thread, each thread in its own column. */
+    std::string nextThreadPos();
+
     /** pugixml-emitting traversal used by compileAST. */
     void emitBody(const Body &body, pugi::xml_node parent,
                   std::function<std::string()> nextId);
@@ -73,10 +77,19 @@ export class Compiler {
 
     /** Key/value table built by getVariables. */
     std::map<std::string, std::string> mVariables;
+    /** Emitted names in declaration order, so <Variables> lists them the way
+     * the source declares them instead of alphabetically. */
+    std::vector<std::string> mVariableOrder;
+    /** Emitted names that were declared as a list, so they are written as a
+     * Vizzy list (<Variable name="x"><Items /></Variable>) instead of a
+     * number variable. */
+    std::set<std::string> mLists;
     /** Components of the scope being visited; empty at top level. */
     std::vector<std::string> mScopePath;
     /** Every name already claimed, so generated names stay unique. */
     std::set<std::string> mUsedNames;
+    /** Canvas X of the thread being laid out, -10 for the first one. */
+    int mThreadX = -10;
 
     /**
     Claims the name of each top level variable, which is already global, so
@@ -84,8 +97,9 @@ export class Compiler {
      */
     void reserveGlobals(const RootNode &root);
 
-    /** Registers a variable declared in the scope currently being visited. */
-    void declareScoped(const std::string &name);
+    /** Registers a variable (isList: a Vizzy list) declared in the scope
+     * currently being visited. */
+    void declareScoped(const std::string &name, bool isList);
 
     /** "name" plus the hash of key, made unique against mUsedNames. */
     std::string makeUnique(const std::string &name, const std::string &key);
