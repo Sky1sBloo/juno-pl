@@ -210,6 +210,8 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::CRAFT, Operations::INSTRUCTION, "lockCurrent",
             {{0, 0}});
         add(Qualifiers::CRAFT, Operations::INSTRUCTION, "lockVector", {{3, 3}});
+        add(Qualifiers::CRAFT, Operations::INSTRUCTION, "activateStage",
+            {{0, 0}});
 
         // Craft Instructions - part control
         add(Qualifiers::PART, Operations::INSTRUCTION, "activate", {{2, 2}});

@@ -726,12 +726,19 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                         emitExpression(*p, el);
                     }
                 } else {
-                    auto el = parent.append_child("SetCraftProperty");
-                    el.append_attribute("property") = instr.identifier.c_str();
-                    el.append_attribute("id") = nextId().c_str();
-                    el.append_attribute("style") = "set-part";
-                    for (const auto &p : instr.params) {
-                        emitExpression(*p, el);
+                    if (instr.identifier == "activateStage") {
+                        auto el = parent.append_child("ActivateStage");
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "activate-stage";
+                    } else {
+                        auto el = parent.append_child("SetCraftProperty");
+                        el.append_attribute("property") =
+                            instr.identifier.c_str();
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "set-part";
+                        for (const auto &p : instr.params) {
+                            emitExpression(*p, el);
+                        }
                     }
                 }
             },
