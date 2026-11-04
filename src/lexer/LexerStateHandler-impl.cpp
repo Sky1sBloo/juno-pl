@@ -22,6 +22,12 @@ LexerStateHandler::Result LexerStateHandler::handle(char c, int line, int col) {
         return handleIdentState(c);
     case States::NUMBER:
         return handleNumberState(c);
+    case States::LINE_COMMENT:
+        return handleLineCommentState(c);
+    case States::BLOCK_COMMENT:
+        return handleBlockCommentState(c);
+    case States::BLOCK_COMMENT_STAR:
+        return handleBlockCommentStarState(c);
     case States::DECIMAL:
         return handleDecimalState(c);
     case States::STRING:
@@ -97,6 +103,32 @@ LexerStateHandler::Result LexerStateHandler::handleNumberState(char c) {
     return createErrorResult(c);
 }
 
+LexerStateHandler::Result LexerStateHandler::handleLineCommentState(char c) {
+    if (c == '\n') {
+        reset();
+        return Result::Ignore();
+    }
+    return Result::Ignore();
+}
+
+LexerStateHandler::Result LexerStateHandler::handleBlockCommentState(char c) {
+    if (c == '*') {
+        mState = States::BLOCK_COMMENT_STAR;
+        return Result::Ignore();
+    }
+    return Result::Ignore();
+}
+
+LexerStateHandler::Result LexerStateHandler::handleBlockCommentStarState(
+    char c) {
+    if (c == '/') {
+        reset();
+        return Result::Ignore();
+    }
+    mState = States::BLOCK_COMMENT;
+    return Result::Ignore();
+}
+
 LexerStateHandler::Result LexerStateHandler::handleDecimalState(char c) {
     if (std::isdigit(c)) {
         return Result::Continue();
@@ -168,6 +200,14 @@ LexerStateHandler::Result LexerStateHandler::handleExpectEqState(char c) {
     if (c == '=') {
         return Result::InferToken();
     }
+    if (c == '/') {
+        mState = States::LINE_COMMENT;
+        return Result::Ignore();
+    }
+    if (c == '*') {
+        mState = States::BLOCK_COMMENT;
+        return Result::Ignore();
+    }
     return Result::InferTokenReplay();
 }
 
@@ -204,6 +244,11 @@ bool LexerStateHandler::isOpSymbol(char c) {
         return true;
     }
     return false;
+}
+
+bool LexerStateHandler::inCommentState() const {
+    return mState == States::LINE_COMMENT || mState == States::BLOCK_COMMENT ||
+           mState == States::BLOCK_COMMENT_STAR;
 }
 
 }

@@ -56,6 +56,8 @@ export class LexerStateHandler {
      */
     Result handleEOF();
 
+    bool inCommentState() const;
+
   private:
     enum class States {
         START,
@@ -66,6 +68,9 @@ export class LexerStateHandler {
         STRING_ESCAPE,
         OPERATION,
         EXPECT_EQ,
+        LINE_COMMENT,
+        BLOCK_COMMENT,
+        BLOCK_COMMENT_STAR,
         UNKNOWN
     };
     States mState;
@@ -82,6 +87,9 @@ export class LexerStateHandler {
     Result handleOperationState(char c);
     Result handleExpectEqState(char c);
     Result handleNumberState(char c);
+    Result handleLineCommentState(char c);
+    Result handleBlockCommentState(char c);
+    Result handleBlockCommentStarState(char c);
     Result handleUnknownState(char c);
 
     bool isOpSymbol(char c);

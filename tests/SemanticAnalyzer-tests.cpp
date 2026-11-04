@@ -141,3 +141,98 @@ TEST_CASE("Semantic - unknown and misused calls") {
     CHECK(wrongOp[0].message ==
           "'Game.delay' is not defined in the standard library");
 }
+
+TEST_CASE("Semantic - orbit script parse") {
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode(R"(
+program orbit_circularize;
+
+var targetAp = 100000;
+var targetPe = 100000;
+var burnDone = false;
+
+instr circularize() {
+    var ap = Orbit.ap();
+    var pe = Orbit.pe();
+    var ecc = Orbit.eccentricity();
+
+    if (ecc < 0.01) {
+        perform Game.display("Orbit already circular");
+        burnDone = true;
+    } elif (ap > targetAp) {
+        // Apoapsis too high; burn retrograde at periapsis
+        perform Craft.lockPrograde();
+        perform Craft.pitchTo(0);
+        perform Input.throttle(1.0);
+        perform Game.delay(5.0);
+        perform Input.throttle(0.0);
+        burnDone = true;
+    } elif (pe < targetPe) {
+        // Periapsis too low; burn prograde at apoapsis
+        perform Craft.lockPrograde();
+        perform Craft.pitchTo(0);
+        perform Input.throttle(1.0);
+        perform Game.delay(8.0);
+        perform Input.throttle(0.0);
+        burnDone = true;
+    } else {
+        perform Game.display("Adjusting orbit...");
+    }
+}
+
+on start() {
+    perform Game.display("Orbit circularization started");
+    perform Game.delay(2.0);
+
+    while (not burnDone) {
+        perform circularize();
+        perform Game.delay(1.0);
+    }
+
+    perform Craft.lockNone();
+    perform Game.display("Circularization complete");
+    perform Game.beep(880, 0.5, 1.0);
+}
+)");
+    JunoPL::Lexer lexer;
+    auto lexOutput = lexer.tokenize(fileHandler);
+    REQUIRE(lexOutput.errors.empty());
+    JunoPL::Parser parser;
+    auto parseOutput = parser.parse(lexOutput.tokens);
+    REQUIRE(parseOutput.errors.empty());
+    REQUIRE(parseOutput.root);
+}
+
+TEST_CASE("Lexer - line comments") {
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode(R"(
+program test;
+// this is a line comment
+var x = 5; // inline comment
+on start() {
+    // another comment
+    var y = 10;
+}
+)");
+    JunoPL::Lexer lexer;
+    auto lexOutput = lexer.tokenize(fileHandler);
+    REQUIRE(lexOutput.errors.empty());
+}
+
+TEST_CASE("Lexer - block comments") {
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode(R"(
+program test;
+/* this is a block comment */
+var x = 5; /* inline comment */
+on start() {
+    /* multi
+       line
+       comment */
+    var y = 10;
+}
+)");
+    JunoPL::Lexer lexer;
+    auto lexOutput = lexer.tokenize(fileHandler);
+    REQUIRE(lexOutput.errors.empty());
+}

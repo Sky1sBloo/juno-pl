@@ -25,6 +25,9 @@ Lexer::Output Lexer::tokenize(IFileHandler &fileHandler) {
             mLexeme.push_back(c.value());
             break;
         case StateAction::IGNORE:
+            if (mStateHandler.inCommentState() && !mLexeme.empty()) {
+                mLexeme.clear();
+            }
             break;
         case StateAction::REPLAY:
             continue;
