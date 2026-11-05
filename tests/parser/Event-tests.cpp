@@ -6,14 +6,14 @@ import junopl.lexer.tokens;
 import junopl.parser;
 import junopl.parser.nodes;
 import junopl.parser.nodes.statements;
-import junopl.tests.filereader;
+import junopl.tests.filehandler;
 
 TEST_CASE("Parser Event - basic") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -31,11 +31,11 @@ TEST_CASE("Parser Event - basic") {
 }
 
 TEST_CASE("Parser Event - with params") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on receive(msg, sender) { }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on receive(msg, sender) { }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -53,11 +53,11 @@ TEST_CASE("Parser Event - with params") {
 }
 
 TEST_CASE("Parser Event - with body") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { var x = 1; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { var x = 1; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -73,11 +73,11 @@ TEST_CASE("Parser Event - with body") {
 }
 
 TEST_CASE("Parser Emit - basic") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { emit myEvent(); }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { emit myEvent(); }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -98,11 +98,11 @@ TEST_CASE("Parser Emit - basic") {
 }
 
 TEST_CASE("Parser Emit - with params") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { emit sendMessage(\"hello\", 42); }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { emit sendMessage(\"hello\", 42); }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -118,11 +118,11 @@ TEST_CASE("Parser Emit - with params") {
 }
 
 TEST_CASE("Parser Emit - to craft") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { emit ping() to craft; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { emit ping() to craft; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -137,11 +137,11 @@ TEST_CASE("Parser Emit - to craft") {
 }
 
 TEST_CASE("Parser Emit - to nearby") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { emit ping() to nearby; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { emit ping() to nearby; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -156,11 +156,11 @@ TEST_CASE("Parser Emit - to nearby") {
 }
 
 TEST_CASE("Parser Emit - qualified identifier") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { emit module.send(); }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { emit module.send(); }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -174,12 +174,12 @@ TEST_CASE("Parser Emit - qualified identifier") {
     CHECK(emit.identifier == "module.send");
 }
 
-TEST_CASE("Parser Perform - qualified identifier") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; on start() { perform module.doStuff(); }");
+TEST_CASE("Parser Do - qualified identifier") {
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { do module.doStuff(); }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -189,7 +189,7 @@ TEST_CASE("Parser Perform - qualified identifier") {
     REQUIRE(parseOutput.root);
 
     const auto &event = std::get<JunoPL::EventNode>(parseOutput.root->body.at(0));
-    const auto &perform = std::get<JunoPL::PerformInstruction>(event.body.body.at(0)->statement);
-    CHECK(perform.qualifier == "module");
-    CHECK(perform.identifier == "doStuff");
+    const auto &doInstr = std::get<JunoPL::DoInstruction>(event.body.body.at(0)->statement);
+    CHECK(doInstr.qualifier == "module");
+    CHECK(doInstr.identifier == "doStuff");
 }

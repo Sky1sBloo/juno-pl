@@ -60,9 +60,18 @@ std::optional<EmitEvent> Parser::parseEmitEvent(TokenList &tokens) {
     case TokenType::K_NEARBY:
         options = EmitEvent::Options::TO_NEARBY_CRAFTS;
         break;
+    case TokenType::IDENT:
+        // `to script` is only reachable as an identifier: the lexer knows
+        // craft and nearby as keywords but not script
+        if (mTokens->current().value == "script") {
+            options = EmitEvent::Options::TO_SCRIPT;
+            break;
+        }
+        [[fallthrough]];
     default:
         mErrors.emplace_back(ParserError::UnexpectedToken(
-            mTokens->current(), {TokenType::K_CRAFT, TokenType::K_NEARBY}));
+            mTokens->current(),
+            {TokenType::K_CRAFT, TokenType::K_NEARBY}));
         recoverTo(TokenType::OP_SEMICOLON);
         return std::nullopt;
     }

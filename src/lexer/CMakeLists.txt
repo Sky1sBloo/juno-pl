@@ -15,5 +15,5 @@ PRIVATE
     TokenIdentifier-impl.cpp
 )
 
-target_link_libraries(juno-pl-lexer PRIVATE juno-pl-file-reader)
+target_link_libraries(juno-pl-lexer PRIVATE juno-pl-file-handler)
 target_compile_features(juno-pl-lexer PUBLIC cxx_std_23)

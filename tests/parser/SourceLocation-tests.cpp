@@ -9,7 +9,7 @@ import junopl.parser.nodes;
 import junopl.parser.nodes.expressions;
 import junopl.parser.nodes.statements;
 import junopl.common.location;
-import junopl.tests.filereader;
+import junopl.tests.filehandler;
 
 /**
 Node locations are copies of the token that starts the construct. The
@@ -63,8 +63,8 @@ void checkLocation(const JunoPL::SourceLocation &loc,
 } // namespace
 
 TEST_CASE("Source Location - root nodes") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test;\n"
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test;\n"
                              "import \"lib\";\n"
                              "instr foo() {\n"
                              "}\n"
@@ -75,7 +75,7 @@ TEST_CASE("Source Location - root nodes") {
                              "expr e() g;\n");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -122,18 +122,18 @@ TEST_CASE("Source Location - root nodes") {
 }
 
 TEST_CASE("Source Location - statements in body") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test;\n"
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test;\n"
                              "instr main() {\n"
                              "    var x = 1;\n"
                              "    x = 2;\n"
-                             "    Lists.clear(items);\n"
-                             "    perform foo(1);\n"
+                               "    do Lists.clear(items);\n"
+                              "    do foo(1);\n"
                              "    emit myEvent(2);\n"
                              "}\n");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -163,16 +163,17 @@ TEST_CASE("Source Location - statements in body") {
     checkLocation(assignment.loc, findIdent(tokens, "x", 1));
     CHECK(assignment.loc.line == 3);
 
-    const auto &clearInstr = std::get<JunoPL::PerformInstruction>(
+    const auto &clearInstr = std::get<JunoPL::DoInstruction>(
         function.body.body.at(2)->statement);
-    checkLocation(clearInstr.loc, findIdent(tokens, "Lists"));
+    checkLocation(clearInstr.loc,
+                  findToken(tokens, JunoPL::TokenType::K_DO, 0));
     CHECK(clearInstr.loc.line == 4);
 
-    const auto &perform = std::get<JunoPL::PerformInstruction>(
+    const auto &doInstr = std::get<JunoPL::DoInstruction>(
         function.body.body.at(3)->statement);
-    checkLocation(perform.loc,
-                  findToken(tokens, JunoPL::TokenType::K_PERFORM));
-    CHECK(perform.loc.line == 5);
+    checkLocation(doInstr.loc,
+                  findToken(tokens, JunoPL::TokenType::K_DO, 1));
+    CHECK(doInstr.loc.line == 5);
 
     const auto &emit =
         std::get<JunoPL::EmitEvent>(function.body.body.at(4)->statement);
@@ -181,8 +182,8 @@ TEST_CASE("Source Location - statements in body") {
 }
 
 TEST_CASE("Source Location - conditionals") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test;\n"
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test;\n"
                              "instr main() {\n"
                              "    if (true) {\n"
                              "        var a = 1;\n"
@@ -194,7 +195,7 @@ TEST_CASE("Source Location - conditionals") {
                              "}\n");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -234,8 +235,8 @@ TEST_CASE("Source Location - conditionals") {
 }
 
 TEST_CASE("Source Location - loops and break") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test;\n"
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test;\n"
                              "instr main() {\n"
                              "    repeat 3 {\n"
                              "        break;\n"
@@ -247,7 +248,7 @@ TEST_CASE("Source Location - loops and break") {
                              "}\n");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -285,13 +286,13 @@ TEST_CASE("Source Location - loops and break") {
 }
 
 TEST_CASE("Source Location - expressions") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode(
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode(
         "program test;\n"
         "expr e() x * -y + z ? foo(42, items[0]) else 3;\n");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -344,14 +345,14 @@ TEST_CASE("Source Location - expressions") {
 }
 
 TEST_CASE("Source Location - wrapper loc() accessors") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test;\n"
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test;\n"
                              "instr main() {\n"
                              "    var x = 1;\n"
                              "}\n");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;

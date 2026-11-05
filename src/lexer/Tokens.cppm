@@ -28,7 +28,7 @@ export enum class TokenType {
     K_WHILE,
     K_BREAK,
     K_INSTR,
-    K_PERFORM,
+    K_DO,
     K_ON,
     K_EMIT,
     K_CRAFT,

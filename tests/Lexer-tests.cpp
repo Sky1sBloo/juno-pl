@@ -1,16 +1,16 @@
 #include "doctest.h"
 
-import junopl.tests.filereader;
+import junopl.tests.filehandler;
 import junopl.lexer;
 import junopl.lexer.tokens;
 import junopl.lexer.error;
 
 TEST_CASE("Lexer Number Test") {
-    JunoPL::Tests::FileReaderTest fileReader;
+    JunoPL::Tests::FileHandlerTest fileHandler;
     SUBCASE("Integer") {
-        fileReader.setSourceCode("1");
+        fileHandler.setSourceCode("1");
         JunoPL::Lexer lexer;
-        JunoPL::Lexer::Output output = lexer.tokenize(fileReader);
+        JunoPL::Lexer::Output output = lexer.tokenize(fileHandler);
 
         CHECK(output.errors.empty());
         REQUIRE(output.tokens.size() == 1);
@@ -19,9 +19,9 @@ TEST_CASE("Lexer Number Test") {
     }
 
     SUBCASE("Decimal") {
-        fileReader.setSourceCode("1.02");
+        fileHandler.setSourceCode("1.02");
         JunoPL::Lexer lexer;
-        JunoPL::Lexer::Output output = lexer.tokenize(fileReader);
+        JunoPL::Lexer::Output output = lexer.tokenize(fileHandler);
 
         CHECK(output.errors.empty());
         REQUIRE(output.tokens.size() == 1);
@@ -31,11 +31,11 @@ TEST_CASE("Lexer Number Test") {
 }
 
 TEST_CASE("Identifier Test") {
-    JunoPL::Tests::FileReaderTest fileReader;
+    JunoPL::Tests::FileHandlerTest fileHandler;
     SUBCASE("Character start") {
-        fileReader.setSourceCode("random9vValue");
+        fileHandler.setSourceCode("random9vValue");
         JunoPL::Lexer lexer;
-        JunoPL::Lexer::Output output = lexer.tokenize(fileReader);
+        JunoPL::Lexer::Output output = lexer.tokenize(fileHandler);
 
         CHECK(output.errors.empty());
         REQUIRE(output.tokens.size() == 1);
@@ -43,9 +43,9 @@ TEST_CASE("Identifier Test") {
     }
 
     SUBCASE("Underscore start") {
-        fileReader.setSourceCode("_identX");
+        fileHandler.setSourceCode("_identX");
         JunoPL::Lexer lexer;
-        JunoPL::Lexer::Output output = lexer.tokenize(fileReader);
+        JunoPL::Lexer::Output output = lexer.tokenize(fileHandler);
 
         CHECK(output.errors.empty());
         REQUIRE(output.tokens.size() == 1);
@@ -53,9 +53,9 @@ TEST_CASE("Identifier Test") {
     }
 
     SUBCASE("Multi") {
-        fileReader.setSourceCode("_identX9 r9");
+        fileHandler.setSourceCode("_identX9 r9");
         JunoPL::Lexer lexer;
-        JunoPL::Lexer::Output output = lexer.tokenize(fileReader);
+        JunoPL::Lexer::Output output = lexer.tokenize(fileHandler);
 
         CHECK(output.errors.empty());
         REQUIRE(output.tokens.size() == 2);
@@ -64,9 +64,9 @@ TEST_CASE("Identifier Test") {
     }
 
     SUBCASE("Keyword") {
-        fileReader.setSourceCode("_identX9 program import");
+        fileHandler.setSourceCode("_identX9 program import");
         JunoPL::Lexer lexer;
-        JunoPL::Lexer::Output output = lexer.tokenize(fileReader);
+        JunoPL::Lexer::Output output = lexer.tokenize(fileHandler);
 
         CHECK(output.errors.empty());
         REQUIRE(output.tokens.size() == 3);
@@ -77,12 +77,12 @@ TEST_CASE("Identifier Test") {
 }
 
 TEST_CASE("Lexer Operator Test") {
-    JunoPL::Tests::FileReaderTest fileReader;
+    JunoPL::Tests::FileHandlerTest fileHandler;
 
     SUBCASE("Single character operators") {
-        fileReader.setSourceCode("+ - * / = ; ( ) [ ] { } % . : ?");
+        fileHandler.setSourceCode("+ - * / = ; ( ) [ ] { } % . : ?");
         JunoPL::Lexer lexer;
-        JunoPL::Lexer::Output output = lexer.tokenize(fileReader);
+        JunoPL::Lexer::Output output = lexer.tokenize(fileHandler);
 
         CHECK(output.errors.empty());
         REQUIRE(output.tokens.size() == 16);
@@ -105,9 +105,9 @@ TEST_CASE("Lexer Operator Test") {
     }
 
     SUBCASE("Comparison operators") {
-        fileReader.setSourceCode("a<=b>=c<d>e");
+        fileHandler.setSourceCode("a<=b>=c<d>e");
         JunoPL::Lexer lexer;
-        JunoPL::Lexer::Output output = lexer.tokenize(fileReader);
+        JunoPL::Lexer::Output output = lexer.tokenize(fileHandler);
 
         CHECK(output.errors.empty());
         REQUIRE(output.tokens.size() == 9);
@@ -125,12 +125,12 @@ TEST_CASE("Lexer Operator Test") {
 }
 
 TEST_CASE("Lexer String Test") {
-    JunoPL::Tests::FileReaderTest fileReader;
+    JunoPL::Tests::FileHandlerTest fileHandler;
 
     SUBCASE("Simple string") {
-        fileReader.setSourceCode("\"hello\"");
+        fileHandler.setSourceCode("\"hello\"");
         JunoPL::Lexer lexer;
-        JunoPL::Lexer::Output output = lexer.tokenize(fileReader);
+        JunoPL::Lexer::Output output = lexer.tokenize(fileHandler);
 
         CHECK(output.errors.empty());
         REQUIRE(output.tokens.size() == 1);
@@ -139,9 +139,9 @@ TEST_CASE("Lexer String Test") {
     }
 
     SUBCASE("String with spaces and escapes") {
-        fileReader.setSourceCode("\"say \\\"hi\\\" now\"");
+        fileHandler.setSourceCode("\"say \\\"hi\\\" now\"");
         JunoPL::Lexer lexer;
-        JunoPL::Lexer::Output output = lexer.tokenize(fileReader);
+        JunoPL::Lexer::Output output = lexer.tokenize(fileHandler);
 
         CHECK(output.errors.empty());
         REQUIRE(output.tokens.size() == 1);
@@ -150,9 +150,9 @@ TEST_CASE("Lexer String Test") {
     }
 
     SUBCASE("Unclosed string") {
-        fileReader.setSourceCode("\"missing end");
+        fileHandler.setSourceCode("\"missing end");
         JunoPL::Lexer lexer;
-        JunoPL::Lexer::Output output = lexer.tokenize(fileReader);
+        JunoPL::Lexer::Output output = lexer.tokenize(fileHandler);
 
         CHECK_FALSE(output.errors.empty());
         REQUIRE(output.tokens.empty());
@@ -162,11 +162,11 @@ TEST_CASE("Lexer String Test") {
 }
 
 TEST_CASE("Lexer EOF Test") {
-    JunoPL::Tests::FileReaderTest fileReader;
+    JunoPL::Tests::FileHandlerTest fileHandler;
     SUBCASE("No whitespace") {
-        fileReader.setSourceCode("123");
+        fileHandler.setSourceCode("123");
         JunoPL::Lexer lexer;
-        JunoPL::Lexer::Output output = lexer.tokenize(fileReader);
+        JunoPL::Lexer::Output output = lexer.tokenize(fileHandler);
 
         CHECK(output.errors.empty());
         REQUIRE(output.tokens.size() == 1);
@@ -174,9 +174,9 @@ TEST_CASE("Lexer EOF Test") {
     }
 
     SUBCASE("With whitespace") {
-        fileReader.setSourceCode("123 ");
+        fileHandler.setSourceCode("123 ");
         JunoPL::Lexer lexer;
-        JunoPL::Lexer::Output output = lexer.tokenize(fileReader);
+        JunoPL::Lexer::Output output = lexer.tokenize(fileHandler);
 
         CHECK(output.errors.empty());
         REQUIRE(output.tokens.size() == 1);

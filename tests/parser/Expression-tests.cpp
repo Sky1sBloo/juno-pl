@@ -8,14 +8,14 @@ import junopl.parser;
 import junopl.parser.nodes;
 import junopl.parser.nodes.expressions;
 import junopl.parser.nodes.statements;
-import junopl.tests.filereader;
+import junopl.tests.filehandler;
 
 TEST_CASE("Parser Call Expression - basic") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; expr getVal() myFunc();");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; expr getVal() myFunc();");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -34,11 +34,11 @@ TEST_CASE("Parser Call Expression - basic") {
 }
 
 TEST_CASE("Parser Call Expression - with params") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; expr getVal() add(1, 2);");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; expr getVal() add(1, 2);");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -54,11 +54,11 @@ TEST_CASE("Parser Call Expression - with params") {
 }
 
 TEST_CASE("Parser Call Expression - qualified") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; expr getVal() math.sqrt(4);");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; expr getVal() math.sqrt(4);");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -75,11 +75,11 @@ TEST_CASE("Parser Call Expression - qualified") {
 }
 
 TEST_CASE("Parser Logical Expression - and") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; expr check() a > 0 and b < 10;");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; expr check() a > 0 and b < 10;");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -96,11 +96,11 @@ TEST_CASE("Parser Logical Expression - and") {
 }
 
 TEST_CASE("Parser Logical Expression - or") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; expr check() a > 0 or b < 10;");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; expr check() a > 0 or b < 10;");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -116,11 +116,11 @@ TEST_CASE("Parser Logical Expression - or") {
 
 TEST_CASE("Parser Comparison Expression - all operators") {
     auto testOp = [](const std::string &op, JunoPL::BinaryOp::Operation expected) {
-        JunoPL::Tests::FileReaderTest fileReader;
-        fileReader.setSourceCode("program test; expr check() a " + op + " b;");
+        JunoPL::Tests::FileHandlerTest fileHandler;
+        fileHandler.setSourceCode("program test; expr check() a " + op + " b;");
 
         JunoPL::Lexer lexer;
-        auto lexOutput = lexer.tokenize(fileReader);
+        auto lexOutput = lexer.tokenize(fileHandler);
         REQUIRE(lexOutput.errors.empty());
 
         JunoPL::Parser parser;
@@ -141,11 +141,11 @@ TEST_CASE("Parser Comparison Expression - all operators") {
 }
 
 TEST_CASE("Parser Math Expression - precedence") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; expr calc() 1 + 2 * 3;");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; expr calc() 1 + 2 * 3;");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -162,11 +162,11 @@ TEST_CASE("Parser Math Expression - precedence") {
 }
 
 TEST_CASE("Parser Math Expression - modulo") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; expr calc() 10 % 3;");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; expr calc() 10 % 3;");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -179,11 +179,11 @@ TEST_CASE("Parser Math Expression - modulo") {
 }
 
 TEST_CASE("Parser Unary Expression - not") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; expr check() not true;");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; expr check() not true;");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -198,11 +198,11 @@ TEST_CASE("Parser Unary Expression - not") {
 }
 
 TEST_CASE("Parser Unary Expression - negation") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; expr calc() -5;");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; expr calc() -5;");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -217,11 +217,11 @@ TEST_CASE("Parser Unary Expression - negation") {
 }
 
 TEST_CASE("Parser Parenthesized Expression") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; expr calc() (1 + 2) * 3;");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; expr calc() (1 + 2) * 3;");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -237,11 +237,11 @@ TEST_CASE("Parser Parenthesized Expression") {
 }
 
 TEST_CASE("Parser List Operation Expression") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; expr getLen() Lists.length(items);");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; expr getLen() Lists.length(items);");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -259,11 +259,11 @@ TEST_CASE("Parser List Operation Expression") {
 }
 
 TEST_CASE("Parser List Index Expression") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test; expr getFirst() items[0];");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; expr getFirst() items[0];");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -279,15 +279,15 @@ TEST_CASE("Parser List Index Expression") {
 }
 
 TEST_CASE("Parser Value Expression - literal and identifier kinds") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("program test;\n"
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test;\n"
                              "expr a() 42;\n"
                              "expr b() \"text\";\n"
                              "expr c() name;\n"
                              "expr d() true;\n");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::Parser parser;
@@ -297,8 +297,9 @@ TEST_CASE("Parser Value Expression - literal and identifier kinds") {
     REQUIRE(parseOutput.root);
     REQUIRE(parseOutput.root->body.size() == 4);
 
-    // Note: "text" and name both parse to the same string value;
-    // only kind distinguishes a literal from an identifier reference
+    // Note: "text" and name both parse to the same string value; only kind
+    // distinguishes them: a quoted string is Kind::String (so it stays text
+    // and never becomes a number), an unquoted name is Kind::Identifier
     const auto &number =
         std::get<JunoPL::CustomExpression>(parseOutput.root->body.at(0));
     CHECK(std::get<JunoPL::Value>(number.expression->value).value == "42");
@@ -309,7 +310,7 @@ TEST_CASE("Parser Value Expression - literal and identifier kinds") {
         std::get<JunoPL::CustomExpression>(parseOutput.root->body.at(1));
     CHECK(std::get<JunoPL::Value>(string.expression->value).value == "text");
     CHECK(std::get<JunoPL::Value>(string.expression->value).kind ==
-          JunoPL::Value::Kind::Literal);
+          JunoPL::Value::Kind::String);
 
     const auto &identifier =
         std::get<JunoPL::CustomExpression>(parseOutput.root->body.at(2));

@@ -253,7 +253,7 @@ std::optional<VarAssignment> Parser::parseVarAssignment(TokenList &tokens) {
     return node;
 }
 
-std::optional<PerformInstruction>
+std::optional<DoInstruction>
 Parser::parseQualifiedInstruction(TokenList &tokens) {
     mTokens = &tokens;
 
@@ -285,7 +285,7 @@ Parser::parseQualifiedInstruction(TokenList &tokens) {
         return std::nullopt;
     }
 
-    PerformInstruction instr;
+    DoInstruction instr;
     instr.qualifier = ident->value;
     instr.identifier = method->value;
     instr.params = std::move(params.value());

@@ -14,7 +14,7 @@ target_sources(
     handlers/EventHandler-impl.cpp
     handlers/VarDeclHandler-impl.cpp
     handlers/ListHandler-impl.cpp
-    handlers/PerformInstructionHandler-impl.cpp
+    handlers/DoInstructionHandler-impl.cpp
     handlers/ConditionalStatementHandler-impl.cpp
     handlers/RepeatLoopHandler-impl.cpp
     handlers/WhileLoopHandler-impl.cpp

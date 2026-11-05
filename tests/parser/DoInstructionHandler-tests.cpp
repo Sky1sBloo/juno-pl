@@ -5,14 +5,14 @@ import junopl.lexer;
 import junopl.lexer.tokens;
 import junopl.parser.handlers;
 import junopl.parser.nodes.expressions;
-import junopl.tests.filereader;
+import junopl.tests.filehandler;
 
-TEST_CASE("Parser Perform Instruction - no params") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("perform doSomething();");
+TEST_CASE("Parser Do Instruction - no params") {
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("do doSomething();");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::TokenList tokens;
@@ -20,18 +20,18 @@ TEST_CASE("Parser Perform Instruction - no params") {
         tokens.push_back(lexOutput.tokens.at(i));
     }
 
-    auto result = JunoPL::parsePerformInstruction(tokens);
+    auto result = JunoPL::parseDoInstruction(tokens);
     REQUIRE(result.has_value());
     CHECK(result.value().identifier == "doSomething");
     CHECK(result.value().params.empty());
 }
 
-TEST_CASE("Parser Perform Instruction - with params") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("perform movePlayer(1, \"right\", true);");
+TEST_CASE("Parser Do Instruction - with params") {
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("do movePlayer(1, \"right\", true);");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::TokenList tokens;
@@ -39,7 +39,7 @@ TEST_CASE("Parser Perform Instruction - with params") {
         tokens.push_back(lexOutput.tokens.at(i));
     }
 
-    auto result = JunoPL::parsePerformInstruction(tokens);
+    auto result = JunoPL::parseDoInstruction(tokens);
     REQUIRE(result.has_value());
     CHECK(result.value().identifier == "movePlayer");
     REQUIRE(result.value().params.size() == 3);
@@ -51,12 +51,12 @@ TEST_CASE("Parser Perform Instruction - with params") {
           "true");
 }
 
-TEST_CASE("Parser Perform Instruction - expression params") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("perform calc(x + 1, y * 2);");
+TEST_CASE("Parser Do Instruction - expression params") {
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("do calc(x + 1, y * 2);");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::TokenList tokens;
@@ -64,7 +64,7 @@ TEST_CASE("Parser Perform Instruction - expression params") {
         tokens.push_back(lexOutput.tokens.at(i));
     }
 
-    auto result = JunoPL::parsePerformInstruction(tokens);
+    auto result = JunoPL::parseDoInstruction(tokens);
     REQUIRE(result.has_value());
     CHECK(result.value().identifier == "calc");
     REQUIRE(result.value().params.size() == 2);
@@ -74,12 +74,12 @@ TEST_CASE("Parser Perform Instruction - expression params") {
         result.value().params[1]->value));
 }
 
-TEST_CASE("Parser Perform Instruction - missing perform keyword") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("doSomething()");
+TEST_CASE("Parser Do Instruction - missing do keyword") {
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("doSomething()");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::TokenList tokens;
@@ -87,16 +87,16 @@ TEST_CASE("Parser Perform Instruction - missing perform keyword") {
         tokens.push_back(lexOutput.tokens.at(i));
     }
 
-    auto result = JunoPL::parsePerformInstruction(tokens);
+    auto result = JunoPL::parseDoInstruction(tokens);
     CHECK(!result.has_value());
 }
 
-TEST_CASE("Parser Perform Instruction - missing identifier") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("perform ()");
+TEST_CASE("Parser Do Instruction - missing identifier") {
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("do ()");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::TokenList tokens;
@@ -104,6 +104,6 @@ TEST_CASE("Parser Perform Instruction - missing identifier") {
         tokens.push_back(lexOutput.tokens.at(i));
     }
 
-    auto result = JunoPL::parsePerformInstruction(tokens);
+    auto result = JunoPL::parseDoInstruction(tokens);
     CHECK(!result.has_value());
 }

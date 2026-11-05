@@ -5,14 +5,14 @@ import junopl.lexer;
 import junopl.lexer.tokens;
 import junopl.parser.handlers;
 import junopl.parser.nodes.statements;
-import junopl.tests.filereader;
+import junopl.tests.filehandler;
 
 TEST_CASE("Parser Body - empty body") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("{ }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("{ }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::TokenList tokens;
@@ -26,11 +26,11 @@ TEST_CASE("Parser Body - empty body") {
 }
 
 TEST_CASE("Parser Body - single var declaration") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("{ var x = 1; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("{ var x = 1; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::TokenList tokens;
@@ -50,11 +50,11 @@ TEST_CASE("Parser Body - single var declaration") {
 }
 
 TEST_CASE("Parser Body - multiple statements") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("{ var x = 1; var y = 2; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("{ var x = 1; var y = 2; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::TokenList tokens;
@@ -72,11 +72,11 @@ TEST_CASE("Parser Body - multiple statements") {
 }
 
 TEST_CASE("Parser Body - missing opening brace") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("var x = 1; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("var x = 1; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::TokenList tokens;
@@ -89,11 +89,11 @@ TEST_CASE("Parser Body - missing opening brace") {
 }
 
 TEST_CASE("Parser Body - missing closing brace") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("{ var x = 1;");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("{ var x = 1;");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::TokenList tokens;
@@ -106,11 +106,11 @@ TEST_CASE("Parser Body - missing closing brace") {
 }
 
 TEST_CASE("Parser Body - unexpected token") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("{ 123 }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("{ 123 }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::TokenList tokens;
@@ -123,11 +123,11 @@ TEST_CASE("Parser Body - unexpected token") {
 }
 
 TEST_CASE("Parser Body - list declaration") {
-    JunoPL::Tests::FileReaderTest fileReader;
-    fileReader.setSourceCode("{ list items = [1, 2, 3]; }");
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("{ list items = [1, 2, 3]; }");
 
     JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileReader);
+    auto lexOutput = lexer.tokenize(fileHandler);
     REQUIRE(lexOutput.errors.empty());
 
     JunoPL::TokenList tokens;

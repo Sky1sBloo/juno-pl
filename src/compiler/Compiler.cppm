@@ -1,0 +1,150 @@
+module;
+#include <cstddef>
+#include <expected>
+#include <filesystem>
+#include <functional>
+#include <map>
+#include <pugixml.hpp>
+#include <set>
+#include <string>
+#include <vector>
+export module junopl.compiler;
+
+import junopl.parser.nodes;
+import junopl.parser.nodes.statements;
+import junopl.parser.nodes.expressions;
+import junopl.filehandler;
+
+namespace JunoPL {
+export class Compiler {
+  public:
+    /** Returns the compiled Vizzy XML as a string. */
+    std::string compileAST(const RootNode &root);
+
+    /** Writes the compiled XML string to a file. */
+    std::expected<void, FileHandlerError>
+    writeToFile(const std::filesystem::path &path,
+                const std::string &xml);
+
+    /**
+    Traverses the AST and collects every variable declaration so the codegen
+    can emit each one as a Vizzy global (Vizzy has no local variables).
+
+    The map is keyed by scope path + name: just "name" for a top level
+    variable, "path.name" for a scoped one, e.g. "main.x", the body of a
+    while at statement 1 as "main.1.y", or a for loop iterator nested in an
+    if as "main.2.if.0.i". Components are joined with '.' because an
+    identifier can never contain one, so a scoped key can never collide with
+    a global's plain key and no '/' can end up in anything derived from it.
+    Only the value is ever emitted as a variable name.
+
+    The value is the name to emit. Top level variables keep their own name;
+    scoped ones become "name_hash", e.g. "i_9db4c1a2", so the original name
+    stays readable as a prefix while the hash of the key keeps same named
+    variables from different scopes - for loop iterators included - apart.
+    A generated name that is already taken gains a counter suffix.
+     */
+    std::map<std::string, std::string> getVariables(const RootNode &root);
+
+  private:
+    /**
+    Stores expressions, events, and instructions
+     */
+    void writeHeader();
+    void loadFunctions();
+
+    /** Scope-tracking traversal used by getVariables. */
+    void collectBody(const Body &body);
+    void collectStatement(const Statements &stmt, std::size_t index);
+
+    /** Canvas position of the next top level thread. Vizzy stores a pos on
+     * the first block of every thread, each thread in its own column. */
+    std::string nextThreadPos();
+
+    /** pugixml-emitting traversal used by compileAST. */
+    void emitBody(const Body &body, pugi::xml_node parent,
+                  std::function<std::string()> nextId);
+    void emitStatement(const Statements &stmt, std::size_t index,
+                       pugi::xml_node parent,
+                       std::function<std::string()> nextId);
+    void emitExpression(const Expression &expr, pugi::xml_node parent);
+    void emitCondition(const Expression &expr, pugi::xml_node parent);
+
+    /**
+    Writes the assignments that give top level declarations the values they
+    were compiled with. Vizzy globals always start at 0 (every reference
+    program writes number="0"), so the values have to be assigned from
+    inside a handler - the start one, before any of its own statements.
+    Returns false when there was nothing to assign.
+     */
+    bool emitTopLevelInits(const RootNode &root, pugi::xml_node parent,
+                           std::function<std::string()> nextId);
+
+    /** The two declaration statements, shared by a handler body and by the
+     * top level initializers. */
+    void emitVarDeclaration(const VarDeclaration &varDecl,
+                            pugi::xml_node parent,
+                            std::function<std::string()> nextId);
+    void emitListDeclaration(const ListDeclaration &listDecl,
+                             pugi::xml_node parent,
+                             std::function<std::string()> nextId);
+
+    /**
+    Vizzy lists are 1 based while Juno writes 0 based indices, so an index
+    gains one on the way out: a literal index becomes the next number and
+    anything else is wrapped in "index + 1".
+     */
+    void emitListIndex(const Expression &index, pugi::xml_node parent);
+
+    /** Resolves a variable reference to its emitted (possibly hashed) name,
+     * looking up the current scope path in mVariables. Falls back to raw
+     * name for top-level variables. */
+    std::string resolveVariableName(const std::string &name);
+
+    /** Key/value table built by getVariables. */
+    std::map<std::string, std::string> mVariables;
+    /** Emitted names in declaration order, so <Variables> lists them the way
+     * the source declares them instead of alphabetically. */
+    std::vector<std::string> mVariableOrder;
+    /** Emitted names that were declared as a list, so they are written as a
+     * Vizzy list (<Variable name="x"><Items /></Variable>) instead of a
+     * number variable. */
+    std::set<std::string> mLists;
+    /** Components of the scope being visited; empty at top level. */
+    std::vector<std::string> mScopePath;
+    /** Every name already claimed, so generated names stay unique. */
+    std::set<std::string> mUsedNames;
+    /**
+    Parameters of the handler being emitted. A custom event arrives as
+    Vizzy's built-in `data` list, so its parameter reads as data[position]
+    with the 1 based position of the parameter; the internal events bind
+    their own names (part, planet, ...), marked with -1, and those are
+    referenced as they are instead of being declared.
+     */
+    std::map<std::string, int> mHandlerParams;
+    /** Canvas X of the thread being laid out, -10 for the first one. */
+    int mThreadX = -10;
+
+    /**
+    Claims the name of each top level variable, which is already global, so
+    no generated name can take it.
+     */
+    void reserveGlobals(const RootNode &root);
+
+    /** Registers a variable (isList: a Vizzy list) declared in the scope
+     * currently being visited. */
+    void declareScoped(const std::string &name, bool isList);
+
+    /** "name" plus the hash of key, made unique against mUsedNames. */
+    std::string makeUnique(const std::string &name, const std::string &key);
+
+    void visitBody(const Body &body);
+    /**
+    index is the position of the statement in its body. It becomes the path
+    component of any scope the statement opens, which is what keeps two
+    sibling blocks that declare the same name apart.
+     */
+    void visitStatement(const Statements &stmt, std::size_t index);
+    void visitExpression(const Expression &expr);
+};
+}

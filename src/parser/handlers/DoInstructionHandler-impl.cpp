@@ -3,12 +3,12 @@ module;
 module junopl.parser;
 
 namespace JunoPL {
-std::optional<PerformInstruction>
-Parser::parsePerformInstruction(TokenList &tokens) {
+std::optional<DoInstruction>
+Parser::parseDoInstruction(TokenList &tokens) {
     mTokens = &tokens;
 
-    auto performToken = expectToken(TokenType::K_PERFORM);
-    if (!performToken) {
+    auto doToken = expectToken(TokenType::K_DO);
+    if (!doToken) {
         recoverTo(TokenType::OP_SEMICOLON);
         return std::nullopt;
     }
@@ -19,7 +19,7 @@ Parser::parsePerformInstruction(TokenList &tokens) {
         return std::nullopt;
     }
 
-    PerformInstruction instr;
+    DoInstruction instr;
     instr.identifier = ident->value;
 
     // Check for qualified identifier: identifier.identifier
@@ -46,7 +46,7 @@ Parser::parsePerformInstruction(TokenList &tokens) {
     }
 
     instr.params = std::move(params.value());
-    instr.loc = locationOf(*performToken);
+    instr.loc = locationOf(*doToken);
     return instr;
 }
 }

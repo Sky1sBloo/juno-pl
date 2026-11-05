@@ -25,13 +25,15 @@ export struct CustomExpression {
 };
 
 /**
-Can be int, string, bool as Vizzy doesn't separate them.
-Kind distinguishes a literal from a bare identifier reference, which are
-otherwise textually identical in the source.
+A literal carries int, string or bool text, which the compiler writes the
+way Vizzy stores it (number=, text=, bool=). Kind separates the three
+cases that are otherwise textually identical in the source: a quoted
+string such as "10000.99" has to stay text instead of becoming a number,
+and an identifier reference such as 10000.99 without quotes is a name.
  */
 export struct Value {
     std::string value;
-    enum class Kind { Literal, Identifier } kind;
+    enum class Kind { Literal, String, Identifier } kind;
     SourceLocation loc;
 };
 
