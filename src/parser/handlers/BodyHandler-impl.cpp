@@ -51,9 +51,9 @@ std::optional<Body> Parser::parseBody(TokenList &tokens) {
             }
             break;
         }
-        case TokenType::K_PERFORM: {
-            if (auto performStmt = parsePerformInstruction(tokens)) {
-                addStatement(body, std::move(performStmt.value()));
+        case TokenType::K_DO: {
+            if (auto doStmt = parseDoInstruction(tokens)) {
+                addStatement(body, std::move(doStmt.value()));
             } else {
                 recoverTo(TokenType::OP_SEMICOLON);
                 if (!mTokens->empty()) mTokens->advance();
@@ -122,7 +122,7 @@ std::optional<Body> Parser::parseBody(TokenList &tokens) {
         default: {
             mErrors.emplace_back(ParserError::UnexpectedToken(
                 mTokens->current(),
-                {TokenType::K_VAR, TokenType::K_LIST, TokenType::K_PERFORM,
+                {TokenType::K_VAR, TokenType::K_LIST, TokenType::K_DO,
                  TokenType::K_IF, TokenType::K_EMIT, TokenType::K_REPEAT,
                  TokenType::K_WHILE, TokenType::K_FOR, TokenType::K_BREAK,
                  TokenType::IDENT}));

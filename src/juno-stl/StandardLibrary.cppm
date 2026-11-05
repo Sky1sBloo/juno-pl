@@ -46,7 +46,7 @@ export class JunoSTL {
         MISC
     };
 
-    // To identify if its part of perform or not
+    // To identify if this is an instruction (do) or an expression
     enum class Operations { INSTRUCTION, EXPRESSION };
 
     /** Upper bound for variadic functions, e.g. String.join. */
@@ -99,7 +99,7 @@ export class JunoSTL {
 
     /**
     To find a registered definition matching both qualifier and operation type.
-    Use this when the call site is known to be either an instruction (perform)
+    Use this when the call site is known to be either an instruction (do)
     or an expression, so only functions registered for that context match.
     The same name can be registered for both contexts, e.g. Input.throttle(x)
     as an instruction and Input.throttle() as an expression.

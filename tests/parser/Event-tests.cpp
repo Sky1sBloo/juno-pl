@@ -174,9 +174,9 @@ TEST_CASE("Parser Emit - qualified identifier") {
     CHECK(emit.identifier == "module.send");
 }
 
-TEST_CASE("Parser Perform - qualified identifier") {
+TEST_CASE("Parser Do - qualified identifier") {
     JunoPL::Tests::FileHandlerTest fileHandler;
-    fileHandler.setSourceCode("program test; on start() { perform module.doStuff(); }");
+    fileHandler.setSourceCode("program test; on start() { do module.doStuff(); }");
 
     JunoPL::Lexer lexer;
     auto lexOutput = lexer.tokenize(fileHandler);
@@ -189,7 +189,7 @@ TEST_CASE("Parser Perform - qualified identifier") {
     REQUIRE(parseOutput.root);
 
     const auto &event = std::get<JunoPL::EventNode>(parseOutput.root->body.at(0));
-    const auto &perform = std::get<JunoPL::PerformInstruction>(event.body.body.at(0)->statement);
-    CHECK(perform.qualifier == "module");
-    CHECK(perform.identifier == "doStuff");
+    const auto &doInstr = std::get<JunoPL::DoInstruction>(event.body.body.at(0)->statement);
+    CHECK(doInstr.qualifier == "module");
+    CHECK(doInstr.identifier == "doStuff");
 }

@@ -30,7 +30,7 @@ inline std::string tokenTypeName(TokenType type) {
     case TokenType::K_WHILE: return "while";
     case TokenType::K_BREAK: return "break";
     case TokenType::K_INSTR: return "instr";
-    case TokenType::K_PERFORM: return "perform";
+    case TokenType::K_DO: return "do";
     case TokenType::K_ON: return "on";
     case TokenType::K_EMIT: return "emit";
     case TokenType::K_CRAFT: return "craft";

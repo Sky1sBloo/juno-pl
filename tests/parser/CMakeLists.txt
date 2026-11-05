@@ -1,6 +1,6 @@
 target_sources(juno-pl-tests PRIVATE
   BodyHandler-tests.cpp
-  PerformInstructionHandler-tests.cpp
+  DoInstructionHandler-tests.cpp
   ParserIntegration-tests.cpp
   Program-tests.cpp
   Function-tests.cpp

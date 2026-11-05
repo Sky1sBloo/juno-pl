@@ -62,7 +62,7 @@ var Test1 = 0;
 var Test2 = 0;
 
 on start() {
-    perform Game.display("Hello world");
+    do Game.display("Hello world");
     Test1 = 1;
 })");
 
@@ -111,7 +111,7 @@ TEST_CASE("Compiler XML - unary minus folds into constant") {
 program test;
 on start() {
     var x = -4;
-    perform Game.display(x);
+    do Game.display(x);
 })");
 
     CHECK(xml.find("<Constant number=\"-4\" />") != std::string::npos);
@@ -330,7 +330,7 @@ TEST_CASE("Compiler XML - SetInput set-craft-property") {
 program test;
 
 on start() {
-    perform Craft.setInput("throttle", 1);
+    do Craft.setInput("throttle", 1);
 })");
 
     CHECK(xml.find("<SetCraftProperty property=") != std::string::npos);
@@ -568,7 +568,7 @@ instr noop() {
           std::string::npos);
 }
 
-TEST_CASE("Compiler XML - perform of a user instruction") {
+TEST_CASE("Compiler XML - do of a user instruction") {
     const auto xml = compileSource(R"(
 program test;
 
@@ -577,7 +577,7 @@ instr burn(fuelRate) {
 }
 
 on start() {
-    perform burn(2);
+    do burn(2);
 })");
 
     CHECK(xml.find("<CallCustomInstruction call=\"burn\" id=\"") !=

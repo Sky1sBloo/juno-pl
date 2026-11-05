@@ -12,7 +12,7 @@ import junopl.tests.filehandler;
 TEST_CASE("Parser List Operation - insert") {
     JunoPL::Tests::FileHandlerTest fileHandler;
     fileHandler.setSourceCode(
-        "program test; on start() { list items = [1, 2]; perform Lists.insert(items, 3); }");
+        "program test; on start() { list items = [1, 2]; do Lists.insert(items, 3); }");
 
     JunoPL::Lexer lexer;
     auto lexOutput = lexer.tokenize(fileHandler);
@@ -26,9 +26,9 @@ TEST_CASE("Parser List Operation - insert") {
 
     const auto &event = std::get<JunoPL::EventNode>(parseOutput.root->body.at(0));
     REQUIRE(event.body.body.size() == 2);
-    REQUIRE(std::holds_alternative<JunoPL::PerformInstruction>(event.body.body.at(1)->statement));
+    REQUIRE(std::holds_alternative<JunoPL::DoInstruction>(event.body.body.at(1)->statement));
 
-    const auto &instr = std::get<JunoPL::PerformInstruction>(event.body.body.at(1)->statement);
+    const auto &instr = std::get<JunoPL::DoInstruction>(event.body.body.at(1)->statement);
     CHECK(instr.qualifier == "Lists");
     CHECK(instr.identifier == "insert");
     REQUIRE(instr.params.size() == 2);
@@ -39,7 +39,7 @@ TEST_CASE("Parser List Operation - insert") {
 TEST_CASE("Parser List Operation - remove") {
     JunoPL::Tests::FileHandlerTest fileHandler;
     fileHandler.setSourceCode(
-        "program test; on start() { list items = [1, 2]; perform Lists.remove(items, 0); }");
+        "program test; on start() { list items = [1, 2]; do Lists.remove(items, 0); }");
 
     JunoPL::Lexer lexer;
     auto lexOutput = lexer.tokenize(fileHandler);
@@ -52,7 +52,7 @@ TEST_CASE("Parser List Operation - remove") {
     REQUIRE(parseOutput.root);
 
     const auto &event = std::get<JunoPL::EventNode>(parseOutput.root->body.at(0));
-    const auto &instr = std::get<JunoPL::PerformInstruction>(event.body.body.at(1)->statement);
+    const auto &instr = std::get<JunoPL::DoInstruction>(event.body.body.at(1)->statement);
     CHECK(instr.qualifier == "Lists");
     CHECK(instr.identifier == "remove");
     CHECK(instr.params.size() == 2);
@@ -61,7 +61,7 @@ TEST_CASE("Parser List Operation - remove") {
 TEST_CASE("Parser List Operation - clear") {
     JunoPL::Tests::FileHandlerTest fileHandler;
     fileHandler.setSourceCode(
-        "program test; on start() { list items = [1]; perform Lists.clear(items); }");
+        "program test; on start() { list items = [1]; do Lists.clear(items); }");
 
     JunoPL::Lexer lexer;
     auto lexOutput = lexer.tokenize(fileHandler);
@@ -74,7 +74,7 @@ TEST_CASE("Parser List Operation - clear") {
     REQUIRE(parseOutput.root);
 
     const auto &event = std::get<JunoPL::EventNode>(parseOutput.root->body.at(0));
-    const auto &instr = std::get<JunoPL::PerformInstruction>(event.body.body.at(1)->statement);
+    const auto &instr = std::get<JunoPL::DoInstruction>(event.body.body.at(1)->statement);
     CHECK(instr.identifier == "clear");
     REQUIRE(instr.params.size() == 1);
     CHECK(std::get<JunoPL::Value>(instr.params[0]->value).value == "items");
@@ -83,7 +83,7 @@ TEST_CASE("Parser List Operation - clear") {
 TEST_CASE("Parser List Operation - sort") {
     JunoPL::Tests::FileHandlerTest fileHandler;
     fileHandler.setSourceCode(
-        "program test; on start() { list items = [3, 1, 2]; perform Lists.sort(items); }");
+        "program test; on start() { list items = [3, 1, 2]; do Lists.sort(items); }");
 
     JunoPL::Lexer lexer;
     auto lexOutput = lexer.tokenize(fileHandler);
@@ -96,7 +96,7 @@ TEST_CASE("Parser List Operation - sort") {
     REQUIRE(parseOutput.root);
 
     const auto &event = std::get<JunoPL::EventNode>(parseOutput.root->body.at(0));
-    const auto &instr = std::get<JunoPL::PerformInstruction>(event.body.body.at(1)->statement);
+    const auto &instr = std::get<JunoPL::DoInstruction>(event.body.body.at(1)->statement);
     CHECK(instr.identifier == "sort");
     CHECK(instr.params.size() == 1);
 }
@@ -104,7 +104,7 @@ TEST_CASE("Parser List Operation - sort") {
 TEST_CASE("Parser List Operation - reverse") {
     JunoPL::Tests::FileHandlerTest fileHandler;
     fileHandler.setSourceCode(
-        "program test; on start() { list items = [1, 2]; perform Lists.reverse(items); }");
+        "program test; on start() { list items = [1, 2]; do Lists.reverse(items); }");
 
     JunoPL::Lexer lexer;
     auto lexOutput = lexer.tokenize(fileHandler);
@@ -117,14 +117,14 @@ TEST_CASE("Parser List Operation - reverse") {
     REQUIRE(parseOutput.root);
 
     const auto &event = std::get<JunoPL::EventNode>(parseOutput.root->body.at(0));
-    const auto &instr = std::get<JunoPL::PerformInstruction>(event.body.body.at(1)->statement);
+    const auto &instr = std::get<JunoPL::DoInstruction>(event.body.body.at(1)->statement);
     CHECK(instr.identifier == "reverse");
     CHECK(instr.params.size() == 1);
 }
 
 TEST_CASE("Parser List Index - expression") {
     JunoPL::Tests::FileHandlerTest fileHandler;
-    fileHandler.setSourceCode("program test; on start() { list items = [10, 20, 30]; perform show(items[1]); }");
+    fileHandler.setSourceCode("program test; on start() { list items = [10, 20, 30]; do show(items[1]); }");
 
     JunoPL::Lexer lexer;
     auto lexOutput = lexer.tokenize(fileHandler);
@@ -137,11 +137,11 @@ TEST_CASE("Parser List Index - expression") {
     REQUIRE(parseOutput.root);
 
     const auto &event = std::get<JunoPL::EventNode>(parseOutput.root->body.at(0));
-    const auto &perform = std::get<JunoPL::PerformInstruction>(event.body.body.at(1)->statement);
-    REQUIRE(perform.params.size() == 1);
-    REQUIRE(std::holds_alternative<JunoPL::ListIndex>(perform.params[0]->value));
+    const auto &doInstr = std::get<JunoPL::DoInstruction>(event.body.body.at(1)->statement);
+    REQUIRE(doInstr.params.size() == 1);
+    REQUIRE(std::holds_alternative<JunoPL::ListIndex>(doInstr.params[0]->value));
 
-    const auto &listIdx = std::get<JunoPL::ListIndex>(perform.params[0]->value);
+    const auto &listIdx = std::get<JunoPL::ListIndex>(doInstr.params[0]->value);
     CHECK(listIdx.identifier == "items");
     CHECK(std::get<JunoPL::Value>(listIdx.index->value).value == "1");
 }

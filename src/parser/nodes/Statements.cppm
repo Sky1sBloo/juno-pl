@@ -35,7 +35,7 @@ export struct ListDeclaration {
     SourceLocation loc;
 };
 
-export struct PerformInstruction {
+export struct DoInstruction {
     std::string qualifier;
     std::string identifier;
     std::vector<ExpressionHandle> params;
@@ -90,7 +90,7 @@ export struct ForLoop {
 
 export struct Statements {
     std::variant<Body, VarDeclaration, VarAssignment, ListDeclaration,
-                 PerformInstruction, BreakStatement, ConditionalStatement,
+                 DoInstruction, BreakStatement, ConditionalStatement,
                  EmitEvent, RepeatLoop, WhileLoop, ForLoop>
         statement;
 

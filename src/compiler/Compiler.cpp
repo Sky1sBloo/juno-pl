@@ -1144,7 +1144,7 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
             [&](const ListDeclaration &listDecl) {
                 emitListDeclaration(listDecl, parent, nextId);
             },
-            [&](const PerformInstruction &instr) {
+            [&](const DoInstruction &instr) {
                 if (instr.qualifier == "Game") {
                     if (instr.identifier == "display") {
                         auto el = parent.append_child("DisplayMessage");
@@ -1379,7 +1379,7 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                         emitExpression(*p, el);
                     }
                 } else if (instr.qualifier.empty()) {
-                    // An unqualified perform is a call to a user defined
+                    // An unqualified do is a call to a user defined
                     // `instr`, Vizzy's CallCustomInstruction block
                     auto el = parent.append_child("CallCustomInstruction");
                     el.append_attribute("call") = instr.identifier.c_str();
@@ -2263,7 +2263,7 @@ void Compiler::collectStatement(const Statements &statement,
                    [this](const ListDeclaration &listDecl) {
                        declareScoped(listDecl.identifier, true);
                    },
-                   [](const PerformInstruction &) {},
+                   [](const DoInstruction &) {},
                    [](const BreakStatement &) {},
                    [this, scope](const ConditionalStatement &conditional) {
                        mScopePath.push_back(scope + ".if");

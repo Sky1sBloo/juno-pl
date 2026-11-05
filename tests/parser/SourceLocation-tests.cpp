@@ -127,8 +127,8 @@ TEST_CASE("Source Location - statements in body") {
                              "instr main() {\n"
                              "    var x = 1;\n"
                              "    x = 2;\n"
-                              "    perform Lists.clear(items);\n"
-                             "    perform foo(1);\n"
+                               "    do Lists.clear(items);\n"
+                              "    do foo(1);\n"
                              "    emit myEvent(2);\n"
                              "}\n");
 
@@ -163,17 +163,17 @@ TEST_CASE("Source Location - statements in body") {
     checkLocation(assignment.loc, findIdent(tokens, "x", 1));
     CHECK(assignment.loc.line == 3);
 
-    const auto &clearInstr = std::get<JunoPL::PerformInstruction>(
+    const auto &clearInstr = std::get<JunoPL::DoInstruction>(
         function.body.body.at(2)->statement);
     checkLocation(clearInstr.loc,
-                  findToken(tokens, JunoPL::TokenType::K_PERFORM, 0));
+                  findToken(tokens, JunoPL::TokenType::K_DO, 0));
     CHECK(clearInstr.loc.line == 4);
 
-    const auto &perform = std::get<JunoPL::PerformInstruction>(
+    const auto &doInstr = std::get<JunoPL::DoInstruction>(
         function.body.body.at(3)->statement);
-    checkLocation(perform.loc,
-                  findToken(tokens, JunoPL::TokenType::K_PERFORM, 1));
-    CHECK(perform.loc.line == 5);
+    checkLocation(doInstr.loc,
+                  findToken(tokens, JunoPL::TokenType::K_DO, 1));
+    CHECK(doInstr.loc.line == 5);
 
     const auto &emit =
         std::get<JunoPL::EmitEvent>(function.body.body.at(4)->statement);

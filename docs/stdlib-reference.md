@@ -1,7 +1,7 @@
 # Standard Library Reference
 
 Qualified calls use the form `<Qualifier>.<name>(<args>)`. Each function is
-registered as either an **instruction** (used with `perform`) or an
+registered as either an **instruction** (used with `do`) or an
 **expression** (used inside expressions), with an accepted argument count
 range.
 

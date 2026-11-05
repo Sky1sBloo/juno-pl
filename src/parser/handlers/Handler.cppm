@@ -38,7 +38,7 @@ export std::optional<VarAssignment> parseVarAssignment(TokenList &tokens) {
     return parser.parseVarAssignment(tokens);
 }
 
-export std::optional<PerformInstruction>
+export std::optional<DoInstruction>
 parseQualifiedInstruction(TokenList &tokens) {
     Parser parser;
     return parser.parseQualifiedInstruction(tokens);
@@ -49,10 +49,10 @@ export std::optional<ListDeclaration> parseListDeclaration(TokenList &tokens) {
     return parser.parseListDeclaration(tokens);
 }
 
-export std::optional<PerformInstruction>
-parsePerformInstruction(TokenList &tokens) {
+export std::optional<DoInstruction>
+parseDoInstruction(TokenList &tokens) {
     Parser parser;
-    return parser.parsePerformInstruction(tokens);
+    return parser.parseDoInstruction(tokens);
 }
 
 export std::optional<BreakStatement> parseBreakStatement(TokenList &tokens) {

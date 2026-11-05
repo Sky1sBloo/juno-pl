@@ -103,7 +103,7 @@ TEST_CASE("Error Recovery - recovery to semicolon") {
 
 TEST_CASE("Error Recovery - bad expression in func call") {
     JunoPL::Tests::FileHandlerTest fileHandler;
-    fileHandler.setSourceCode("program test; on start() { perform doStuff(; var y = 2; }");
+    fileHandler.setSourceCode("program test; on start() { do doStuff(; var y = 2; }");
 
     JunoPL::Lexer lexer;
     auto lexOutput = lexer.tokenize(fileHandler);

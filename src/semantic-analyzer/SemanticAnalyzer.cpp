@@ -181,17 +181,17 @@ void SemanticAnalyzer::visitStatement(const Statements &statement) {
                      declare(Symbol{listDecl.identifier, Symbol::Kind::LIST, 0,
                                     listDecl.loc});
                  },
-                 [this](const PerformInstruction &performInstr) {
-                     if (!performInstr.qualifier.empty()) {
-                         expectQualified(performInstr.qualifier,
-                                         performInstr.identifier,
-                                         performInstr.params.size(),
-                                         JunoSTL::Operations::INSTRUCTION,
-                                         performInstr.loc);
-                     } else {
-                         expect(performInstr.identifier, performInstr.loc);
-                     }
-                     for (const auto &param : performInstr.params) {
+                 [this](const DoInstruction &doInstr) {
+                      if (!doInstr.qualifier.empty()) {
+                          expectQualified(doInstr.qualifier,
+                                          doInstr.identifier,
+                                          doInstr.params.size(),
+                                          JunoSTL::Operations::INSTRUCTION,
+                                          doInstr.loc);
+                      } else {
+                          expect(doInstr.identifier, doInstr.loc);
+                      }
+                      for (const auto &param : doInstr.params) {
                          if (param) {
                              visitExpression(*param);
                          }

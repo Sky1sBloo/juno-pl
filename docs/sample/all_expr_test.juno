@@ -5,7 +5,7 @@ Layout rules:
   - Statements follow the reference program's FlightStart thread in the same
     order (AllExpr ids 0-273), then the remaining event threads (ids 274-282).
   - Vizzy's <LogMessage> has no Juno block, so every reference LogMessage is
-    written as `perform Game.display(<expr>);` to keep the expressions in place.
+    written as `do Game.display(<expr>);` to keep the expressions in place.
   - Blocks Juno cannot express are left as a comment naming the AllExpr id.
 
 Compile and compare (AllExpr.xml is the reference, never edited):
@@ -20,9 +20,9 @@ list myList;
 
 on start() {
     // id1 <WaitSeconds>
-    perform Game.delay(1);
+    do Game.delay(1);
     // id2 <WaitUntil>
-    perform Game.delayUntil(Fuel.stageFuel());
+    do Game.delayUntil(Fuel.stageFuel());
     // id3 <Repeat> — Vizzy <Comment> blocks are not emitted (comments are lexed away)
     repeat 10 {
         // Comment Text
@@ -33,361 +33,361 @@ on start() {
         break;
     }
     // id5 <DisplayMessage>
-    perform Game.display("text");
+    do Game.display("text");
     // id6 <LogFlight>
-    perform Game.flightLog("text", true);
+    do Game.flightLog("text", true);
     // id7 <LogMessage>
-    perform Game.display("text");
+    do Game.display("text");
     // id8-17 <If>/<ElseIf>/<Else>
     if (true) {
-        perform Game.display("text");
+        do Game.display("text");
     } elif (false) {
-        perform Game.display("text");
-        perform Game.display("text");
+        do Game.display("text");
+        do Game.display("text");
     } else {
-        perform Game.display("text");
+        do Game.display("text");
     }
 
     // id18-26 <BinaryOp> arithmetic
-    perform Game.display(0 + 0);
-    perform Game.display(0 - 0);
-    perform Game.display(0 / 0);
-    perform Game.display(0 * 0);
+    do Game.display(0 + 0);
+    do Game.display(0 - 0);
+    do Game.display(0 / 0);
+    do Game.display(0 * 0);
     // id22 <BinaryOp op="^"> — Juno writes it as Math.pow
-    perform Game.display(Math.pow(0, 0));
-    perform Game.display(0 % 0);
+    do Game.display(Math.pow(0, 0));
+    do Game.display(0 % 0);
     // id24-26 op="rand"/"min"/"max" are BinaryOps in Vizzy, Math.* calls in Juno
-    perform Game.display(Math.random(0, 0));
-    perform Game.display(Math.min(0, 0));
-    perform Game.display(Math.max(0, 0));
+    do Game.display(Math.random(0, 0));
+    do Game.display(Math.min(0, 0));
+    do Game.display(Math.max(0, 0));
 
     // id27-29 <BoolOp>/<Not>
-    perform Game.display(false and false);
-    perform Game.display(false or false);
-    perform Game.display(not false);
+    do Game.display(false and false);
+    do Game.display(false or false);
+    do Game.display(not false);
 
     // id30-34 <Comparison>
-    perform Game.display(0 == 0);
-    perform Game.display(0 < 0);
-    perform Game.display(0 <= 0);
-    perform Game.display(0 > 0);
-    perform Game.display(0 >= 0);
+    do Game.display(0 == 0);
+    do Game.display(0 < 0);
+    do Game.display(0 <= 0);
+    do Game.display(0 > 0);
+    do Game.display(0 >= 0);
 
     // id35-36 <MathFunction> / op="atan2"
-    perform Game.display(Math.abs(0));
-    perform Game.display(Math.atan2("y", "x"));
+    do Game.display(Math.abs(0));
+    do Game.display(Math.atan2("y", "x"));
 
     // id37 <Conditional>
-    perform Game.display(false ? 0 else 0);
+    do Game.display(false ? 0 else 0);
 
     // id38-43 <StringOp>
-    perform Game.display(String.join("alpha", "bravo", ""));
-    perform Game.display(String.lengthOf("alpha"));
+    do Game.display(String.join("alpha", "bravo", ""));
+    do Game.display(String.lengthOf("alpha"));
     // Vizzy letter(index, text): Juno takes (text, index)
-    perform Game.display(String.letterOf("alpha", 1));
+    do Game.display(String.letterOf("alpha", 1));
     // Vizzy substring(start, length, text): Juno takes (text, start, length)
-    perform Game.display(String.substr("alpha", 2, 4));
-    perform Game.display(String.strContains("alpha", "a"));
-    perform Game.display(String.format("{0:n1}", "10000.99", ""));
+    do Game.display(String.substr("alpha", 2, 4));
+    do Game.display(String.strContains("alpha", "a"));
+    do Game.display(String.format("{0:n1}", "10000.99", ""));
 
     // id44-46 <Vector>/<VectorOp>
-    perform Game.display(Vector.vec(0, 0, 0));
-    perform Game.display(Vector.vecLength("(0, 0, 0)"));
-    perform Game.display(Vector.dot("(0, 0, 0)", "(0, 0, 0)"));
+    do Game.display(Vector.vec(0, 0, 0));
+    do Game.display(Vector.vecLength("(0, 0, 0)"));
+    do Game.display(Vector.dot("(0, 0, 0)", "(0, 0, 0)"));
     // id47 <EvaluateExpression>
-    perform Game.display(Math.evaluate("x"));
+    do Game.display(Math.evaluate("x"));
     // id48 duplicate of id43
-    perform Game.display(String.format("{0:n1}", "10000.99", ""));
+    do Game.display(String.format("{0:n1}", "10000.99", ""));
 
     // id49-61 <SetInput>
-    perform Input.throttle(0);
-    perform Input.roll(0);
-    perform Input.pitch(0);
-    perform Input.yaw(0);
-    perform Input.brake(0);
+    do Input.throttle(0);
+    do Input.roll(0);
+    do Input.pitch(0);
+    do Input.yaw(0);
+    do Input.brake(0);
     // Vizzy has input="slider1".."slider4"; Juno names the slider by index
-    perform Input.slider(1, 0);
-    perform Input.slider(2, 0);
-    perform Input.slider(3, 0);
-    perform Input.slider(4, 0);
-    perform Input.translateForward(0);
-    perform Input.translateRight(0);
-    perform Input.translateUp(0);
-    perform Input.translationMode(0);
+    do Input.slider(1, 0);
+    do Input.slider(2, 0);
+    do Input.slider(3, 0);
+    do Input.slider(4, 0);
+    do Input.translateForward(0);
+    do Input.translateRight(0);
+    do Input.translateUp(0);
+    do Input.translationMode(0);
 
     // id62-65 <SetTargetHeading>
-    perform Craft.pitchTo(0);
-    perform Craft.headingTo(0);
-    perform Craft.pidPitchTo(0);
-    perform Craft.pidRollTo(0);
+    do Craft.pitchTo(0);
+    do Craft.headingTo(0);
+    do Craft.pidPitchTo(0);
+    do Craft.pidRollTo(0);
 
     // id66 <SetTarget>
-    perform Craft.setTarget("name");
+    do Craft.setTarget("name");
 
     // id67-73 <LockNavSphere>
-    perform Craft.lockNone();
-    perform Craft.lockPrograde();
-    perform Craft.lockRetrograde();
-    perform Craft.lockTarget();
-    perform Craft.lockBurnNode();
-    perform Craft.lockCurrent();
+    do Craft.lockNone();
+    do Craft.lockPrograde();
+    do Craft.lockRetrograde();
+    do Craft.lockTarget();
+    do Craft.lockBurnNode();
+    do Craft.lockCurrent();
     // Vizzy takes a single vector constant, Juno three components
-    perform Craft.lockVector(0, 0, 1);
+    do Craft.lockVector(0, 0, 1);
 
     // id74-80 <SetCameraProperty>
-    perform Camera.zoom(100);
-    perform Camera.xRotation(100);
-    perform Camera.yRotation(100);
-    perform Camera.tilt(100);
-    perform Camera.mode(100);
-    perform Camera.modeIndex(100);
-    perform Camera.targetOffset(100);
+    do Camera.zoom(100);
+    do Camera.xRotation(100);
+    do Camera.yRotation(100);
+    do Camera.tilt(100);
+    do Camera.mode(100);
+    do Camera.modeIndex(100);
+    do Camera.targetOffset(100);
 
     // id81 <SetActivationGroup>
-    perform Input.activationGroup(1, true);
+    do Input.activationGroup(1, true);
 
     // id82-86 <SetCraftProperty> part control
-    perform Part.activate(0, 0);
-    perform Part.focus(0, 0);
-    perform Part.name(0, 0);
+    do Part.activate(0, 0);
+    do Part.focus(0, 0);
+    do Part.name(0, 0);
     // Vizzy property Part.SetExplode with two inputs
-    perform Part.explode(0, 0);
+    do Part.explode(0, 0);
     // Vizzy property Part.FuelTransfer with two inputs
-    perform Part.drainFuel(0, 0);
+    do Part.drainFuel(0, 0);
 
     // id87 <SwitchCraft>
-    perform Game.switchToCraft(0);
+    do Game.switchToCraft(0);
 
     // id88 <PlayBeep>
-    perform Game.beep(1000, 1, 2);
+    do Game.beep(1000, 1, 2);
 
     // id89 <LogMessage> Sound.Frequency
-    perform Game.display(Camera.soundFrequency("C#", 3));
+    do Game.display(Camera.soundFrequency("C#", 3));
 
     // id90 <Speak>
-    perform Game.speak("text", 0, 0);
+    do Game.speak("text", 0, 0);
 
     // id91-93 Altitude
-    perform Game.display(Altitude.getAGL());
-    perform Game.display(Altitude.getASL());
-    perform Game.display(Altitude.getASF());
+    do Game.display(Altitude.getAGL());
+    do Game.display(Altitude.getASL());
+    do Game.display(Altitude.getASF());
     // id94-100 Orbit
-    perform Game.display(Orbit.ap());
-    perform Game.display(Orbit.pe());
-    perform Game.display(Orbit.timeToAp());
-    perform Game.display(Orbit.timeToPe());
-    perform Game.display(Orbit.eccentricity());
-    perform Game.display(Orbit.inclination());
-    perform Game.display(Orbit.period());
+    do Game.display(Orbit.ap());
+    do Game.display(Orbit.pe());
+    do Game.display(Orbit.timeToAp());
+    do Game.display(Orbit.timeToPe());
+    do Game.display(Orbit.eccentricity());
+    do Game.display(Orbit.inclination());
+    do Game.display(Orbit.period());
     // id101-106 Atmosphere
-    perform Game.display(Atmosphere.density());
-    perform Game.display(Atmosphere.pressure());
-    perform Game.display(Atmosphere.speedOfSound());
-    perform Game.display(Atmosphere.temperature());
-    perform Game.display(Atmosphere.elements());
-    perform Game.display(Atmosphere.composition());
+    do Game.display(Atmosphere.density());
+    do Game.display(Atmosphere.pressure());
+    do Game.display(Atmosphere.speedOfSound());
+    do Game.display(Atmosphere.temperature());
+    do Game.display(Atmosphere.elements());
+    do Game.display(Atmosphere.composition());
     // id107-115 Performance
-    perform Game.display(Performance.mass());
-    perform Game.display(Performance.engineThrust());
-    perform Game.display(Performance.dryMass());
-    perform Game.display(Performance.fuelMass());
-    perform Game.display(Performance.maxEngineThrust());
-    perform Game.display(Performance.twr());
-    perform Game.display(Performance.currentISP());
-    perform Game.display(Performance.stageDeltaV());
-    perform Game.display(Performance.stageBurnTime());
+    do Game.display(Performance.mass());
+    do Game.display(Performance.engineThrust());
+    do Game.display(Performance.dryMass());
+    do Game.display(Performance.fuelMass());
+    do Game.display(Performance.maxEngineThrust());
+    do Game.display(Performance.twr());
+    do Game.display(Performance.currentISP());
+    do Game.display(Performance.stageDeltaV());
+    do Game.display(Performance.stageBurnTime());
     // id116-119 Fuel
-    perform Game.display(Fuel.battery());
-    perform Game.display(Fuel.stageFuel());
-    perform Game.display(Fuel.monoProp());
-    perform Game.display(Fuel.totalFuel());
+    do Game.display(Fuel.battery());
+    do Game.display(Fuel.stageFuel());
+    do Game.display(Fuel.monoProp());
+    do Game.display(Fuel.totalFuel());
     // id120-133 Nav
-    perform Game.display(Nav.nav());
-    perform Game.display(Nav.target());
-    perform Game.display(Nav.heading());
-    perform Game.display(Nav.pitch());
-    perform Game.display(Nav.autopilotHeading());
-    perform Game.display(Nav.autopilotPitch());
-    perform Game.display(Nav.bankAngle());
-    perform Game.display(Nav.angleOfAttack());
-    perform Game.display(Nav.sideSlip());
-    perform Game.display(Nav.northVector());
-    perform Game.display(Nav.eastVector());
-    perform Game.display(Nav.craftDirection());
-    perform Game.display(Nav.craftRight());
-    perform Game.display(Nav.craftUp());
+    do Game.display(Nav.nav());
+    do Game.display(Nav.target());
+    do Game.display(Nav.heading());
+    do Game.display(Nav.pitch());
+    do Game.display(Nav.autopilotHeading());
+    do Game.display(Nav.autopilotPitch());
+    do Game.display(Nav.bankAngle());
+    do Game.display(Nav.angleOfAttack());
+    do Game.display(Nav.sideSlip());
+    do Game.display(Nav.northVector());
+    do Game.display(Nav.eastVector());
+    do Game.display(Nav.craftDirection());
+    do Game.display(Nav.craftRight());
+    do Game.display(Nav.craftUp());
     // id134-142 Velocity
-    perform Game.display(Velocity.orbit());
-    perform Game.display(Velocity.surface());
-    perform Game.display(Velocity.target());
-    perform Game.display(Velocity.gravity());
-    perform Game.display(Velocity.acceleration());
-    perform Game.display(Velocity.angular());
-    perform Game.display(Velocity.lateral());
-    perform Game.display(Velocity.vertical());
-    perform Game.display(Velocity.mach());
+    do Game.display(Velocity.orbit());
+    do Game.display(Velocity.surface());
+    do Game.display(Velocity.target());
+    do Game.display(Velocity.gravity());
+    do Game.display(Velocity.acceleration());
+    do Game.display(Velocity.angular());
+    do Game.display(Velocity.lateral());
+    do Game.display(Velocity.vertical());
+    do Game.display(Velocity.mach());
     // id143-155 Input
-    perform Game.display(Input.roll());
-    perform Game.display(Input.pitch());
-    perform Game.display(Input.yaw());
-    perform Game.display(Input.throttle());
-    perform Game.display(Input.brake());
-    perform Game.display(Input.slider(1));
-    perform Game.display(Input.slider2());
-    perform Game.display(Input.slider3());
-    perform Game.display(Input.slider4());
-    perform Game.display(Input.translateForward());
-    perform Game.display(Input.translateRight());
-    perform Game.display(Input.translateUp());
-    perform Game.display(Input.translationMode());
+    do Game.display(Input.roll());
+    do Game.display(Input.pitch());
+    do Game.display(Input.yaw());
+    do Game.display(Input.throttle());
+    do Game.display(Input.brake());
+    do Game.display(Input.slider(1));
+    do Game.display(Input.slider2());
+    do Game.display(Input.slider3());
+    do Game.display(Input.slider4());
+    do Game.display(Input.translateForward());
+    do Game.display(Input.translateRight());
+    do Game.display(Input.translateUp());
+    do Game.display(Input.translationMode());
     // id156-164 Misc
-    perform Game.display(Misc.grounded());
-    perform Game.display(Misc.stage());
-    perform Game.display(Misc.numStages());
-    perform Game.display(Misc.solarRadiation());
-    perform Game.display(Misc.cameraPosition());
-    perform Game.display(Misc.cameraPointing());
-    perform Game.display(Misc.cameraUp());
-    perform Game.display(Misc.pidPitch());
-    perform Game.display(Misc.pidRoll());
+    do Game.display(Misc.grounded());
+    do Game.display(Misc.stage());
+    do Game.display(Misc.numStages());
+    do Game.display(Misc.solarRadiation());
+    do Game.display(Misc.cameraPosition());
+    do Game.display(Misc.cameraPointing());
+    do Game.display(Misc.cameraUp());
+    do Game.display(Misc.pidPitch());
+    do Game.display(Misc.pidRoll());
     // id165-169 Time
-    perform Game.display(Time.sinceLaunch());
-    perform Game.display(Time.delta());
-    perform Game.display(Time.total());
-    perform Game.display(Time.warpAmount());
-    perform Game.display(Time.realTime());
+    do Game.display(Time.sinceLaunch());
+    do Game.display(Time.delta());
+    do Game.display(Time.total());
+    do Game.display(Time.warpAmount());
+    do Game.display(Time.realTime());
     // id170-173 names
-    perform Game.display(Craft.name());
-    perform Game.display(Orbit.planetName());
-    perform Game.display(Target.name());
-    perform Game.display(Target.planet());
+    do Game.display(Craft.name());
+    do Game.display(Orbit.planetName());
+    do Game.display(Target.name());
+    do Game.display(Target.planet());
 
     // id174 <ActivationGroup>
-    perform Game.display(Input.activationGroup(1));
+    do Game.display(Input.activationGroup(1));
 
     // id175-178 planet conversions — <Planet op="toLatLongAgl" ...> in Vizzy
-    perform Game.display(Nav.toLatLongAGL("(0, 0, 0)"));
-    perform Game.display(Nav.toLatLongASL("(0, 0, 0)"));
-    perform Game.display(Nav.toPosition("(0, 0, 0)"));
-    perform Game.display(Nav.toPositionOverSea("(0, 0, 0)"));
+    do Game.display(Nav.toLatLongAGL("(0, 0, 0)"));
+    do Game.display(Nav.toLatLongASL("(0, 0, 0)"));
+    do Game.display(Nav.toPosition("(0, 0, 0)"));
+    do Game.display(Nav.toPositionOverSea("(0, 0, 0)"));
 
     // id179-181 terrain / raycast
-    perform Game.display(Terrain.height("(0, 0, 0)"));
-    perform Game.display(Terrain.color("(0, 0, 0)"));
-    perform Game.display(Raycast.raycast("(0, 0, 0)", "(0, 0, 0)"));
+    do Game.display(Terrain.height("(0, 0, 0)"));
+    do Game.display(Terrain.color("(0, 0, 0)"));
+    do Game.display(Raycast.raycast("(0, 0, 0)", "(0, 0, 0)"));
 
     // id182-215 <Planet>
-    perform Game.display(Planet.radius("Droo"));
-    perform Game.display(Planet.mass("Droo"));
-    perform Game.display(Planet.hasTerrain("Droo"));
-    perform Game.display(Planet.atmosphereDensity("Droo"));
-    perform Game.display(Planet.atmosphereHeight("Droo"));
-    perform Game.display(Planet.atmosphereScale("Droo"));
-    perform Game.display(Planet.atmosphereElements("Droo"));
-    perform Game.display(Planet.atmosphereComposition("Droo"));
-    perform Game.display(Planet.hydrosphereElement("Droo"));
-    perform Game.display(Planet.hydrosphereDensity("Droo"));
-    perform Game.display(Planet.soiradius("Droo"));
-    perform Game.display(Planet.solarPosition("Droo"));
-    perform Game.display(Planet.childPlanets("Droo"));
-    perform Game.display(Planet.crafts("Droo"));
+    do Game.display(Planet.radius("Droo"));
+    do Game.display(Planet.mass("Droo"));
+    do Game.display(Planet.hasTerrain("Droo"));
+    do Game.display(Planet.atmosphereDensity("Droo"));
+    do Game.display(Planet.atmosphereHeight("Droo"));
+    do Game.display(Planet.atmosphereScale("Droo"));
+    do Game.display(Planet.atmosphereElements("Droo"));
+    do Game.display(Planet.atmosphereComposition("Droo"));
+    do Game.display(Planet.hydrosphereElement("Droo"));
+    do Game.display(Planet.hydrosphereDensity("Droo"));
+    do Game.display(Planet.soiradius("Droo"));
+    do Game.display(Planet.solarPosition("Droo"));
+    do Game.display(Planet.childPlanets("Droo"));
+    do Game.display(Planet.crafts("Droo"));
     // Vizzy op="craftids"
-    perform Game.display(Planet.craftID("Droo"));
-    perform Game.display(Planet.parent("Droo"));
-    perform Game.display(Planet.structures("Droo"));
-    perform Game.display(Planet.day("Droo"));
-    perform Game.display(Planet.year("Droo"));
-    perform Game.display(Planet.velocity("Droo"));
-    perform Game.display(Planet.apoapsis("Droo"));
-    perform Game.display(Planet.periapsis("Droo"));
-    perform Game.display(Planet.period("Droo"));
+    do Game.display(Planet.craftID("Droo"));
+    do Game.display(Planet.parent("Droo"));
+    do Game.display(Planet.structures("Droo"));
+    do Game.display(Planet.day("Droo"));
+    do Game.display(Planet.year("Droo"));
+    do Game.display(Planet.velocity("Droo"));
+    do Game.display(Planet.apoapsis("Droo"));
+    do Game.display(Planet.periapsis("Droo"));
+    do Game.display(Planet.period("Droo"));
     // Vizzy ops apoapsistime/periapsistime
-    perform Game.display(Planet.orbitApTime("Droo"));
-    perform Game.display(Planet.orbitPeTime("Droo"));
-    perform Game.display(Planet.inclination("Droo"));
-    perform Game.display(Planet.eccentricity("Droo"));
-    perform Game.display(Planet.meananomaly("Droo"));
-    perform Game.display(Planet.meanmotion("Droo"));
+    do Game.display(Planet.orbitApTime("Droo"));
+    do Game.display(Planet.orbitPeTime("Droo"));
+    do Game.display(Planet.inclination("Droo"));
+    do Game.display(Planet.eccentricity("Droo"));
+    do Game.display(Planet.meananomaly("Droo"));
+    do Game.display(Planet.meanmotion("Droo"));
     // Vizzy ops periapsisargument/rightascension/trueanomaly/semimajoraxis/semiminoraxis
-    perform Game.display(Planet.orbitPeriapsisArgument("Droo"));
-    perform Game.display(Planet.orbitRightAscension("Droo"));
-    perform Game.display(Planet.orbitTrueAnomaly("Droo"));
-    perform Game.display(Planet.orbitSemiMajorAxis("Droo"));
-    perform Game.display(Planet.orbitSemiMinorAxis("Droo"));
+    do Game.display(Planet.orbitPeriapsisArgument("Droo"));
+    do Game.display(Planet.orbitRightAscension("Droo"));
+    do Game.display(Planet.orbitTrueAnomaly("Droo"));
+    do Game.display(Planet.orbitSemiMajorAxis("Droo"));
+    do Game.display(Planet.orbitSemiMinorAxis("Droo"));
 
     // id216-231 <Part>
-    perform Game.display(Part.idToName(0));
-    perform Game.display(Part.mass(0));
-    perform Game.display(Part.dryMass(0));
-    perform Game.display(Part.wetMass(0));
-    perform Game.display(Part.activated(0));
-    perform Game.display(Part.partType(0));
-    perform Game.display(Part.position(0));
-    perform Game.display(Part.temperature(0));
-    perform Game.display(Part.drag(0));
-    perform Game.display(Part.thisID(0));
-    perform Game.display(Part.minPartId(0));
-    perform Game.display(Part.maxPartId(0));
-    perform Game.display(Part.underwater(0));
-    perform Game.display(Part.nameToID("PartName"));
-    perform Game.display(Part.localToPCI(0, "(0, 0, 0)"));
-    perform Game.display(Part.pciToLocal(0, "(0, 0, 0)"));
+    do Game.display(Part.idToName(0));
+    do Game.display(Part.mass(0));
+    do Game.display(Part.dryMass(0));
+    do Game.display(Part.wetMass(0));
+    do Game.display(Part.activated(0));
+    do Game.display(Part.partType(0));
+    do Game.display(Part.position(0));
+    do Game.display(Part.temperature(0));
+    do Game.display(Part.drag(0));
+    do Game.display(Part.thisID(0));
+    do Game.display(Part.minPartId(0));
+    do Game.display(Part.maxPartId(0));
+    do Game.display(Part.underwater(0));
+    do Game.display(Part.nameToID("PartName"));
+    do Game.display(Part.localToPCI(0, "(0, 0, 0)"));
+    do Game.display(Part.pciToLocal(0, "(0, 0, 0)"));
 
     // id232-258 <Craft>
-    perform Game.display(Craft.altitude(0));
-    perform Game.display(Craft.isDestroyed(0));
-    perform Game.display(Craft.isGrounded(0));
-    perform Game.display(Craft.mass(0));
+    do Game.display(Craft.altitude(0));
+    do Game.display(Craft.isDestroyed(0));
+    do Game.display(Craft.isGrounded(0));
+    do Game.display(Craft.mass(0));
     // Vizzy reads <CraftProperty property="Craft.IDToName"> from a number
-    perform Game.display(Craft.name(0));
-    perform Game.display(Craft.partCount(0));
-    perform Game.display(Craft.planet(0));
-    perform Game.display(Craft.position(0));
-    perform Game.display(Craft.velocity(0));
-    perform Game.display(Craft.isPlayer(0));
-    perform Game.display(Craft.boundingBoxMin(0));
-    perform Game.display(Craft.boundingBoxMax(0));
-    perform Game.display(Craft.ap(0));
-    perform Game.display(Craft.pe(0));
-    perform Game.display(Craft.period(0));
-    perform Game.display(Craft.apoapsisTime(0));
-    perform Game.display(Craft.periapsisTime(0));
-    perform Game.display(Craft.inclination(0));
-    perform Game.display(Craft.eccentricity(0));
-    perform Game.display(Craft.meanAnomaly(0));
-    perform Game.display(Craft.meanMotion(0));
-    perform Game.display(Craft.periapsisArgument(0));
-    perform Game.display(Craft.rightAscension(0));
-    perform Game.display(Craft.trueAnomaly(0));
-    perform Game.display(Craft.semiMajorAxis(0));
-    perform Game.display(Craft.semiMinorAxis(0));
-    perform Game.display(Craft.nameToID("CraftName"));
+    do Game.display(Craft.name(0));
+    do Game.display(Craft.partCount(0));
+    do Game.display(Craft.planet(0));
+    do Game.display(Craft.position(0));
+    do Game.display(Craft.velocity(0));
+    do Game.display(Craft.isPlayer(0));
+    do Game.display(Craft.boundingBoxMin(0));
+    do Game.display(Craft.boundingBoxMax(0));
+    do Game.display(Craft.ap(0));
+    do Game.display(Craft.pe(0));
+    do Game.display(Craft.period(0));
+    do Game.display(Craft.apoapsisTime(0));
+    do Game.display(Craft.periapsisTime(0));
+    do Game.display(Craft.inclination(0));
+    do Game.display(Craft.eccentricity(0));
+    do Game.display(Craft.meanAnomaly(0));
+    do Game.display(Craft.meanMotion(0));
+    do Game.display(Craft.periapsisArgument(0));
+    do Game.display(Craft.rightAscension(0));
+    do Game.display(Craft.trueAnomaly(0));
+    do Game.display(Craft.semiMajorAxis(0));
+    do Game.display(Craft.semiMinorAxis(0));
+    do Game.display(Craft.nameToID("CraftName"));
 
     // id259-260 boolean constants
-    perform Game.display(true);
-    perform Game.display(false);
+    do Game.display(true);
+    do Game.display(false);
 
     // id261-267 <SetList>
-    perform Lists.add(myList, "item");
-    perform Lists.insert(myList, "item", 1);
-    perform Lists.remove(myList, 1);
+    do Lists.add(myList, "item");
+    do Lists.insert(myList, "item", 1);
+    do Lists.remove(myList, 1);
     // Vizzy set order is (list, value, index); Juno's is (list, index, value)
-    perform Lists.set(myList, 1, "item");
-    perform Lists.clear(myList);
-    perform Lists.sort(myList);
-    perform Lists.reverse(myList);
+    do Lists.set(myList, 1, "item");
+    do Lists.clear(myList);
+    do Lists.sort(myList);
+    do Lists.reverse(myList);
 
     // id268 <SetVariable style="list-init">
     list items = ["a", "b", "c"];
 
     // id269-271 <ListOp>
-    perform Game.display(items[0]);
-    perform Game.display(ListOp.length(items));
-    perform Game.display(ListOp.index(items, "item"));
+    do Game.display(items[0]);
+    do Game.display(ListOp.length(items));
+    do Game.display(ListOp.index(items, "item"));
 
     // id272-273 <LogMessage>
-    perform Game.display("");
-    perform Game.display("");
+    do Game.display("");
+    do Game.display("");
 }
 
 // id274-277 <ReceiveMessage> + <BroadcastMessage>

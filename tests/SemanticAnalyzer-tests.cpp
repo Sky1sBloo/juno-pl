@@ -29,17 +29,17 @@ std::vector<JunoPL::Diagnostic> analyze(const std::string &source) {
 } // namespace
 
 TEST_CASE("Semantic - valid standard library calls") {
-    // Instructions with and without the perform keyword
+    // Instructions with and without the do keyword
     CHECK(
-        analyze("program test; on start() { perform Game.delay(1); }").empty());
-    CHECK(analyze("program test; on start() { perform Game.delay(1); }").empty());
-    CHECK(analyze("program test; on start() { perform Game.flightLog(\"hi\", true); }")
+        analyze("program test; on start() { do Game.delay(1); }").empty());
+    CHECK(analyze("program test; on start() { do Game.delay(1); }").empty());
+    CHECK(analyze("program test; on start() { do Game.flightLog(\"hi\", true); }")
               .empty());
     CHECK(
-        analyze("program test; on start() { perform Craft.lockPrograde(); }").empty());
+        analyze("program test; on start() { do Craft.lockPrograde(); }").empty());
 
     // Instruction vs expression forms of the same name
-    CHECK(analyze("program test; on start() { perform Input.throttle(0.5); }").empty());
+    CHECK(analyze("program test; on start() { do Input.throttle(0.5); }").empty());
     CHECK(analyze("program test; on start() { var t = Input.throttle(); }")
               .empty());
     CHECK(analyze("program test; on start() { var t = Input.slider(1); }")
@@ -68,9 +68,9 @@ TEST_CASE("Semantic - valid standard library calls") {
 
     // Overloaded arities
     CHECK(analyze("program test; on start() { var v = Vector.vec(1, 2, 3); "
-                  "perform Camera.targetOffset(v); }")
+                  "do Camera.targetOffset(v); }")
               .empty());
-    CHECK(analyze("program test; on start() { perform Camera.targetOffset(1, 2, 3); }")
+    CHECK(analyze("program test; on start() { do Camera.targetOffset(1, 2, 3); }")
               .empty());
     CHECK(
         analyze("program test; on start() { var n = Craft.name(); }").empty());
@@ -79,10 +79,10 @@ TEST_CASE("Semantic - valid standard library calls") {
 
     // Qualified list operations
     CHECK(analyze("program test; on start() { list items = [1]; "
-                  "perform Lists.insert(items, 3); }")
+                  "do Lists.insert(items, 3); }")
               .empty());
     CHECK(analyze("program test; on start() { list items = [1]; "
-                  "perform Lists.insert(items, 3, 4, 5); }")
+                  "do Lists.insert(items, 3, 4, 5); }")
               .empty());
     CHECK(analyze("program test; on start() { list items = [1]; "
                   "var n = Lists.length(items); }")
@@ -90,16 +90,16 @@ TEST_CASE("Semantic - valid standard library calls") {
 }
 
 TEST_CASE("Semantic - arity diagnostics") {
-    auto tooMany = analyze("program test; on start() { perform Game.delay(1, 2); }");
+    auto tooMany = analyze("program test; on start() { do Game.delay(1, 2); }");
     REQUIRE(tooMany.size() == 1);
     CHECK(tooMany[0].message == "'Game.delay' expects 1 argument, got 2");
 
-    auto tooFew = analyze("program test; on start() { perform Game.beep(440, 1); }");
+    auto tooFew = analyze("program test; on start() { do Game.beep(440, 1); }");
     REQUIRE(tooFew.size() == 1);
     CHECK(tooFew[0].message == "'Game.beep' expects 3 arguments, got 2");
 
     auto insert = analyze("program test; on start() { list items = [1]; "
-                          "perform Lists.insert(items); }");
+                          "do Lists.insert(items); }");
     REQUIRE(insert.size() == 1);
     CHECK(insert[0].message ==
           "'Lists.insert' expects at least 2 arguments, got 1");
@@ -111,14 +111,14 @@ TEST_CASE("Semantic - arity diagnostics") {
           "'String.join' expects at least 2 arguments, got 1");
 
     auto targetOffset =
-        analyze("program test; on start() { perform Camera.targetOffset(1, 2); }");
+        analyze("program test; on start() { do Camera.targetOffset(1, 2); }");
     REQUIRE(targetOffset.size() == 1);
     CHECK(targetOffset[0].message ==
           "'Camera.targetOffset' expects 1 argument or 3 arguments, got 2");
 }
 
 TEST_CASE("Semantic - unknown and misused calls") {
-    auto unknown = analyze("program test; on start() { perform Game.noSuch(1); }");
+    auto unknown = analyze("program test; on start() { do Game.noSuch(1); }");
     REQUIRE(unknown.size() == 1);
     CHECK(unknown[0].message ==
           "'Game.noSuch' is not defined in the standard library");
@@ -157,41 +157,41 @@ instr circularize() {
     var ecc = Orbit.eccentricity();
 
     if (ecc < 0.01) {
-        perform Game.display("Orbit already circular");
+        do Game.display("Orbit already circular");
         burnDone = true;
     } elif (ap > targetAp) {
         // Apoapsis too high; burn retrograde at periapsis
-        perform Craft.lockPrograde();
-        perform Craft.pitchTo(0);
-        perform Input.throttle(1.0);
-        perform Game.delay(5.0);
-        perform Input.throttle(0.0);
+        do Craft.lockPrograde();
+        do Craft.pitchTo(0);
+        do Input.throttle(1.0);
+        do Game.delay(5.0);
+        do Input.throttle(0.0);
         burnDone = true;
     } elif (pe < targetPe) {
         // Periapsis too low; burn prograde at apoapsis
-        perform Craft.lockPrograde();
-        perform Craft.pitchTo(0);
-        perform Input.throttle(1.0);
-        perform Game.delay(8.0);
-        perform Input.throttle(0.0);
+        do Craft.lockPrograde();
+        do Craft.pitchTo(0);
+        do Input.throttle(1.0);
+        do Game.delay(8.0);
+        do Input.throttle(0.0);
         burnDone = true;
     } else {
-        perform Game.display("Adjusting orbit...");
+        do Game.display("Adjusting orbit...");
     }
 }
 
 on start() {
-    perform Game.display("Orbit circularization started");
-    perform Game.delay(2.0);
+    do Game.display("Orbit circularization started");
+    do Game.delay(2.0);
 
     while (not burnDone) {
-        perform circularize();
-        perform Game.delay(1.0);
+        do circularize();
+        do Game.delay(1.0);
     }
 
-    perform Craft.lockNone();
-    perform Game.display("Circularization complete");
-    perform Game.beep(880, 0.5, 1.0);
+    do Craft.lockNone();
+    do Game.display("Circularization complete");
+    do Game.beep(880, 0.5, 1.0);
 }
 )");
     JunoPL::Lexer lexer;

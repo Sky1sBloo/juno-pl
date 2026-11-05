@@ -79,9 +79,9 @@ Parses a token stream into a `RootNode` AST.
 | `std::optional<EventNode> parseEvent(TokenList &)` | Parses an `on <event>` handler. |
 | `std::optional<VarDeclaration> parseVarDeclaration(TokenList &)` | Parses a `var` declaration. |
 | `std::optional<VarAssignment> parseVarAssignment(TokenList &)` | Parses an assignment statement. |
-| `std::optional<PerformInstruction> parseQualifiedInstruction(TokenList &)` | Parses a qualified `perform <Q>.name(...)`. |
+| `std::optional<DoInstruction> parseQualifiedInstruction(TokenList &)` | Parses a qualified `do <Q>.name(...)`. |
 | `std::optional<ListDeclaration> parseListDeclaration(TokenList &)` | Parses a `list` declaration. |
-| `std::optional<PerformInstruction> parsePerformInstruction(TokenList &)` | Parses an unqualified `perform name(...)`. |
+| `std::optional<DoInstruction> parseDoInstruction(TokenList &)` | Parses an unqualified `do name(...)`. |
 | `std::optional<BreakStatement> parseBreakStatement(TokenList &)` | Parses `break`. |
 | `std::optional<ConditionalStatement> parseConditionalStatement(TokenList &)` | Parses `if`/`elif`/`else`. |
 | `std::optional<RepeatLoop> parseRepeatLoop(TokenList &)` | Parses `repeat N { ... }`. |
@@ -154,7 +154,7 @@ Defined in `junopl.parser.nodes`, `junopl.parser.nodes.statements`,
 
 #### `Statements` (variant)
 One of: `Body`, `VarDeclaration`, `VarAssignment`, `ListDeclaration`,
-`PerformInstruction`, `BreakStatement`, `ConditionalStatement`,
+`DoInstruction`, `BreakStatement`, `ConditionalStatement`,
 `EmitEvent`, `RepeatLoop`, `WhileLoop`, `ForLoop`.
 
 #### `VarAssignment`
@@ -166,7 +166,7 @@ One of: `Body`, `VarDeclaration`, `VarAssignment`, `ListDeclaration`,
 | `op` | `enum { ASSIGN, PLUS_ASSIGN, MINUS_ASSIGN, MULT_ASSIGN, DIVIDE_ASSIGN }` | Assignment operator. |
 | `loc` | `SourceLocation` | Source location. |
 
-#### `PerformInstruction`
+#### `DoInstruction`
 | Member | Type | Description |
 |--------|------|-------------|
 | `qualifier` | `std::string` | STL qualifier (empty for custom instr). |
@@ -316,7 +316,7 @@ and arity ranges.
 | Type | Description |
 |------|-------------|
 | `enum class Qualifiers` | `COMMON, MATH, STRINGS, INPUT, LISTS, VECTOR, GAME, CRAFT, PART, CAMERA, NAV, ALTITUDE, VELOCITY, ORBIT, PLANET, ATMOSPHERE, FUEL, TIME, PERFORMANCE` |
-| `enum class Operations` | `INSTRUCTION` (used with `perform`), `EXPRESSION` (used in expressions) |
+| `enum class Operations` | `INSTRUCTION` (used with `do`), `EXPRESSION` (used in expressions) |
 | `static constexpr std::size_t kUnbounded` | Variadic upper bound (e.g. for `String.join`). |
 | `struct ArityRange { std::size_t min; std::size_t max; }` | Inclusive parameter-count range. |
 | `struct Function` | Registered function: qualifier, operation, identifier, arities. |

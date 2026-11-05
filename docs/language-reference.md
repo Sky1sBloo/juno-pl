@@ -176,12 +176,12 @@ for i from 0 to 10 by 1 {
 
 `break` exits the innermost loop.
 
-### Perform instruction
+### Do instruction
 ```
-perform Game.delay(5);
-perform Craft.activateStage();
-perform Input.throttle(0.5);
-perform logMsg("hello");     // custom instruction call
+do Game.delay(5);
+do Craft.activateStage();
+do Input.throttle(0.5);
+do logMsg("hello");     // custom instruction call
 ```
 
 ### Emit event
@@ -227,7 +227,7 @@ instr logMsg(msg) {
 }
 ```
 
-Called with `perform logMsg("hello");`.
+Called with `do logMsg("hello");`.
 
 ## Forward references
 
@@ -236,7 +236,7 @@ from handlers that appear earlier in the source:
 
 ```
 on start() {
-    perform greet();   // greet is defined below
+    do greet();   // greet is defined below
 }
 
 instr greet() {
