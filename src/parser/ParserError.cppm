@@ -3,6 +3,7 @@ module;
 #include <string>
 export module junopl.parser.error;
 import junopl.lexer.tokens;
+import junopl.common.location;
 
 namespace JunoPL {
 
@@ -81,6 +82,10 @@ export class ParserError {
     Type type() const { return mType; }
     const Token &token() const { return mToken; }
     const std::string &message() const { return mMessage; }
+
+    SourceLocation location() const {
+        return SourceLocation{mToken.line, mToken.colStart, mToken.colEnd};
+    }
 
     static ParserError EmptyTokenList() {
         return ParserError{Type::EMPTY_TOKENS, "Parser token list is empty"};

@@ -1,4 +1,6 @@
 module;
+#include <cerrno>
+#include <cstring>
 #include <expected>
 #include <filesystem>
 #include <fstream>
@@ -8,13 +10,18 @@ export module junopl.filehandler;
 export import junopl.ifilehandler;
 
 export namespace JunoPL {
+inline std::string osErrorMessage() {
+    return std::strerror(errno);
+}
+
 class FileHandler : public IFileHandler {
   public:
     static std::expected<FileHandler, FileHandlerError>
     open(const std::filesystem::path &path) {
         FileHandler reader(path);
         if (!reader.mFileStream.is_open()) {
-            return std::unexpected(FileHandlerError::FileNotFound);
+            return std::unexpected(FileHandlerError{
+                FileHandlerErrorCode::FileNotFound, path, osErrorMessage()});
         }
         return reader;
     }
@@ -24,11 +31,13 @@ class FileHandler : public IFileHandler {
                 const std::string &data) {
         std::ofstream out(path);
         if (!out.is_open()) {
-            return std::unexpected(FileHandlerError::FileNotOpen);
+            return std::unexpected(FileHandlerError{
+                FileHandlerErrorCode::FileNotOpen, path, osErrorMessage()});
         }
         out << data;
         if (!out.good()) {
-            return std::unexpected(FileHandlerError::FileNotWritable);
+            return std::unexpected(FileHandlerError{
+                FileHandlerErrorCode::FileNotWritable, path, osErrorMessage()});
         }
         return {};
     }
