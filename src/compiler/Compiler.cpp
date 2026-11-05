@@ -11,6 +11,7 @@ module;
 #include <set>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -284,7 +285,7 @@ const StdExpr *findStdExpr(const std::string &qualifier,
             {{"Craft", "inclination"}, {"Craft.Inclination", "craft"}},
             {{"Craft", "eccentricity"}, {"Craft.Eccentricity", "craft"}},
             {{"Craft", "name"}, {"Name.Craft", "prop-name"}},
-            {{"Craft", "idOf"}, {"Craft.IDToName", "craft"}},
+            {{"Craft", "idOf"}, {"Craft.NameToID", "craft-id"}},
             {{"Craft", "nameToID"}, {"Craft.NameToID", "craft-id"}},
             {{"Craft", "nameToID"}, {"Craft.NameToID", "craft-id"}},
             // Part expressions
@@ -338,24 +339,27 @@ struct PlanetOp {
 };
 
 const PlanetOp *findPlanetOp(const std::string &identifier) {
+    // Vizzy spells its operations in lower case, Juno keeps camel case,
+    // and a few Juno names differ completely from the Vizzy op
     static const std::map<std::string, PlanetOp> kPlanetOps = {
-        {"toLatLongAgl", {"toLatLongAgl", "planet-to-lat-long-agl"}},
-        {"toLatLongAsl", {"toLatLongAsl", "planet-to-lat-long-asl"}},
-        {"toPosition", {"toPosition", "planet-to-position"}},
-        {"toPositionOverSea", {"toPositionOverSea", "planet-to-position-asl"}},
+        {"tolatlongagl", {"toLatLongAgl", "planet-to-lat-long-agl"}},
+        {"tolatlongasl", {"toLatLongAsl", "planet-to-lat-long-asl"}},
+        {"toposition", {"toPosition", "planet-to-position"}},
+        {"topositionoversea",
+         {"toPositionOverSea", "planet-to-position-asl"}},
         {"radius", {"radius", "planet"}},
         {"mass", {"mass", "planet"}},
-        {"hasTerrain", {"hasTerrain", "planet"}},
-        {"atmosphereDensity", {"atmosphereDensity", "planet"}},
-        {"atmosphereHeight", {"atmosphereHeight", "planet"}},
-        {"atmosphereScale", {"atmosphereScale", "planet"}},
-        {"atmosphereElements", {"atmosphereElements", "planet"}},
-        {"atmosphereComposition", {"atmosphereComposition", "planet"}},
-        {"hydrosphereElement", {"hydrosphereElement", "planet"}},
-        {"hydrosphereDensity", {"hydrosphereDensity", "planet"}},
+        {"hasterrain", {"hasTerrain", "planet"}},
+        {"atmospheredensity", {"atmosphereDensity", "planet"}},
+        {"atmosphereheight", {"atmosphereHeight", "planet"}},
+        {"atmospherescale", {"atmosphereScale", "planet"}},
+        {"atmosphereelements", {"atmosphereElements", "planet"}},
+        {"atmospherecomposition", {"atmosphereComposition", "planet"}},
+        {"hydrosphereelement", {"hydrosphereElement", "planet"}},
+        {"hydrospheredensity", {"hydrosphereDensity", "planet"}},
         {"soiradius", {"soiradius", "planet"}},
-        {"solarPosition", {"solarPosition", "planet"}},
-        {"childPlanets", {"childPlanets", "planet"}},
+        {"solarposition", {"solarPosition", "planet"}},
+        {"childplanets", {"childPlanets", "planet"}},
         {"crafts", {"crafts", "planet"}},
         {"craftids", {"craftids", "planet"}},
         {"parent", {"parent", "planet"}},
@@ -378,7 +382,26 @@ const PlanetOp *findPlanetOp(const std::string &identifier) {
         {"semimajoraxis", {"semimajoraxis", "planet"}},
         {"semiminoraxis", {"semiminoraxis", "planet"}},
     };
-    auto it = kPlanetOps.find(identifier);
+    static const std::map<std::string, std::string> kAliases = {
+        {"craftid", "craftids"},
+        {"orbitaptime", "apoapsistime"},
+        {"orbitpetime", "periapsistime"},
+        {"orbitperiapsisargument", "periapsisargument"},
+        {"orbitrightascension", "rightascension"},
+        {"orbittrueanomaly", "trueanomaly"},
+        {"orbitsemimajoraxis", "semimajoraxis"},
+        {"orbitsemiminoraxis", "semiminoraxis"},
+    };
+    std::string key;
+    key.reserve(identifier.size());
+    for (const unsigned char c : identifier) {
+        key.push_back(
+            static_cast<char>(std::tolower(c)));
+    }
+    if (const auto alias = kAliases.find(key); alias != kAliases.end()) {
+        key = alias->second;
+    }
+    auto it = kPlanetOps.find(key);
     if (it == kPlanetOps.end()) {
         return nullptr;
     }
@@ -403,6 +426,112 @@ const ListOp *findListOp(const std::string &identifier) {
     };
     auto it = kListOps.find(identifier);
     if (it == kListOps.end()) {
+        return nullptr;
+    }
+    return &it->second;
+}
+
+/**
+Math expressions (e.g. Math.sqrt(x)) compile to Vizzy <MathFunction>
+blocks, except for the operations Vizzy keeps in a BinaryOp, a Not or an
+EvaluateExpression block.
+ */
+struct MathBlock {
+    const char *tag;
+    const char *attr; // nullptr: the block carries a style only
+    const char *value;
+    const char *style;
+};
+
+const MathBlock *findMathBlock(const std::string &identifier) {
+    static const std::map<std::string, MathBlock> kMathBlocks = {
+        // Single argument functions
+        {"abs", {"MathFunction", "function", "abs", "op-math"}},
+        {"floor", {"MathFunction", "function", "floor", "op-math"}},
+        {"ceil", {"MathFunction", "function", "ceil", "op-math"}},
+        {"round", {"MathFunction", "function", "round", "op-math"}},
+        {"sqrt", {"MathFunction", "function", "sqrt", "op-math"}},
+        {"sin", {"MathFunction", "function", "sin", "op-math"}},
+        {"cos", {"MathFunction", "function", "cos", "op-math"}},
+        {"tan", {"MathFunction", "function", "tan", "op-math"}},
+        {"asin", {"MathFunction", "function", "asin", "op-math"}},
+        {"acos", {"MathFunction", "function", "acos", "op-math"}},
+        {"atan", {"MathFunction", "function", "atan", "op-math"}},
+        {"ln", {"MathFunction", "function", "ln", "op-math"}},
+        {"log", {"MathFunction", "function", "log", "op-math"}},
+        {"deg2rad", {"MathFunction", "function", "deg2rad", "op-math"}},
+        {"rad2deg", {"MathFunction", "function", "rad2deg", "op-math"}},
+        // Two argument operators Vizzy writes as BinaryOp
+        {"random", {"BinaryOp", "op", "rand", "op-rand"}},
+        {"min", {"BinaryOp", "op", "min", "op-min"}},
+        {"max", {"BinaryOp", "op", "max", "op-max"}},
+        {"atan2", {"BinaryOp", "op", "atan2", "op-atan-2"}},
+        {"pow", {"BinaryOp", "op", "^", "op-exp"}},
+        // Blocks of their own
+        {"not", {"Not", nullptr, nullptr, "op-not"}},
+        {"evaluate",
+         {"EvaluateExpression", nullptr, nullptr, "evaluate-expression"}},
+    };
+    auto it = kMathBlocks.find(identifier);
+    if (it == kMathBlocks.end()) {
+        return nullptr;
+    }
+    return &it->second;
+}
+
+/**
+String expressions (e.g. String.lengthOf(s)) compile to Vizzy <StringOp>
+blocks. Juno names and argument order differ for two of them: Vizzy reads
+letter(index, text) and substring(start, length, text).
+ */
+struct StringBlock {
+    const char *op;
+    const char *style;
+};
+
+const StringBlock *findStringOp(const std::string &identifier) {
+    static const std::map<std::string, StringBlock> kStringOps = {
+        {"join", {"join", "join"}},
+        {"lengthOf", {"length", "length"}},
+        {"letterOf", {"letter", "letter"}},
+        {"substr", {"substring", "substring"}},
+        {"strContains", {"contains", "contains"}},
+        {"format", {"format", "format"}},
+    };
+    auto it = kStringOps.find(identifier);
+    if (it == kStringOps.end()) {
+        return nullptr;
+    }
+    return &it->second;
+}
+
+/**
+Vector expressions (e.g. Vector.vecLength(v)) compile to Vizzy
+<VectorOp> blocks: the component and norm reads are single input, the
+operations on two vectors take two.
+ */
+struct VectorBlock {
+    const char *op;
+    const char *style;
+};
+
+const VectorBlock *findVectorOp(const std::string &identifier) {
+    static const std::map<std::string, VectorBlock> kVectorOps = {
+        {"vecLength", {"length", "vec-op-1"}},
+        {"vecX", {"x", "vec-op-1"}},
+        {"vecY", {"y", "vec-op-1"}},
+        {"vecZ", {"z", "vec-op-1"}},
+        {"normalize", {"norm", "vec-op-1"}},
+        {"dot", {"dot", "vec-op-2"}},
+        {"cross", {"cross", "vec-op-2"}},
+        {"scale", {"scale", "vec-op-2"}},
+        {"project", {"project", "vec-op-2"}},
+        {"dist", {"dist", "vec-op-2"}},
+        {"angle", {"angle", "vec-op-2"}},
+        {"clamp", {"clamp", "vec-op-2"}},
+    };
+    auto it = kVectorOps.find(identifier);
+    if (it == kVectorOps.end()) {
         return nullptr;
     }
     return &it->second;
@@ -471,17 +600,75 @@ bool isNumericLiteral(const std::string &s) {
     return used == s.size();
 }
 
+/**
+True when the enclosing block takes its boolean bare: Vizzy styles the
+toggle (style="true"/"false") in value slots but leaves it plain inside
+boolean operators, ternaries and the activation group setter, and the
+else marker is a bare true as well.
+ */
+bool bareBoolParent(const char *tag) {
+    const std::string_view name = tag;
+    return name == "BoolOp" || name == "Not" || name == "Conditional" ||
+           name == "SetActivationGroup";
+}
+
+/**
+True for a string written as a vector triple such as "(1, 2, 3)". Juno has
+no vector type, so a vector travels through the language as text and has to
+be written back as Vizzy's vector constant.
+ */
+bool isVectorLiteral(const std::string &s) {
+    if (s.size() < 9 || s.front() != '(' || s.back() != ')')
+        return false;
+    const std::string inner = s.substr(1, s.size() - 2);
+    std::vector<std::string> parts;
+    std::size_t start = 0;
+    while (true) {
+        const std::size_t comma = inner.find(',', start);
+        parts.push_back(inner.substr(
+            start, comma == std::string::npos ? std::string::npos
+                                              : comma - start));
+        if (comma == std::string::npos)
+            break;
+        start = comma + 1;
+    }
+    if (parts.size() != 3)
+        return false;
+    for (auto &part : parts) {
+        const std::size_t first = part.find_first_not_of(" \t");
+        const std::size_t last = part.find_last_not_of(" \t");
+        if (first == std::string::npos)
+            return false;
+        if (!isNumericLiteral(part.substr(first, last - first + 1)))
+            return false;
+    }
+    return true;
+}
+
 /** Writes a literal the way Vizzy does: numbers, booleans, then text. */
 void appendConstant(pugi::xml_node parent, const std::string &value) {
     auto el = parent.append_child("Constant");
-    if (value == "true") {
-        el.append_attribute("style") = "true";
-        el.append_attribute("bool") = "true";
-    } else if (value == "false") {
-        el.append_attribute("style") = "false";
-        el.append_attribute("bool") = "false";
+    if (value == "true" || value == "false") {
+        if (!bareBoolParent(parent.name()))
+            el.append_attribute("style") = value.c_str();
+        el.append_attribute("bool") = value.c_str();
     } else if (isNumericLiteral(value)) {
         el.append_attribute("number") = value.c_str();
+    } else {
+        el.append_attribute("text") = value.c_str();
+    }
+}
+
+/**
+Writes a quoted string. The quotes are gone by the time the compiler sees
+the value, so "10000.99" has to stay text here even though the same
+characters as a bare token are a number; a vector triple becomes Vizzy's
+vector constant.
+ */
+void appendStringConstant(pugi::xml_node parent, const std::string &value) {
+    auto el = parent.append_child("Constant");
+    if (isVectorLiteral(value)) {
+        el.append_attribute("vector") = value.c_str();
     } else {
         el.append_attribute("text") = value.c_str();
     }
@@ -982,6 +1169,20 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                         for (const auto &p : instr.params) {
                             emitExpression(*p, el);
                         }
+                    } else if (instr.identifier == "delayUntil") {
+                        auto el = parent.append_child("WaitUntil");
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "wait-until";
+                        for (const auto &p : instr.params) {
+                            emitExpression(*p, el);
+                        }
+                    } else if (instr.identifier == "switchToCraft") {
+                        auto el = parent.append_child("SwitchCraft");
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "switch-craft";
+                        for (const auto &p : instr.params) {
+                            emitExpression(*p, el);
+                        }
                     } else if (instr.identifier == "flightLog") {
                         auto el = parent.append_child("LogFlight");
                         el.append_attribute("id") = nextId().c_str();
@@ -1001,20 +1202,20 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                                || instr.identifier == "sineSquare"
                                || instr.identifier == "sineNoise") {
                         auto el = parent.append_child("PlayBeep");
+                        // Vizzy writes the waveform ahead of the id
+                        const char *waveform = "Sine";
+                        if (instr.identifier == "sineTriangle") {
+                            waveform = "Triangle";
+                        } else if (instr.identifier == "sineSaw") {
+                            waveform = "Saw";
+                        } else if (instr.identifier == "sineSquare") {
+                            waveform = "Square";
+                        } else if (instr.identifier == "sineNoise") {
+                            waveform = "Noise";
+                        }
+                        el.append_attribute("waveform") = waveform;
                         el.append_attribute("id") = nextId().c_str();
                         el.append_attribute("style") = "play-beep-waveform";
-                        if (instr.identifier == "beep"
-                            || instr.identifier == "sineBeep") {
-                            el.append_attribute("waveform") = "Sine";
-                        } else if (instr.identifier == "sineTriangle") {
-                            el.append_attribute("waveform") = "Triangle";
-                        } else if (instr.identifier == "sineSaw") {
-                            el.append_attribute("waveform") = "Saw";
-                        } else if (instr.identifier == "sineSquare") {
-                            el.append_attribute("waveform") = "Square";
-                        } else if (instr.identifier == "sineNoise") {
-                            el.append_attribute("waveform") = "Noise";
-                        }
                         for (const auto &p : instr.params) {
                             emitExpression(*p, el);
                         }
@@ -1037,12 +1238,143 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                     }
                 } else if (instr.qualifier == "Input") {
                     // Vizzy uses SetInput for input controls, not
-                    // SetCraftProperty
-                    auto el = parent.append_child("SetInput");
-                    el.append_attribute("input") =
-                        instr.identifier.c_str();
+                    // SetCraftProperty. The activation group is a block of
+                    // its own, and a slider's number names the input
+                    // instead of travelling as a value.
+                    const auto *sliderIndex =
+                        instr.identifier == "slider" &&
+                                instr.params.size() == 2
+                            ? std::get_if<Value>(&instr.params[0]->value)
+                            : nullptr;
+                    const bool fixedSlider =
+                        sliderIndex &&
+                        sliderIndex->kind == Value::Kind::Literal &&
+                        sliderIndex->value.size() == 1 &&
+                        sliderIndex->value[0] >= '1' &&
+                        sliderIndex->value[0] <= '4';
+                    if (instr.identifier == "activationGroup") {
+                        auto el =
+                            parent.append_child("SetActivationGroup");
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "set-ag";
+                        for (const auto &p : instr.params) {
+                            emitExpression(*p, el);
+                        }
+                    } else if (fixedSlider) {
+                        auto el = parent.append_child("SetInput");
+                        el.append_attribute("input") =
+                            ("slider" +
+                             std::string(1, sliderIndex->value[0]))
+                                .c_str();
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "set-input";
+                        emitExpression(*instr.params[1], el);
+                    } else {
+                        auto el = parent.append_child("SetInput");
+                        el.append_attribute("input") =
+                            instr.identifier.c_str();
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "set-input";
+                        for (const auto &p : instr.params) {
+                            emitExpression(*p, el);
+                        }
+                    }
+                } else if (instr.qualifier == "Camera") {
+                    // Vizzy keeps the camera controls in SetCameraProperty
+                    // and spells the rotations rotationX/rotationY
+                    static const std::map<std::string, std::string>
+                        kCameraProperties = {
+                            {"zoom", "zoom"},
+                            {"xRotation", "rotationX"},
+                            {"yRotation", "rotationY"},
+                            {"tilt", "tilt"},
+                            {"mode", "mode"},
+                            {"modeIndex", "modeIndex"},
+                            {"targetOffset", "targetOffset"},
+                        };
+                    const auto property =
+                        kCameraProperties.find(instr.identifier);
+                    auto el = parent.append_child("SetCameraProperty");
+                    el.append_attribute("property") =
+                        property != kCameraProperties.end()
+                            ? property->second.c_str()
+                            : instr.identifier.c_str();
                     el.append_attribute("id") = nextId().c_str();
-                    el.append_attribute("style") = "set-input";
+                    el.append_attribute("style") = "set-camera";
+                    for (const auto &p : instr.params) {
+                        emitExpression(*p, el);
+                    }
+                } else if (instr.qualifier == "Lists") {
+                    // Vizzy's list setters carry the list first, then the
+                    // value, then the index
+                    static const std::map<std::string,
+                                          std::pair<const char *, const char *>>
+                        kListSets = {
+                            {"add", {"add", "list-add"}},
+                            {"insert", {"insert", "list-insert"}},
+                            {"remove", {"remove", "list-remove"}},
+                            {"set", {"set", "list-set"}},
+                            {"clear", {"clear", "list-clear"}},
+                            {"sort", {"sort", "list-sort"}},
+                            {"reverse", {"reverse", "list-reverse"}},
+                        };
+                    auto entry = kListSets.find(instr.identifier);
+                    if (entry == kListSets.end()) {
+                        // Not a setter Vizzy knows: keep the old shape
+                        auto el = parent.append_child("SetCraftProperty");
+                        el.append_attribute("property") =
+                            instr.identifier.c_str();
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "set-part";
+                        for (const auto &p : instr.params) {
+                            emitExpression(*p, el);
+                        }
+                        return;
+                    }
+                    const char *op = entry->second.first;
+                    const char *style = entry->second.second;
+                    // Inserting a single value without an index appends,
+                    // which is Vizzy's add block
+                    if (instr.identifier == "insert" &&
+                        instr.params.size() == 2) {
+                        op = "add";
+                        style = "list-add";
+                    }
+                    auto el = parent.append_child("SetList");
+                    el.append_attribute("op") = op;
+                    el.append_attribute("id") = nextId().c_str();
+                    el.append_attribute("style") = style;
+                    if (instr.identifier == "set" &&
+                        instr.params.size() == 3) {
+                        // Juno writes (list, index, value), Vizzy reads
+                        // (list, value, index)
+                        emitExpression(*instr.params[0], el);
+                        emitExpression(*instr.params[2], el);
+                        emitExpression(*instr.params[1], el);
+                    } else {
+                        for (const auto &p : instr.params) {
+                            emitExpression(*p, el);
+                        }
+                    }
+                } else if (instr.qualifier == "Part") {
+                    // Vizzy prefixes the part setters with Part.
+                    static const std::map<std::string, std::string>
+                        kPartProperties = {
+                            {"activate", "Part.SetActivated"},
+                            {"focus", "Part.SetFocused"},
+                            {"name", "Part.SetName"},
+                            {"explode", "Part.SetExplode"},
+                            {"drainFuel", "Part.FuelTransfer"},
+                        };
+                    const auto property =
+                        kPartProperties.find(instr.identifier);
+                    auto el = parent.append_child("SetCraftProperty");
+                    el.append_attribute("property") =
+                        property != kPartProperties.end()
+                            ? property->second.c_str()
+                            : instr.identifier.c_str();
+                    el.append_attribute("id") = nextId().c_str();
+                    el.append_attribute("style") = "set-part";
                     for (const auto &p : instr.params) {
                         emitExpression(*p, el);
                     }
@@ -1097,6 +1429,51 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                         el.append_attribute("id") = nextId().c_str();
                         el.append_attribute("style") =
                             "lock-nav-sphere-vector";
+                        // Three plain numbers make up the one vector
+                        // constant Vizzy plugs into the block
+                        std::string triple;
+                        bool foldable = instr.params.size() == 3;
+                        for (const auto &p : instr.params) {
+                            const auto *v =
+                                std::get_if<Value>(&p->value);
+                            if (!v || v->kind != Value::Kind::Literal ||
+                                !isNumericLiteral(v->value)) {
+                                foldable = false;
+                                break;
+                            }
+                            if (!triple.empty())
+                                triple += ", ";
+                            triple += v->value;
+                        }
+                        if (foldable) {
+                            auto c = el.append_child("Constant");
+                            c.append_attribute("vector") =
+                                ("(" + triple + ")").c_str();
+                        } else {
+                            for (const auto &p : instr.params) {
+                                emitExpression(*p, el);
+                            }
+                        }
+                    } else if (instr.identifier == "setTarget") {
+                        auto el = parent.append_child("SetTarget");
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "set-target";
+                        for (const auto &p : instr.params) {
+                            emitExpression(*p, el);
+                        }
+                    } else if (instr.identifier == "pidPitchTo") {
+                        auto el = parent.append_child("SetTargetHeading");
+                        el.append_attribute("property") = "pid-pitch";
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "set-heading";
+                        for (const auto &p : instr.params) {
+                            emitExpression(*p, el);
+                        }
+                    } else if (instr.identifier == "pidRollTo") {
+                        auto el = parent.append_child("SetTargetHeading");
+                        el.append_attribute("property") = "pid-roll";
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "set-heading";
                         for (const auto &p : instr.params) {
                             emitExpression(*p, el);
                         }
@@ -1211,7 +1588,8 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                     bool allLiterals = true;
                     for (const auto &p : emit.params) {
                         const auto *v = std::get_if<Value>(&p->value);
-                        if (!v || v->kind != Value::Kind::Literal)
+                        if (!v || (v->kind != Value::Kind::Literal &&
+                                   v->kind != Value::Kind::String))
                             allLiterals = false;
                     }
                     if (allLiterals) {
@@ -1388,6 +1766,10 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                            appendConstant(parent, v.value);
                            return;
                        }
+                       if (v.kind == Value::Kind::String) {
+                           appendStringConstant(parent, v.value);
+                           return;
+                       }
 
                        const std::string resolved =
                            resolveVariableName(v.value);
@@ -1539,26 +1921,40 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                            emitExpression(*t.valueIfFalse, el);
                    },
                    [&](const CallExpression &call) {
-                        if (call.qualifier == "Planet") {
-                            if (auto planetOp = findPlanetOp(call.identifier)) {
-                                auto el = parent.append_child("Planet");
-                                el.append_attribute("op") = planetOp->op;
-                                el.append_attribute("style") = planetOp->style;
-                                for (const auto &p : call.params) {
-                                    emitExpression(*p, el);
-                                }
-                            } else {
-                                auto el = parent.append_child(
-                                    "CallCustomExpression");
-                                el.append_attribute("call") =
-                                    call.identifier.c_str();
-                                el.append_attribute("style") =
-                                    "call-custom-expression";
-                                for (const auto &p : call.params) {
-                                    emitExpression(*p, el);
-                                }
-                            }
-                        } else if (call.qualifier == "ListOp") {
+                       // The block Vizzy writes for a call it does not know
+                       auto appendCustom = [&] {
+                           auto el = parent.append_child(
+                               "CallCustomExpression");
+                           el.append_attribute("call") =
+                               call.identifier.c_str();
+                           el.append_attribute("style") =
+                               "call-custom-expression";
+                           for (const auto &p : call.params) {
+                               emitExpression(*p, el);
+                           }
+                       };
+                       // Standard calls carry their arguments in source order
+                       auto appendParams = [&](pugi::xml_node el) {
+                           for (const auto &p : call.params) {
+                               emitExpression(*p, el);
+                           }
+                       };
+
+                       // The coordinate conversions are Vizzy's Planet
+                       // blocks even though Juno files them under Nav
+                       const PlanetOp *planetOp =
+                           call.qualifier == "Planet" ||
+                                   call.qualifier == "Nav"
+                               ? findPlanetOp(call.identifier)
+                               : nullptr;
+                       if (planetOp) {
+                           auto el = parent.append_child("Planet");
+                           el.append_attribute("op") = planetOp->op;
+                           el.append_attribute("style") = planetOp->style;
+                           appendParams(el);
+                       } else if (call.qualifier == "Planet") {
+                           appendCustom();
+                       } else if (call.qualifier == "ListOp") {
                             if (auto listOp = findListOp(call.identifier)) {
                                 auto el = parent.append_child("ListOp");
                                 el.append_attribute("op") = listOp->op;
@@ -1577,35 +1973,109 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                                     emitExpression(*p, el);
                                 }
                             }
-                        } else if (call.qualifier == "String" &&
-                                   call.identifier == "format") {
-                            auto el = parent.append_child("StringOp");
-                            el.append_attribute("op") = "format";
-                            el.append_attribute("style") = "format";
-                            for (const auto &p : call.params) {
-                                emitExpression(*p, el);
+                        } else if (call.qualifier == "Math") {
+                            if (auto block =
+                                    findMathBlock(call.identifier)) {
+                                auto el = parent.append_child(block->tag);
+                                if (block->attr) {
+                                    el.append_attribute(block->attr) =
+                                        block->value;
+                                }
+                                el.append_attribute("style") = block->style;
+                                appendParams(el);
+                            } else {
+                                appendCustom();
                             }
+                        } else if (call.qualifier == "String" ||
+                                   call.qualifier == "Strings") {
+                            if (auto block = findStringOp(call.identifier)) {
+                                auto el = parent.append_child("StringOp");
+                                el.append_attribute("op") = block->op;
+                                el.append_attribute("style") = block->style;
+                                if (call.identifier == "letterOf" &&
+                                    call.params.size() == 2) {
+                                    // Vizzy reads letter(index, text)
+                                    emitExpression(*call.params[1], el);
+                                    emitExpression(*call.params[0], el);
+                                } else if (call.identifier == "substr" &&
+                                           call.params.size() == 3) {
+                                    // Vizzy reads substring(start, length,
+                                    // text)
+                                    emitExpression(*call.params[1], el);
+                                    emitExpression(*call.params[2], el);
+                                    emitExpression(*call.params[0], el);
+                                } else {
+                                    appendParams(el);
+                                }
+                            } else {
+                                appendCustom();
+                            }
+                        } else if (call.qualifier == "Vector") {
+                            if (call.identifier == "vec") {
+                                // Vizzy builds the vector out of three inputs
+                                auto el = parent.append_child("Vector");
+                                el.append_attribute("style") = "vec";
+                                appendParams(el);
+                            } else if (auto block =
+                                           findVectorOp(call.identifier)) {
+                                auto el = parent.append_child("VectorOp");
+                                el.append_attribute("op") = block->op;
+                                el.append_attribute("style") = block->style;
+                                appendParams(el);
+                            } else {
+                                appendCustom();
+                            }
+                        } else if (call.qualifier == "Input" &&
+                                   call.identifier == "slider") {
+                            // Vizzy has four fixed sliders: the index names
+                            // the property instead of being an input
+                            const auto *index =
+                                call.params.size() == 1
+                                    ? std::get_if<Value>(
+                                          &call.params[0]->value)
+                                    : nullptr;
+                            const bool known =
+                                index &&
+                                index->kind == Value::Kind::Literal &&
+                                index->value.size() == 1 &&
+                                index->value[0] >= '1' &&
+                                index->value[0] <= '4';
+                            if (known) {
+                                auto el = parent.append_child("CraftProperty");
+                                el.append_attribute("property") =
+                                    ("Input.Slider" +
+                                     std::string(1, index->value[0]))
+                                        .c_str();
+                                el.append_attribute("style") = "prop-input";
+                            } else {
+                                appendCustom();
+                            }
+                        } else if (call.qualifier == "Input" &&
+                                   call.identifier == "activationGroup") {
+                            auto el = parent.append_child("ActivationGroup");
+                            el.append_attribute("style") =
+                                "activation-group";
+                            appendParams(el);
+                        } else if (call.qualifier == "Craft" &&
+                                   call.identifier == "name") {
+                            // Without an id the name of the current craft,
+                            // with one the name of that craft
+                            const bool byId = !call.params.empty();
+                            auto el = parent.append_child("CraftProperty");
+                            el.append_attribute("property") =
+                                byId ? "Craft.IDToName" : "Name.Craft";
+                            el.append_attribute("style") =
+                                byId ? "craft" : "prop-name";
+                            appendParams(el);
                         } else if (auto stdExpr = findStdExpr(call.qualifier,
                                                               call.identifier.c_str())) {
                             auto el = parent.append_child("CraftProperty");
                             el.append_attribute("property") =
                                 stdExpr->property;
                             el.append_attribute("style") = stdExpr->style;
-                            if (!call.params.empty()) {
-                                for (const auto &p : call.params) {
-                                    emitExpression(*p, el);
-                                }
-                            }
+                            appendParams(el);
                         } else {
-                            auto el = parent.append_child(
-                                "CallCustomExpression");
-                            el.append_attribute("call") =
-                                call.identifier.c_str();
-                            el.append_attribute("style") =
-                                "call-custom-expression";
-                            for (const auto &p : call.params) {
-                                emitExpression(*p, el);
-                            }
+                            appendCustom();
                         }
                     },
                 },

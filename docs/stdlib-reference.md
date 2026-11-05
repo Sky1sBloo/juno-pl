@@ -19,6 +19,7 @@ instruction, `Input.throttle()` as an expression).
 | `Game.beep` | `(freq, dur, vol)` | Plays a beep sound. |
 | `Game.flightLog` | `(text, overwrite)` | Writes a message to the flight log.  |
 | `Game.display` | `(text)` | Shows a message on screen. |
+| `Game.speak` | `(text, pitch, speed)` | Speak text aloud. |
 
 ## Math — `Math` (expressions)
 
@@ -44,6 +45,8 @@ instruction, `Input.throttle()` as an expression).
 | `Math.deg2rad` | `(deg)` | Degrees to radians. |
 | `Math.rad2deg` | `(rad)` | Radians to degrees. |
 | `Math.atan2` | `(y, x)` | Arctangent of y/x. |
+| `Math.pow` | `(base, exp)` | Raises base to the power of exp. |
+| `Math.evaluate` | `(expr)` | Evaluates a math expression given as text. |
 
 ## Strings — `String` / `Strings` (expressions)
 
@@ -55,7 +58,6 @@ instruction, `Input.throttle()` as an expression).
 | `String.substr` | `(s, start, len)` | Substring. |
 | `String.strContains` | `(s, sub)` | Whether s contains sub. |
 | `String.format` | `(template, ...)` | Format string with substitutions (variadic). |
-| `String.friendly` | `(a, b)` | Friendly comparison/formatting. |
 | `String.friendly` | `(a, b)` | Friendly comparison/formatting. |
 
 ## Vectors — `Vector` (expressions)
@@ -69,7 +71,7 @@ instruction, `Input.throttle()` as an expression).
 | `Vector.vecZ` | `()` | Z component. |
 | `Vector.normalize` | `(v)` | Normalized vector. |
 | `Vector.angle` | `(a, b)` | Angle between two vectors. |
-| `Vector.clamp` | `(v, min, max)` | Clamp vector components. |
+| `Vector.clamp` | `(v, s)` | Clamp vector components. |
 | `Vector.cross` | `(a, b)` | Cross product. |
 | `Vector.dot` | `(a, b)` | Dot product. |
 | `Vector.dist` | `(a, b)` | Distance between two vectors. |
@@ -97,6 +99,8 @@ instruction, `Input.throttle()` as an expression).
 |----------|-----------|-------------|
 | `Craft.pitchTo` | `(degrees)` | Pitch craft to angle. |
 | `Craft.headingTo` | `(degrees)` | Heading to angle. |
+| `Craft.pidPitchTo` | `(value)` | Set the pitch PID target. |
+| `Craft.pidRollTo` | `(value)` | Set the roll PID target. |
 | `Craft.setPitchPID` | `(p, i, d)` | Set pitch PID gains. |
 | `Craft.setRollPID` | `(p, i, d)` | Set roll PID gains. |
 | `Craft.setTarget` | `(target)` | Set target. |
@@ -124,6 +128,7 @@ instruction, `Input.throttle()` as an expression).
 | `Input.translateUp` | `(value)` | Up translation. |
 | `Input.activationGroup` | `(group, state)` | Toggle activation group. |
 | `Input.translationMode` | `(mode)` | Set translation mode. |
+| `Input.setVariable` | `(name, value)` | Set a Vizzy variable (input qualifier context). |
 
 ## Part instructions — `Part` (instructions)
 
@@ -134,15 +139,9 @@ instruction, `Input.throttle()` as an expression).
 | `Part.unfocus` | `(partId)` | Unfocus a part. |
 | `Part.name` | `(partId, name)` | Rename a part. |
 | `Part.detach` | `(partId)` | Detach a part. |
-| `Part.explode` | `(partId)` | Explode a part. |
-| `Part.drainFuel` | `(partId)` | Drain fuel from a part. |
+| `Part.explode` | `(partId)` or `(partId, ...)` | Explode a part; an optional second argument fills Vizzy's second input. |
+| `Part.drainFuel` | `(partId)` or `(partId, ...)` | Drain fuel from a part; an optional second argument fills Vizzy's second input. |
 | `Part.fillFuel` | `(partId)` | Fill fuel in a part. |
-
-## Game actions — `Game` (instructions)
-
-| Function | Signature | Description |
-|----------|-----------|-------------|
-| `Input.setVariable` | `(name, value)` | Set a Vizzy variable (input qualifier context). |
 
 ## Camera controls — `Camera` (instructions)
 
@@ -153,12 +152,14 @@ instruction, `Input.throttle()` as an expression).
 | `Camera.yRotation` | `(deg)` | Y rotation. |
 | `Camera.tilt` | `(deg)` | Tilt angle. |
 | `Camera.mode` | `(mode)` | Camera mode. |
-| `Camera.targetOffset` | `(x, y, z)` or `(x, y, z)` | Target offset (1 or 3 args). |
+| `Camera.modeIndex` | `(index)` | Set the camera mode by index. |
+| `Camera.targetOffset` | `(offset)` or `(x, y, z)` | Target offset (1 or 3 args). |
 
 ## List operations — `Lists` (instructions)
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
+| `Lists.add` | `(ident, value)` | Append a value to a list. |
 | `Lists.insert` | `(ident, value, ...)` | Insert values into a list (variadic, 2+). |
 | `Lists.set` | `(ident, index, value)` | Set list element at index. |
 | `Lists.remove` | `(ident, index)` | Remove element at index. |
@@ -299,8 +300,8 @@ instruction, `Input.throttle()` as an expression).
 ### `Craft` (expressions)
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `Craft.name` | `()` or `(id)` | Craft name or part name by id. |
-| `Craft.idOf` | `(name)` | ID of a named craft/part. |
+| `Craft.name` | `()` or `(id)` | Name of this craft, or of the craft with the given id. |
+| `Craft.idOf` | `(name)` | ID of a named craft. |
 | `Craft.currentStage` | `()` | Current stage number. |
 | `Craft.numStages` | `()` | Total stage count. |
 | `Craft.isGrounded` | `()` or `(partId)` | Whether craft/part is grounded. |
@@ -323,9 +324,9 @@ instruction, `Input.throttle()` as an expression).
 | `Craft.boundMax` | `(id)` | Bounding box maximum. |
 | `Craft.orbitAp` | `(id)` | Apoapsis of craft/part. |
 | `Craft.orbitPe` | `(id)` | Periapsis of craft/part. |
+| `Craft.ap` | `(id)` | Apoapsis of craft/part. |
+| `Craft.pe` | `(id)` | Periapsis of craft/part. |
 | `Craft.orbitPeriod` | `(id)` | Orbital period of craft/part. |
-| `Craft.timeToAp` | `(id)` | Time to apoapsis of craft/part. |
-| `Craft.timeToPe` | `(id)` | Time to periapsis of craft/part. |
 | `Craft.apoapsisTime` | `(id)` | Apoapsis time of craft/part. |
 | `Craft.periapsisTime` | `(id)` | Periapsis time of craft/part. |
 | `Craft.eccentricity` | `(id)` | Orbital eccentricity of craft/part. |
@@ -337,8 +338,6 @@ instruction, `Input.throttle()` as an expression).
 | `Craft.semiMajorAxis` | `(id)` | Semi-major axis of craft/part. |
 | `Craft.semiMinorAxis` | `(id)` | Semi-minor axis of craft/part. |
 | `Craft.trueAnomaly` | `(id)` | True anomaly of craft/part. |
-| `Craft.boundingBoxMin` | `(id)` | Bounding box minimum of craft/part. |
-| `Craft.boundingBoxMax` | `(id)` | Bounding box maximum of craft/part. |
 | `Craft.nameToID` | `(name)` | ID of a named craft. |
 
 ### `Camera` (expressions)
@@ -387,7 +386,10 @@ instruction, `Input.throttle()` as an expression).
 | `Planet.surfaceAirDensity` | `(id)` | Surface air density. |
 | `Planet.atmosphereHeight` | `(id)` | Atmosphere height. |
 | `Planet.atmosphereScaleHeight` | `(id)` | Atmosphere scale height. |
+| `Planet.atmosphereScale` | `(id)` | Atmosphere scale. |
 | `Planet.atmosphereElements` | `(id)` | Atmospheric elements. |
+| `Planet.atmosphereComposition` | `(id)` | Atmospheric composition. |
+| `Planet.atmosphereDensity` | `(id)` | Atmosphere density. |
 | `Planet.soiRadius` | `(id)` | Sphere of influence radius. |
 | `Planet.solarPosition` | `(id)` | Solar position relative to planet. |
 | `Planet.childPlanets` | `(id)` | Child planets/moons. |
@@ -397,6 +399,7 @@ instruction, `Input.throttle()` as an expression).
 | `Planet.structures` | `(id)` | Structures on planet. |
 | `Planet.hydrosphereElement` | `(id)` | Hydrosphere element. |
 | `Planet.hydrosphereDensity` | `(id)` | Hydrosphere density. |
+| `Planet.hydrosphereComposition` | `(id)` | Hydrosphere composition. |
 | `Planet.day` | `(id)` | Day length. |
 | `Planet.dayLength` | `(id)` | Day length. |
 | `Planet.year` | `(id)` | Year length. |
@@ -418,11 +421,13 @@ instruction, `Input.throttle()` as an expression).
 | `Planet.orbitEccentricity` | `(id)` | Orbital eccentricity. |
 | `Planet.orbitMeanAnomaly` | `(id)` | Mean anomaly. |
 | `Planet.orbitMeanMotion` | `(id)` | Mean motion. |
-| `Planet.periapsisargument` | `(id)` | Argument of periapsis. |
+| `Planet.orbitPeriapsisArgument` | `(id)` | Argument of periapsis. |
 | `Planet.orbitRightAscension` | `(id)` | Right ascension of ascending node. |
 | `Planet.orbitTrueAnomaly` | `(id)` | True anomaly. |
 | `Planet.orbitSemiMajorAxis` | `(id)` | Semi-major axis. |
 | `Planet.orbitSemiMinorAxis` | `(id)` | Semi-minor axis. |
+| `Planet.semimajoraxis` | `(id)` | Semi-major axis. |
+| `Planet.semiminoraxis` | `(id)` | Semi-minor axis. |
 | `Planet.soiradius` | `(id)` | Sphere of influence radius. |
 | `Planet.hasTerrain` | `(id)` | Whether planet has terrain. |
 

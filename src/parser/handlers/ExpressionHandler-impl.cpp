@@ -94,9 +94,14 @@ std::optional<ExpressionHandle> Parser::parsePrimaryExpression() {
         mTokens->advance();
 
         auto expression = std::make_unique<JunoPL::Expression>();
-        expression->value = JunoPL::Value{valueToken.value,
-                                          JunoPL::Value::Kind::Literal,
-                                          locationOf(valueToken)};
+        // A quoted string stays a string: "10000.99" must not be written
+        // back out as a number
+        expression->value =
+            JunoPL::Value{valueToken.value,
+                          valueToken.type == TokenType::STR
+                              ? JunoPL::Value::Kind::String
+                              : JunoPL::Value::Kind::Literal,
+                          locationOf(valueToken)};
         return expression;
     }
     case TokenType::IDENT: {

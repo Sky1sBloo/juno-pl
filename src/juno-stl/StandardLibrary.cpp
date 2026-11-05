@@ -140,6 +140,9 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::MATH, Operations::EXPRESSION, "deg2rad", {{1, 1}});
         add(Qualifiers::MATH, Operations::EXPRESSION, "rad2deg", {{1, 1}});
         add(Qualifiers::MATH, Operations::EXPRESSION, "atan2", {{2, 2}});
+        add(Qualifiers::MATH, Operations::EXPRESSION, "pow", {{2, 2}});
+        // Escape hatch for Vizzy's evaluate-expression block
+        add(Qualifiers::MATH, Operations::EXPRESSION, "evaluate", {{1, 1}});
 
         // Operators - string expressions (String. and Strings. both work)
         add(Qualifiers::STRINGS, Operations::EXPRESSION, "join",
@@ -194,6 +197,9 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         // Craft Instructions - craft state
         add(Qualifiers::CRAFT, Operations::INSTRUCTION, "pitchTo", {{1, 1}});
         add(Qualifiers::CRAFT, Operations::INSTRUCTION, "headingTo", {{1, 1}});
+        add(Qualifiers::CRAFT, Operations::INSTRUCTION, "pidPitchTo",
+            {{1, 1}});
+        add(Qualifiers::CRAFT, Operations::INSTRUCTION, "pidRollTo", {{1, 1}});
         add(Qualifiers::CRAFT, Operations::INSTRUCTION, "setPitchPID",
             {{3, 3}});
         add(Qualifiers::CRAFT, Operations::INSTRUCTION, "setRollPID", {{3, 3}});
@@ -218,8 +224,8 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::PART, Operations::INSTRUCTION, "unfocus", {{1, 1}});
         add(Qualifiers::PART, Operations::INSTRUCTION, "name", {{2, 2}});
         add(Qualifiers::PART, Operations::INSTRUCTION, "detach", {{1, 1}});
-        add(Qualifiers::PART, Operations::INSTRUCTION, "explode", {{1, 1}});
-        add(Qualifiers::PART, Operations::INSTRUCTION, "drainFuel", {{1, 1}});
+        add(Qualifiers::PART, Operations::INSTRUCTION, "explode", {{1, 2}});
+        add(Qualifiers::PART, Operations::INSTRUCTION, "drainFuel", {{1, 2}});
         add(Qualifiers::PART, Operations::INSTRUCTION, "fillFuel", {{1, 1}});
 
         // Craft Instructions - game actions
@@ -230,6 +236,7 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::GAME, Operations::INSTRUCTION, "flightLog",
             {{1, 2}});
         add(Qualifiers::GAME, Operations::INSTRUCTION, "display", {{1, 1}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "speak", {{3, 3}});
         add(Qualifiers::GAME, Operations::EXPRESSION, "frequencyOf", {{2, 2}});
         add(Qualifiers::GAME, Operations::EXPRESSION, "speak", {{3, 3}});
         add(Qualifiers::GAME, Operations::EXPRESSION, "sineBeep", {{3, 3}});
@@ -244,6 +251,8 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::CAMERA, Operations::INSTRUCTION, "yRotation", {{1, 1}});
         add(Qualifiers::CAMERA, Operations::INSTRUCTION, "tilt", {{1, 1}});
         add(Qualifiers::CAMERA, Operations::INSTRUCTION, "mode", {{1, 1}});
+        add(Qualifiers::CAMERA, Operations::INSTRUCTION, "modeIndex",
+            {{1, 1}});
         add(Qualifiers::CAMERA, Operations::INSTRUCTION, "targetOffset",
             {{1, 1}, {3, 3}});
 
@@ -600,6 +609,7 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
             {{2, 2}});
 
         // Lists - qualified form only: Lists.insert(ident, value, ...)
+        add(Qualifiers::LISTS, Operations::INSTRUCTION, "add", {{2, 2}});
         add(Qualifiers::LISTS, Operations::INSTRUCTION, "insert",
             {{2, kUnbounded}});
         add(Qualifiers::LISTS, Operations::INSTRUCTION, "set", {{3, 3}});

@@ -297,8 +297,9 @@ TEST_CASE("Parser Value Expression - literal and identifier kinds") {
     REQUIRE(parseOutput.root);
     REQUIRE(parseOutput.root->body.size() == 4);
 
-    // Note: "text" and name both parse to the same string value;
-    // only kind distinguishes a literal from an identifier reference
+    // Note: "text" and name both parse to the same string value; only kind
+    // distinguishes them: a quoted string is Kind::String (so it stays text
+    // and never becomes a number), an unquoted name is Kind::Identifier
     const auto &number =
         std::get<JunoPL::CustomExpression>(parseOutput.root->body.at(0));
     CHECK(std::get<JunoPL::Value>(number.expression->value).value == "42");
@@ -309,7 +310,7 @@ TEST_CASE("Parser Value Expression - literal and identifier kinds") {
         std::get<JunoPL::CustomExpression>(parseOutput.root->body.at(1));
     CHECK(std::get<JunoPL::Value>(string.expression->value).value == "text");
     CHECK(std::get<JunoPL::Value>(string.expression->value).kind ==
-          JunoPL::Value::Kind::Literal);
+          JunoPL::Value::Kind::String);
 
     const auto &identifier =
         std::get<JunoPL::CustomExpression>(parseOutput.root->body.at(2));
