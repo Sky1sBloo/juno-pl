@@ -1,0 +1,43 @@
+program launch_simple;
+
+var launchTime = 5;
+
+on start() {
+    perform Input.throttle(0);
+    emit telemetry("===LAUNCH===", "============") to script;
+    perform launch(launchTime, "Completed launch");
+}
+
+
+on telemetry(header, footer) {
+    while (true) {
+        perform Game.flightLog(header);
+        perform Game.flightLog(String.format("AGL: {0:n1}", Altitude.getAGL()));
+        perform Game.flightLog(String.format("Pitch: {0:n1}", Nav.pitch()));
+        perform Game.flightLog(footer); 
+    }
+}
+
+instr launch(launchTime, endMsg) {
+    for i from launchTime to 0 by -1 {
+        perform Game.display(String.format("Ready to launch in {0:n1}", i));
+        perform Game.delay(1);
+    }
+    perform Game.display("Ignition");
+    
+    perform Input.throttle(1);
+    perform Craft.activateStage();
+    perform Craft.pitchTo(90);
+    perform Game.delayUntil(Orbit.ap() > 10000);
+    perform Craft.pitchTo(70);
+    perform Input.throttle(0.7);
+    perform Game.delayUntil(Orbit.ap() > 40000);
+    perform Craft.pitchTo(45);
+    perform Input.throttle(1);
+    perform Game.delayUntil(Orbit.ap() > 85000);
+    perform Craft.pitchTo(0);
+    perform Game.delayUntil(Orbit.ap() > 12000);
+    perform Input.throttle(0);
+    perform Game.display(endMsg); 
+} 
+
