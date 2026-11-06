@@ -220,6 +220,36 @@ std::optional<VarAssignment> Parser::parseVarAssignment(TokenList &tokens) {
         node.indexExpr = std::move(indexExpr.value());
     }
 
+    // An identifier followed by "." or "(" in statement position is a
+    // call, and a call needs the do keyword: report that instead of
+    // complaining about the assignment operator
+    if (!mTokens->empty() &&
+        (mTokens->current().type == TokenType::OP_DOT ||
+         mTokens->current().type == TokenType::OP_PAR_OP)) {
+        std::string call = ident->value;
+        // Echo the statement back, stopping at its end. The lexer drops
+        // the quotes around strings, so they are put back here.
+        const int line = mTokens->current().line;
+        for (const Token &token : mTokens->remaining()) {
+            if (token.line != line ||
+                token.type == TokenType::OP_SEMICOLON ||
+                token.type == TokenType::OP_CBRAC_CLO) {
+                break;
+            }
+            const bool quoted = token.type == TokenType::STR;
+            if (quoted) {
+                call += '"';
+            }
+            call += token.value;
+            if (quoted) {
+                call += '"';
+            }
+        }
+        mErrors.emplace_back(ParserError::MissingDo(*ident, call));
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
+    }
+
     // Parse assignment operator
     auto op = expectToken({TokenType::OP_EQUAL, TokenType::OP_PLUS_EQUAL,
                            TokenType::OP_MINUS_EQUAL, TokenType::OP_MULT_EQUAL,

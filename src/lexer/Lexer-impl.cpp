@@ -18,6 +18,9 @@ Lexer::Output Lexer::tokenize(IFileHandler &fileHandler) {
         return output;
     }
     while (c.has_value()) {
+        if (mLexeme.empty() && !mStateHandler.inCommentState()) {
+            mColStart = mCol;
+        }
         StateResult result = mStateHandler.handle(c.value(), mLine, mCol);
 
         switch (result.action) {

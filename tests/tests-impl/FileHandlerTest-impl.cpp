@@ -17,7 +17,8 @@ void FileHandlerTest::setSourceCode(const std::string &sourceCode) {
 
 std::expected<char, FileHandlerError> FileHandlerTest::read() {
     if (charPos >= mSourceCode.size()) {
-        return std::unexpected(FileHandlerError::FileEOF);
+        return std::unexpected(FileHandlerError{FileHandlerErrorCode::FileEOF,
+                                                {}, ""});
     }
     char c = mSourceCode.at(charPos);
     charPos++;

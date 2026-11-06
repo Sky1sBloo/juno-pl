@@ -13,8 +13,8 @@ import junopl.tests.filehandler;
 
 /**
 Node locations are copies of the token that starts the construct. The
-lexer numbers lines from 0 and its colStart points at the delimiter
-before the token, so these tests compare node locations against the
+lexer numbers lines from 0 and colStart is the column of the token's
+first character, so these tests compare node locations against the
 actual token positions instead of hand-computed columns. Line numbers
 are pinned absolutely since they are the values diagnostics rely on.
  */

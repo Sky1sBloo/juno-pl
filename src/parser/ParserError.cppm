@@ -3,6 +3,7 @@ module;
 #include <string>
 export module junopl.parser.error;
 import junopl.lexer.tokens;
+import junopl.common.location;
 
 namespace JunoPL {
 
@@ -82,6 +83,10 @@ export class ParserError {
     const Token &token() const { return mToken; }
     const std::string &message() const { return mMessage; }
 
+    SourceLocation location() const {
+        return SourceLocation{mToken.line, mToken.colStart, mToken.colEnd};
+    }
+
     static ParserError EmptyTokenList() {
         return ParserError{Type::EMPTY_TOKENS, "Parser token list is empty"};
     }
@@ -137,6 +142,22 @@ export class ParserError {
             std::format(
                 "Unexpected token: {0}, at {1}:{2}. Expected one of: {3}",
                 token.value, token.line, token.colStart, expected)};
+    }
+
+    /**
+    A call written where a statement is expected but without the do
+    keyword, e.g. "Game.delay(5);" instead of "do Game.delay(5);". The
+    assignment operator check would otherwise report the "." or "(" as
+    unexpected, which says nothing about what is actually wrong.
+    `call` is the source text of the statement, `identToken` the
+    identifier it starts with, so the caret lands where do belongs.
+    */
+    static ParserError MissingDo(const Token &identToken,
+                                 const std::string &call) {
+        return ParserError{
+            Type::UNEXPECTED_TOKEN, identToken,
+            std::format("Missing \"do\" before instruction call: do {0}",
+                        call)};
     }
 
   private:
