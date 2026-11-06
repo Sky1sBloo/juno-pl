@@ -1,10 +1,15 @@
+#include <algorithm>
 #include <expected>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <string>
 #include <system_error>
+#include <unordered_set>
+#include <utility>
+#include <variant>
 #include <vector>
 
 import junopl.common.location;
@@ -59,7 +64,8 @@ void printDiagnostic(std::ostream &out, const fs::path &path,
     // Source locations are 0-based; display 1-based for users.
     int displayLine = loc.line + 1;
     int displayCol = loc.colStart + 1;
-    out << "  --> " << path << ":" << displayLine << ":" << displayCol << "\n";
+    out << "  --> " << path.string() << ":" << displayLine << ":" << displayCol
+        << "\n";
 
     if (loc.line < 0 || loc.line >= (int)sourceLines.size()) {
         return;
@@ -91,11 +97,152 @@ void printDiagnostic(std::ostream &out, const fs::path &path,
 
 void printFileError(std::ostream &out, const fs::path &path,
                     const JunoPL::FileHandlerError &error) {
-    out << "error: cannot access file '" << path << "': " << error.message();
+    out << "error: cannot access file '" << path.string() << "': "
+        << error.message();
     if (!error.osMessage.empty()) {
         out << " (" << error.osMessage << ")";
     }
     out << "\n";
+}
+
+// Absolute, normalized spelling of `p`, used as the identity of a module for
+// the cycle and already-merged checks: "util.juno", "./util.juno" and
+// "../lib/util.juno" must all map to the same key.
+fs::path normalizePath(const fs::path &p) {
+    std::error_code ec;
+    fs::path abs = p.is_absolute() ? p : fs::absolute(p, ec);
+    if (ec) {
+        abs = p;
+    }
+    fs::path normalized = fs::weakly_canonical(abs, ec);
+    if (ec) {
+        return abs.lexically_normal();
+    }
+    return normalized;
+}
+
+/**
+Reads, lexes and parses one module and splices its declarations into `root`,
+recursing into its imports *first* so a module's own declarations are merged
+only after everything it imports (post-order). Top-level `var`/`list`
+initializers execute in body order, so this guarantees a module's
+dependencies are initialized before the declarations that read them.
+
+chain holds the modules currently being processed — an import found in it
+is a real cycle, reported with the chain that closes it. `merged` holds the
+canonical paths whose declarations are already in `root`, which makes a
+diamond import (two modules importing the same file) splice that file once.
+
+The first module processed — the entry file — creates the root and keeps its
+programName/loc; its body goes through the same merge path as every other
+module, which also drops its ImportNode entries so no import ever reaches the
+semantic analyzer. Returns false on failure with the diagnostic printed.
+ */
+bool processModule(const fs::path &canonicalPath,
+                   std::unique_ptr<JunoPL::RootNode> &root,
+                   std::unordered_set<std::string> &merged,
+                   std::vector<fs::path> &chain) {
+    chain.push_back(canonicalPath);
+    const bool ok = [&]() -> bool {
+        auto fileResult = JunoPL::FileHandler::open(canonicalPath);
+        if (!fileResult.has_value()) {
+            printFileError(std::cerr, canonicalPath, fileResult.error());
+            return false;
+        }
+        auto &fileHandler = *fileResult;
+
+        // Read source once so every diagnostic can show a source snippet.
+        const SourceLines sourceLines = readSourceLines(canonicalPath);
+
+        JunoPL::Lexer lexer;
+        auto lexOutput = lexer.tokenize(fileHandler);
+        if (!lexOutput.errors.empty()) {
+            std::cerr << "Lexer errors:\n";
+            for (const auto &err : lexOutput.errors) {
+                JunoPL::SourceLocation loc{err.line(), err.column(),
+                                           err.column() + 1};
+                printDiagnostic(std::cerr, canonicalPath, sourceLines,
+                                JunoPL::Diagnostic::Severity::Error, loc,
+                                err.message());
+            }
+            return false;
+        }
+
+        JunoPL::Parser parser;
+        auto output = parser.parse(lexOutput.tokens);
+        if (!output.errors.empty()) {
+            std::cerr << "Parser errors:\n";
+            for (const auto &err : output.errors) {
+                printDiagnostic(std::cerr, canonicalPath, sourceLines,
+                                JunoPL::Diagnostic::Severity::Error,
+                                err.location(), err.message());
+            }
+            return false;
+        }
+        if (!output.root) {
+            std::cerr << "error: no AST produced\n";
+            return false;
+        }
+
+        // Collect the imports before merging: merge() drops ImportNode
+        // entries, and each import path is relative to this file.
+        std::vector<JunoPL::ImportNode> imports;
+        for (auto &node : output.root->body) {
+            if (const auto *importNode =
+                    std::get_if<JunoPL::ImportNode>(&node)) {
+                imports.push_back(*importNode);
+            }
+        }
+
+        if (!root) {
+            // Only the entry file reaches this branch: the root carries its
+            // program name and location, its declarations arrive by merge.
+            root = std::make_unique<JunoPL::RootNode>();
+            root->programName = std::move(output.root->programName);
+            root->loc = output.root->loc;
+        }
+
+        const fs::path baseDir = canonicalPath.parent_path();
+        for (const auto &importNode : imports) {
+            // Prefer the path relative to the importing file, then the
+            // cwd-relative spelling the user may have written.
+            fs::path candidate = baseDir / importNode.path;
+            std::error_code ec;
+            if (!fs::exists(candidate, ec)) {
+                std::error_code ec2;
+                fs::path cwdRelative = fs::absolute(importNode.path, ec2);
+                if (!ec2 && fs::exists(cwdRelative, ec2)) {
+                    candidate = cwdRelative;
+                }
+            }
+            const fs::path importPath = normalizePath(candidate);
+
+            if (std::find(chain.begin(), chain.end(), importPath) !=
+                chain.end()) {
+                std::string cycle;
+                for (const auto &step : chain) {
+                    cycle += step.string() + " -> ";
+                }
+                cycle += importPath.string();
+                printDiagnostic(std::cerr, canonicalPath, sourceLines,
+                                JunoPL::Diagnostic::Severity::Error,
+                                importNode.loc, "import cycle: " + cycle);
+                return false;
+            }
+            if (merged.contains(importPath.string())) {
+                continue; // already spliced into the root (include-once)
+            }
+            if (!processModule(importPath, root, merged, chain)) {
+                return false;
+            }
+        }
+
+        root->merge(std::move(*output.root)); // drops ImportNodes
+        merged.insert(canonicalPath.string());
+        return true;
+    }();
+    chain.pop_back();
+    return ok;
 }
 
 struct Options {
@@ -154,7 +301,6 @@ std::optional<Options> parseOptions(int argc, char *argv[],
     }
     return options;
 }
-
 }
 
 int main(int argc, char *argv[]) {
@@ -194,7 +340,6 @@ int main(int argc, char *argv[]) {
         }
         inputPath = *mainJuno;
     }
-
     const fs::path outputDir =
         JunoPL::outputDirectory(options->outDir, config, inputPath);
     const fs::path outputPath =
@@ -210,50 +355,24 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // Open input file
-    auto fileResult = JunoPL::FileHandler::open(inputPath);
-    if (!fileResult.has_value()) {
-        printFileError(std::cerr, inputPath, fileResult.error());
-        return 1;
-    }
-    auto &fileHandler = *fileResult;
-
-    // Read source once so every diagnostic can show a source snippet.
-    auto sourceLines = readSourceLines(inputPath);
-
-    // Lex
-    JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileHandler);
-    if (!lexOutput.errors.empty()) {
-        std::cerr << "Lexer errors:\n";
-        for (const auto &err : lexOutput.errors) {
-            JunoPL::SourceLocation loc{err.line(), err.column(),
-                                       err.column() + 1};
-            printDiagnostic(std::cerr, inputPath, sourceLines,
-                            JunoPL::Diagnostic::Severity::Error, loc,
-                            err.message());
-        }
+    // Load the entry file and everything it imports: each module is parsed
+    // exactly once and spliced into one root AST (post-order, include-once).
+    std::unique_ptr<JunoPL::RootNode> root;
+    std::unordered_set<std::string> mergedPaths; // canonical path -> merged
+    std::vector<fs::path> importChain;           // modules being processed
+    if (!processModule(normalizePath(inputPath), root, mergedPaths,
+                       importChain)) {
         return 1;
     }
 
-    JunoPL::Parser parser;
-    auto parseOutput = parser.parse(lexOutput.tokens);
-    if (!parseOutput.errors.empty()) {
-        std::cerr << "Parser errors:\n";
-        for (const auto &err : parseOutput.errors) {
-            printDiagnostic(std::cerr, inputPath, sourceLines,
-                            JunoPL::Diagnostic::Severity::Error, err.location(),
-                            err.message());
-        }
-        return 1;
-    }
-    if (!parseOutput.root) {
-        std::cerr << "error: no AST produced\n";
-        return 1;
-    }
+    // Snippet source for semantic diagnostics. SourceLocation does not carry
+    // a file identity yet, so a diagnostic from an imported module cannot be
+    // matched to its file — an empty line list prints the file:line:col
+    // header only. This is where the per-file source table slots in.
+    const SourceLines sourceLines;
 
     JunoPL::SemanticAnalyzer analyzer;
-    auto diagnostics = analyzer.analyze(*parseOutput.root);
+    auto diagnostics = analyzer.analyze(*root);
     if (!diagnostics.empty()) {
         std::cerr << "Semantic errors:\n";
         for (const auto &diag : diagnostics) {
@@ -264,8 +383,8 @@ int main(int argc, char *argv[]) {
     }
 
     JunoPL::Compiler compiler;
-    compiler.getVariables(*parseOutput.root);
-    std::string xml = compiler.compileAST(*parseOutput.root);
+    compiler.getVariables(*root);
+    std::string xml = compiler.compileAST(*root);
 
     auto writeResult = compiler.writeToFile(outputPath, xml);
     if (!writeResult.has_value()) {
