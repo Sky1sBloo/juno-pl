@@ -1,44 +1,34 @@
 # JunoPL 
 
-JunoPL is a programming language that compiles to Vizzy XML, the visual
+JunoPL is a programming language that compiles to Vizzy, the visual
 programming language used in *Juno New Origins*. The Juno compiler
 (`juno-pl`) reads `.juno` source files and emits `.xml` files that can be
-loaded into the game's Vizzy.
+loaded into the game.
 
 ## Documentation
 1. [Api Reference](docs/api-reference.md)
 2. [Language Reference](docs/language-reference.md)
 3. [Standard Library](docs/stdlib-reference.md)
 
-## Repository layout
-```
-juno-lang/
-├── docs/                 # This documentation
-├── src/
-│   ├── common/           # SourceLocation type
-│   ├── compiler/         # AST → Vizzy XML code generation
-│   ├── file-handler/     # File reading/writing abstraction
-│   ├── juno-stl/         # Standard library function registry
-│   ├── lexer/            # Tokenizer
-│   ├── parser/           # Parser and AST node definitions
-│   ├── semantic-analyzer/# Name resolution and type/arity checking
-│   └── main.cpp          # CLI entry point
-├── tests/                # Unit tests (doctest)
-├── build.sh              # Build script (cmake + ninja)
-└── CMakeLists.txt        # CMake build configuration
-```
+## Installation
+### Requirements
+ - C++23
+ - CMake (minimum version 4.0.0)
+ - Clang++ (with modules support)
+ - Ninja
 
-## Building
-
-```sh
-./build.sh
+### Building
+1. Create the build files
 ```
-
-This runs `cmake -B build -DCMAKE_CXX_COMPILER=clang++ -G Ninja` followed by
-`ninja -C build`. The `juno-pl` binary is produced in `build/`.
+cmake -B build -DCMAKE_CXX_COMPILER=clang++ -G Ninja
+```
+2. Build
+```
+ninja -C build
+```
+> Alternatively run `build.sh` to run both automatically
 
 ## CLI usage
-
 ```
 juno-pl -c <source.juno> [-d <output-dir>]
 juno-pl -P [-d <output-dir>]
@@ -80,19 +70,20 @@ exits with code 1.
 `hello.juno`:
 ```
 program hello;
-var message = "Hello, Kerbin!";
+var message = "Hello World!";
 
 on start() {
-    Game.display(message);
+    do Game.display(message);
 }
 ```
 
 Compile:
-```sh
+```
 ./build/juno-pl -c hello.juno
 ```
 
-The produced `hello.xml` contains Vizzy XML ready to import into SimpleRockets 2.
+The produced `hello.xml` is ready to import into Juno New Origins by loading the script in the in-game editor. Ensure that the output is on
+`%appdata%/LocalLow/Jundroo/SimpleRockets 2/UserData/FlightPrograms/`.
 
 ## Modules
 
