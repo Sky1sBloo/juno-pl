@@ -460,8 +460,6 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::PLANET, Operations::EXPRESSION, "mass", {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "solidGround",
             {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "surfaceAirDensity",
-            {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "atmosphereHeight",
             {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "atmosphereScaleHeight",
