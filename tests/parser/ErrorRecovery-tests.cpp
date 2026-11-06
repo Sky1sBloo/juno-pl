@@ -101,6 +101,56 @@ TEST_CASE("Error Recovery - recovery to semicolon") {
     CHECK(foundVarY);
 }
 
+TEST_CASE("Error Recovery - call statement missing do") {
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode(
+        "program test; on start() { Game.delay(5); var y = 2; }");
+
+    JunoPL::Lexer lexer;
+    auto lexOutput = lexer.tokenize(fileHandler);
+    REQUIRE(lexOutput.errors.empty());
+
+    JunoPL::Parser parser;
+    auto parseOutput = parser.parse(lexOutput.tokens);
+
+    REQUIRE(!parseOutput.errors.empty());
+    // The message names the fix rather than the assignment operator
+    const std::string &message = parseOutput.errors.at(0).message();
+    CHECK(message.find("Missing \"do\"") != std::string::npos);
+    CHECK(message.find("do Game.delay(5)") != std::string::npos);
+    // The caret belongs on the identifier, where do would be inserted
+    CHECK(parseOutput.errors.at(0).token().value == "Game");
+
+    REQUIRE(parseOutput.root);
+    const auto &event =
+        std::get<JunoPL::EventNode>(parseOutput.root->body.at(0));
+    bool foundVarY = false;
+    for (const auto &stmt : event.body.body) {
+        if (std::holds_alternative<JunoPL::VarDeclaration>(stmt->statement)) {
+            const auto &var = std::get<JunoPL::VarDeclaration>(stmt->statement);
+            if (var.identifier == "y") foundVarY = true;
+        }
+    }
+    CHECK(foundVarY);
+}
+
+TEST_CASE("Error Recovery - unqualified call statement missing do") {
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; on start() { Game(5); }");
+
+    JunoPL::Lexer lexer;
+    auto lexOutput = lexer.tokenize(fileHandler);
+    REQUIRE(lexOutput.errors.empty());
+
+    JunoPL::Parser parser;
+    auto parseOutput = parser.parse(lexOutput.tokens);
+
+    REQUIRE(!parseOutput.errors.empty());
+    const std::string &message = parseOutput.errors.at(0).message();
+    CHECK(message.find("Missing \"do\"") != std::string::npos);
+    CHECK(message.find("do Game(5)") != std::string::npos);
+}
+
 TEST_CASE("Error Recovery - bad expression in func call") {
     JunoPL::Tests::FileHandlerTest fileHandler;
     fileHandler.setSourceCode("program test; on start() { do doStuff(; var y = 2; }");

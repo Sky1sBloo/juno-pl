@@ -144,6 +144,22 @@ export class ParserError {
                 token.value, token.line, token.colStart, expected)};
     }
 
+    /**
+    A call written where a statement is expected but without the do
+    keyword, e.g. "Game.delay(5);" instead of "do Game.delay(5);". The
+    assignment operator check would otherwise report the "." or "(" as
+    unexpected, which says nothing about what is actually wrong.
+    `call` is the source text of the statement, `identToken` the
+    identifier it starts with, so the caret lands where do belongs.
+    */
+    static ParserError MissingDo(const Token &identToken,
+                                 const std::string &call) {
+        return ParserError{
+            Type::UNEXPECTED_TOKEN, identToken,
+            std::format("Missing \"do\" before instruction call: do {0}",
+                        call)};
+    }
+
   private:
     Type mType;
     Token mToken;
