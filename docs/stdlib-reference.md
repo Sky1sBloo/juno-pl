@@ -78,7 +78,7 @@ instruction, `Input.throttle()` as an expression).
 | `Vector.min` | `(a, b)` | Component-wise minimum. |
 | `Vector.max` | `(a, b)` | Component-wise maximum. |
 | `Vector.project` | `(a, b)` | Project a onto b. |
-| `Vector.scale` | `(v, s)` | Scale vector by scalar. |
+| `Vector.scale` | `(v, v)` | Scale vector by another vector. |
 
 ## Game expressions — `Game` (expressions)
 
