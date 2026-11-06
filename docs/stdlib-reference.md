@@ -66,9 +66,9 @@ instruction, `Input.throttle()` as an expression).
 |----------|-----------|-------------|
 | `Vector.vec` | `(x, y, z)` | Construct a vector. |
 | `Vector.vecLength` | `(v)` | Vector magnitude. |
-| `Vector.vecX` | `()` | X component of last vector context. |
-| `Vector.vecY` | `()` | Y component. |
-| `Vector.vecZ` | `()` | Z component. |
+| `Vector.vecX` | `(v)` | X component of last vector context. |
+| `Vector.vecY` | `(v)` | Y component. |
+| `Vector.vecZ` | `(v)` | Z component. |
 | `Vector.normalize` | `(v)` | Normalized vector. |
 | `Vector.angle` | `(a, b)` | Angle between two vectors. |
 | `Vector.clamp` | `(v, s)` | Clamp vector components. |

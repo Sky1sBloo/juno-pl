@@ -109,8 +109,8 @@ TEST_CASE("STL - zero-argument getters") {
     auto vecX =
         JunoSTL::find(Qualifiers::VECTOR, "vecX", Operations::EXPRESSION);
     REQUIRE(vecX.has_value());
-    CHECK(vecX->accepts(0));
-    CHECK_FALSE(vecX->accepts(1));
+    CHECK(vecX->accepts(1));
+    CHECK_FALSE(vecX->accepts(0));
 
     auto altitude =
         JunoSTL::find(Qualifiers::ALTITUDE, "getAGL", Operations::EXPRESSION);

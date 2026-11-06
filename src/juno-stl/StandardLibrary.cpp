@@ -159,9 +159,9 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         // Operators - vector expressions
         add(Qualifiers::VECTOR, Operations::EXPRESSION, "vec", {{3, 3}});
         add(Qualifiers::VECTOR, Operations::EXPRESSION, "vecLength", {{1, 1}});
-        add(Qualifiers::VECTOR, Operations::EXPRESSION, "vecX", {{0, 0}});
-        add(Qualifiers::VECTOR, Operations::EXPRESSION, "vecY", {{0, 0}});
-        add(Qualifiers::VECTOR, Operations::EXPRESSION, "vecZ", {{0, 0}});
+        add(Qualifiers::VECTOR, Operations::EXPRESSION, "vecX", {{1, 1}});
+        add(Qualifiers::VECTOR, Operations::EXPRESSION, "vecY", {{1, 1}});
+        add(Qualifiers::VECTOR, Operations::EXPRESSION, "vecZ", {{1, 1}});
         add(Qualifiers::VECTOR, Operations::EXPRESSION, "normalize", {{1, 1}});
         add(Qualifiers::VECTOR, Operations::EXPRESSION, "angle", {{2, 2}});
         add(Qualifiers::VECTOR, Operations::EXPRESSION, "clamp", {{2, 2}});

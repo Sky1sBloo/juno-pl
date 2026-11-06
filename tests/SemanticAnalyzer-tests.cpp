@@ -55,8 +55,9 @@ TEST_CASE("Semantic - valid standard library calls") {
               .empty());
     CHECK(analyze("program test; on start() { var v = Vector.vec(1, 2, 3); }")
               .empty());
-    CHECK(
-        analyze("program test; on start() { var n = Vector.vecX(); }").empty());
+    CHECK(analyze("program test; on start() { var n = "
+                  "Vector.vecX(Vector.vec(1, 2, 3)); }")
+              .empty());
     CHECK(analyze("program test; on start() { var a = Altitude.getAGL(); }")
               .empty());
     CHECK(
