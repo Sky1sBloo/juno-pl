@@ -1,12 +1,4 @@
-add_library(pugixml STATIC
-    pugixml.cpp
-)
-
-target_sources(pugixml PUBLIC
-    pugixml.hpp
-    pugiconfig.hpp
-)
-
-target_include_directories(pugixml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
-target_compile_features(pugixml PUBLIC cxx_std_23)
+# Third-party dependencies. Each one lives in its own directory with its
+# own CMakeLists so it can be built or replaced on its own.
+add_subdirectory(pugixml)
+add_subdirectory(json)
