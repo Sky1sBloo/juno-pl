@@ -5,6 +5,7 @@ module;
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <vector>
 
 export module junopl.filehandler;
 export import junopl.ifilehandler;
@@ -41,6 +42,16 @@ class FileHandler : public IFileHandler {
         }
         return {};
     }
+
+    /**
+    Reads a whole file as individual lines, for diagnostic snippets. A
+    trailing \r is stripped so CRLF files keep their caret columns.
+     */
+    static std::expected<std::vector<std::string>, FileHandlerError>
+    readLines(const std::filesystem::path &path);
+
+    /** True when `path` exists; never throws on a broken path. */
+    static bool exists(const std::filesystem::path &path);
 
     std::expected<char, FileHandlerError> read() override;
     std::expected<void, FileHandlerError>

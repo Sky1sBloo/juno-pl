@@ -1,102 +1,24 @@
 #include <expected>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <string>
 #include <system_error>
 #include <vector>
 
-import junopl.common.location;
+import junopl.compiler;
 import junopl.config;
+import junopl.diagnostics;
 import junopl.filehandler;
-import junopl.lexer;
-import junopl.parser;
+import junopl.moduleloader;
 import junopl.parser.nodes;
 import junopl.semantic;
 import junopl.semantic.diagnostic;
-import junopl.compiler;
 
 namespace fs = std::filesystem;
 
 namespace {
-
-using SourceLines = std::vector<std::string>;
-
-SourceLines readSourceLines(const fs::path &path) {
-    SourceLines lines;
-    std::ifstream in(path);
-    std::string line;
-    while (std::getline(in, line)) {
-        lines.push_back(line);
-    }
-    return lines;
-}
-
-std::string severityLabel(JunoPL::Diagnostic::Severity severity) {
-    switch (severity) {
-    case JunoPL::Diagnostic::Severity::Error:
-        return "error";
-    case JunoPL::Diagnostic::Severity::Warning:
-        return "warning";
-    case JunoPL::Diagnostic::Severity::Note:
-        return "note";
-    }
-    return "error";
-}
-
-// Print a single diagnostic with file:line:col, a source snippet, and a caret
-// pointing at the offending columns.
-void printDiagnostic(std::ostream &out, const fs::path &path,
-                     const SourceLines &sourceLines,
-                     JunoPL::Diagnostic::Severity severity,
-                     const JunoPL::SourceLocation &loc,
-                     const std::string &message) {
-    out << severityLabel(severity) << ": " << message << "\n";
-    if (!loc.isValid()) {
-        return;
-    }
-    // Source locations are 0-based; display 1-based for users.
-    int displayLine = loc.line + 1;
-    int displayCol = loc.colStart + 1;
-    out << "  --> " << path << ":" << displayLine << ":" << displayCol << "\n";
-
-    if (loc.line < 0 || loc.line >= (int)sourceLines.size()) {
-        return;
-    }
-    const std::string &src = sourceLines[loc.line];
-    int col = loc.colStart < 0 ? 0 : loc.colStart;
-    if (col > (int)src.size()) {
-        col = (int)src.size();
-    }
-    int width = loc.colEnd - loc.colStart;
-    if (width < 1) {
-        width = 1;
-    }
-    int end = col + width;
-    if (end > (int)src.size()) {
-        end = (int)src.size();
-    }
-
-    out << "   | " << src << "\n";
-    out << "   | ";
-    for (int i = 0; i < col; ++i) {
-        out << " ";
-    }
-    for (int i = col; i < end; ++i) {
-        out << "^";
-    }
-    out << "\n";
-}
-
-void printFileError(std::ostream &out, const fs::path &path,
-                    const JunoPL::FileHandlerError &error) {
-    out << "error: cannot access file '" << path << "': " << error.message();
-    if (!error.osMessage.empty()) {
-        out << " (" << error.osMessage << ")";
-    }
-    out << "\n";
-}
 
 struct Options {
     fs::path source;         // -c: the file to compile
@@ -154,8 +76,7 @@ std::optional<Options> parseOptions(int argc, char *argv[],
     }
     return options;
 }
-
-}
+} // namespace
 
 int main(int argc, char *argv[]) {
     std::string argumentError;
@@ -194,7 +115,6 @@ int main(int argc, char *argv[]) {
         }
         inputPath = *mainJuno;
     }
-
     const fs::path outputDir =
         JunoPL::outputDirectory(options->outDir, config, inputPath);
     const fs::path outputPath =
@@ -210,66 +130,37 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // Open input file
-    auto fileResult = JunoPL::FileHandler::open(inputPath);
-    if (!fileResult.has_value()) {
-        printFileError(std::cerr, inputPath, fileResult.error());
-        return 1;
-    }
-    auto &fileHandler = *fileResult;
-
-    // Read source once so every diagnostic can show a source snippet.
-    auto sourceLines = readSourceLines(inputPath);
-
-    // Lex
-    JunoPL::Lexer lexer;
-    auto lexOutput = lexer.tokenize(fileHandler);
-    if (!lexOutput.errors.empty()) {
-        std::cerr << "Lexer errors:\n";
-        for (const auto &err : lexOutput.errors) {
-            JunoPL::SourceLocation loc{err.line(), err.column(),
-                                       err.column() + 1};
-            printDiagnostic(std::cerr, inputPath, sourceLines,
-                            JunoPL::Diagnostic::Severity::Error, loc,
-                            err.message());
-        }
+    // Load the entry file and everything it imports into one root AST.
+    JunoPL::ModuleLoader loader;
+    auto root = loader.load(inputPath, std::cerr);
+    if (!root) {
         return 1;
     }
 
-    JunoPL::Parser parser;
-    auto parseOutput = parser.parse(lexOutput.tokens);
-    if (!parseOutput.errors.empty()) {
-        std::cerr << "Parser errors:\n";
-        for (const auto &err : parseOutput.errors) {
-            printDiagnostic(std::cerr, inputPath, sourceLines,
-                            JunoPL::Diagnostic::Severity::Error, err.location(),
-                            err.message());
-        }
-        return 1;
-    }
-    if (!parseOutput.root) {
-        std::cerr << "error: no AST produced\n";
-        return 1;
-    }
+    // Snippet source for semantic diagnostics. SourceLocation does not carry
+    // a file identity yet, so a diagnostic from an imported module cannot be
+    // matched to its file — an empty line list prints the file:line:col
+    // header only. This is where the per-file source table slots in.
+    const JunoPL::SourceLines sourceLines;
 
     JunoPL::SemanticAnalyzer analyzer;
-    auto diagnostics = analyzer.analyze(*parseOutput.root);
+    auto diagnostics = analyzer.analyze(*root);
     if (!diagnostics.empty()) {
         std::cerr << "Semantic errors:\n";
         for (const auto &diag : diagnostics) {
-            printDiagnostic(std::cerr, inputPath, sourceLines, diag.severity,
-                            diag.loc, diag.message);
+            JunoPL::printDiagnostic(std::cerr, inputPath, sourceLines,
+                                    diag.severity, diag.loc, diag.message);
         }
         return 1;
     }
 
     JunoPL::Compiler compiler;
-    compiler.getVariables(*parseOutput.root);
-    std::string xml = compiler.compileAST(*parseOutput.root);
+    compiler.getVariables(*root);
+    std::string xml = compiler.compileAST(*root);
 
     auto writeResult = compiler.writeToFile(outputPath, xml);
     if (!writeResult.has_value()) {
-        printFileError(std::cerr, outputPath, writeResult.error());
+        JunoPL::printFileError(std::cerr, outputPath, writeResult.error());
         return 1;
     }
 

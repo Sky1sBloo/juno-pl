@@ -1,5 +1,6 @@
 module;
 #include <string>
+#include <utility>
 #include <variant>
 #include <vector>
 export module junopl.parser.nodes;
@@ -34,6 +35,19 @@ export struct RootNode {
     std::string programName;
     std::vector<RootNodes> body;
     SourceLocation loc;
+
+    /**
+    Splices other rootnodes to this root node
+     */
+    void merge(RootNode &&other) {
+        for (RootNodes &node : other.body) {
+            if (std::holds_alternative<ImportNode>(node)) {
+                continue;
+            }
+            body.push_back(std::move(node));
+        }
+        other.body.clear();
+    }
 };
 
-} // namespace JunoPL
+}
