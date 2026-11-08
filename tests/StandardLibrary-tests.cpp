@@ -44,6 +44,18 @@ TEST_CASE("STL - qualifier strings and aliases") {
     CHECK_FALSE(join->accepts(1));
 }
 
+TEST_CASE("STL - Game localLog is an instruction") {
+    auto localLog =
+        JunoSTL::find(Qualifiers::GAME, "localLog", Operations::INSTRUCTION);
+    REQUIRE(localLog.has_value());
+    CHECK(localLog->accepts(1));
+    CHECK_FALSE(localLog->accepts(0));
+    CHECK_FALSE(localLog->accepts(2));
+    CHECK_FALSE(JunoSTL::find(Qualifiers::GAME, "localLog",
+                              Operations::EXPRESSION)
+                    .has_value());
+}
+
 TEST_CASE("STL - instruction and expression overloads") {
     // Input.throttle(x) sets the throttle, Input.throttle() reads it
     auto setThrottle =

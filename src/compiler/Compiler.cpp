@@ -1195,6 +1195,13 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                             def.append_attribute("style") = "true";
                             def.append_attribute("bool") = "true";
                         }
+                    } else if (instr.identifier == "localLog") {
+                        auto el = parent.append_child("LogMessage");
+                        el.append_attribute("id") = nextId().c_str();
+                        el.append_attribute("style") = "log";
+                        for (const auto &p : instr.params) {
+                            emitExpression(*p, el);
+                        }
                     } else if (instr.identifier == "beep"
                                || instr.identifier == "sineBeep"
                                || instr.identifier == "sineTriangle"

@@ -95,6 +95,21 @@ on start() {
     CHECK(xml.find("</Program>") != std::string::npos);
 }
 
+TEST_CASE("Compiler XML - localLog maps to LogMessage") {
+    const auto xml = compileSource(R"(
+program test;
+on start() {
+    do Game.localLog("Hello log");
+})");
+
+    CHECK(xml.find("<LogMessage id=\"1\" style=\"log\">") !=
+          std::string::npos);
+    CHECK(xml.find("<Constant text=\"Hello log\" />") != std::string::npos);
+    CHECK(xml.find("</LogMessage>") != std::string::npos);
+    CHECK(xml.find("<DisplayMessage") == std::string::npos);
+    CHECK(xml.find("<LogFlight") == std::string::npos);
+}
+
 TEST_CASE("Compiler XML - event start maps to FlightStart") {
     const auto xml = compileSource(R"(
 program test;

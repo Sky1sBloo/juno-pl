@@ -223,7 +223,7 @@ instr <name>(<param1>, ...) {
 Example:
 ```
 instr logMsg(msg) {
-    Game.log(msg, true);
+    Game.localLog(msg);
 }
 ```
 

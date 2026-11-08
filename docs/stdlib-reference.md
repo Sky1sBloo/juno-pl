@@ -18,6 +18,7 @@ instruction, `Input.throttle()` as an expression).
 | `Game.switchToCraft` | `(craftId)` | Switches active craft. |
 | `Game.beep` | `(freq, dur, vol)` | Plays a beep sound. |
 | `Game.flightLog` | `(text, overwrite)` | Writes a message to the flight log.  |
+| `Game.localLog` | `(text)` | Logs a message in the local log. |
 | `Game.display` | `(text)` | Shows a message on screen. |
 | `Game.speak` | `(text, pitch, speed)` | Speak text aloud. |
 

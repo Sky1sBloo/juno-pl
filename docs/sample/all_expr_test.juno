@@ -4,8 +4,7 @@ all_expr_test.juno — Juno counterpart of .cache/guide/AllExpr.xml
 Layout rules:
   - Statements follow the reference program's FlightStart thread in the same
     order (AllExpr ids 0-273), then the remaining event threads (ids 274-282).
-  - Vizzy's <LogMessage> has no Juno block, so every reference LogMessage is
-    written as `do Game.display(<expr>);` to keep the expressions in place.
+  - Vizzy's <LogMessage> maps to `do Game.localLog(<expr>);`.
   - Blocks Juno cannot express are left as a comment naming the AllExpr id.
 
 Compile and compare (AllExpr.xml is the reference, never edited):
@@ -37,67 +36,67 @@ on start() {
     // id6 <LogFlight>
     do Game.flightLog("text", true);
     // id7 <LogMessage>
-    do Game.display("text");
+    do Game.localLog("text");
     // id8-17 <If>/<ElseIf>/<Else>
     if (true) {
-        do Game.display("text");
+        do Game.localLog("text");
     } elif (false) {
-        do Game.display("text");
-        do Game.display("text");
+        do Game.localLog("text");
+        do Game.localLog("text");
     } else {
-        do Game.display("text");
+        do Game.localLog("text");
     }
 
     // id18-26 <BinaryOp> arithmetic
-    do Game.display(0 + 0);
-    do Game.display(0 - 0);
-    do Game.display(0 / 0);
-    do Game.display(0 * 0);
+    do Game.localLog(0 + 0);
+    do Game.localLog(0 - 0);
+    do Game.localLog(0 / 0);
+    do Game.localLog(0 * 0);
     // id22 <BinaryOp op="^"> — Juno writes it as Math.pow
-    do Game.display(Math.pow(0, 0));
-    do Game.display(0 % 0);
+    do Game.localLog(Math.pow(0, 0));
+    do Game.localLog(0 % 0);
     // id24-26 op="rand"/"min"/"max" are BinaryOps in Vizzy, Math.* calls in Juno
-    do Game.display(Math.random(0, 0));
-    do Game.display(Math.min(0, 0));
-    do Game.display(Math.max(0, 0));
+    do Game.localLog(Math.random(0, 0));
+    do Game.localLog(Math.min(0, 0));
+    do Game.localLog(Math.max(0, 0));
 
     // id27-29 <BoolOp>/<Not>
-    do Game.display(false and false);
-    do Game.display(false or false);
-    do Game.display(not false);
+    do Game.localLog(false and false);
+    do Game.localLog(false or false);
+    do Game.localLog(not false);
 
     // id30-34 <Comparison>
-    do Game.display(0 == 0);
-    do Game.display(0 < 0);
-    do Game.display(0 <= 0);
-    do Game.display(0 > 0);
-    do Game.display(0 >= 0);
+    do Game.localLog(0 == 0);
+    do Game.localLog(0 < 0);
+    do Game.localLog(0 <= 0);
+    do Game.localLog(0 > 0);
+    do Game.localLog(0 >= 0);
 
     // id35-36 <MathFunction> / op="atan2"
-    do Game.display(Math.abs(0));
-    do Game.display(Math.atan2("y", "x"));
+    do Game.localLog(Math.abs(0));
+    do Game.localLog(Math.atan2("y", "x"));
 
     // id37 <Conditional>
-    do Game.display(false ? 0 else 0);
+    do Game.localLog(false ? 0 else 0);
 
     // id38-43 <StringOp>
-    do Game.display(String.join("alpha", "bravo", ""));
-    do Game.display(String.lengthOf("alpha"));
+    do Game.localLog(String.join("alpha", "bravo", ""));
+    do Game.localLog(String.lengthOf("alpha"));
     // Vizzy letter(index, text): Juno takes (text, index)
-    do Game.display(String.letterOf("alpha", 1));
+    do Game.localLog(String.letterOf("alpha", 1));
     // Vizzy substring(start, length, text): Juno takes (text, start, length)
-    do Game.display(String.substr("alpha", 2, 4));
-    do Game.display(String.strContains("alpha", "a"));
-    do Game.display(String.format("{0:n1}", "10000.99", ""));
+    do Game.localLog(String.substr("alpha", 2, 4));
+    do Game.localLog(String.strContains("alpha", "a"));
+    do Game.localLog(String.format("{0:n1}", "10000.99", ""));
 
     // id44-46 <Vector>/<VectorOp>
-    do Game.display(Vector.vec(0, 0, 0));
-    do Game.display(Vector.vecLength("(0, 0, 0)"));
-    do Game.display(Vector.dot("(0, 0, 0)", "(0, 0, 0)"));
+    do Game.localLog(Vector.vec(0, 0, 0));
+    do Game.localLog(Vector.vecLength("(0, 0, 0)"));
+    do Game.localLog(Vector.dot("(0, 0, 0)", "(0, 0, 0)"));
     // id47 <EvaluateExpression>
-    do Game.display(Math.evaluate("x"));
+    do Game.localLog(Math.evaluate("x"));
     // id48 duplicate of id43
-    do Game.display(String.format("{0:n1}", "10000.99", ""));
+    do Game.localLog(String.format("{0:n1}", "10000.99", ""));
 
     // id49-61 <SetInput>
     do Input.throttle(0);
@@ -162,210 +161,210 @@ on start() {
     do Game.beep(1000, 1, 2);
 
     // id89 <LogMessage> Sound.Frequency
-    do Game.display(Camera.soundFrequency("C#", 3));
+    do Game.localLog(Camera.soundFrequency("C#", 3));
 
     // id90 <Speak>
     do Game.speak("text", 0, 0);
 
     // id91-93 Altitude
-    do Game.display(Altitude.getAGL());
-    do Game.display(Altitude.getASL());
-    do Game.display(Altitude.getASF());
+    do Game.localLog(Altitude.getAGL());
+    do Game.localLog(Altitude.getASL());
+    do Game.localLog(Altitude.getASF());
     // id94-100 Orbit
-    do Game.display(Orbit.ap());
-    do Game.display(Orbit.pe());
-    do Game.display(Orbit.timeToAp());
-    do Game.display(Orbit.timeToPe());
-    do Game.display(Orbit.eccentricity());
-    do Game.display(Orbit.inclination());
-    do Game.display(Orbit.period());
+    do Game.localLog(Orbit.ap());
+    do Game.localLog(Orbit.pe());
+    do Game.localLog(Orbit.timeToAp());
+    do Game.localLog(Orbit.timeToPe());
+    do Game.localLog(Orbit.eccentricity());
+    do Game.localLog(Orbit.inclination());
+    do Game.localLog(Orbit.period());
     // id101-106 Atmosphere
-    do Game.display(Atmosphere.density());
-    do Game.display(Atmosphere.pressure());
-    do Game.display(Atmosphere.speedOfSound());
-    do Game.display(Atmosphere.temperature());
-    do Game.display(Atmosphere.elements());
-    do Game.display(Atmosphere.composition());
+    do Game.localLog(Atmosphere.density());
+    do Game.localLog(Atmosphere.pressure());
+    do Game.localLog(Atmosphere.speedOfSound());
+    do Game.localLog(Atmosphere.temperature());
+    do Game.localLog(Atmosphere.elements());
+    do Game.localLog(Atmosphere.composition());
     // id107-115 Performance
-    do Game.display(Performance.mass());
-    do Game.display(Performance.engineThrust());
-    do Game.display(Performance.dryMass());
-    do Game.display(Performance.fuelMass());
-    do Game.display(Performance.maxEngineThrust());
-    do Game.display(Performance.twr());
-    do Game.display(Performance.currentISP());
-    do Game.display(Performance.stageDeltaV());
-    do Game.display(Performance.stageBurnTime());
+    do Game.localLog(Performance.mass());
+    do Game.localLog(Performance.engineThrust());
+    do Game.localLog(Performance.dryMass());
+    do Game.localLog(Performance.fuelMass());
+    do Game.localLog(Performance.maxEngineThrust());
+    do Game.localLog(Performance.twr());
+    do Game.localLog(Performance.currentISP());
+    do Game.localLog(Performance.stageDeltaV());
+    do Game.localLog(Performance.stageBurnTime());
     // id116-119 Fuel
-    do Game.display(Fuel.battery());
-    do Game.display(Fuel.stageFuel());
-    do Game.display(Fuel.monoProp());
-    do Game.display(Fuel.totalFuel());
+    do Game.localLog(Fuel.battery());
+    do Game.localLog(Fuel.stageFuel());
+    do Game.localLog(Fuel.monoProp());
+    do Game.localLog(Fuel.totalFuel());
     // id120-133 Nav
-    do Game.display(Nav.nav());
-    do Game.display(Nav.target());
-    do Game.display(Nav.heading());
-    do Game.display(Nav.pitch());
-    do Game.display(Nav.autopilotHeading());
-    do Game.display(Nav.autopilotPitch());
-    do Game.display(Nav.bankAngle());
-    do Game.display(Nav.angleOfAttack());
-    do Game.display(Nav.sideSlip());
-    do Game.display(Nav.northVector());
-    do Game.display(Nav.eastVector());
-    do Game.display(Nav.craftDirection());
-    do Game.display(Nav.craftRight());
-    do Game.display(Nav.craftUp());
+    do Game.localLog(Nav.nav());
+    do Game.localLog(Nav.target());
+    do Game.localLog(Nav.heading());
+    do Game.localLog(Nav.pitch());
+    do Game.localLog(Nav.autopilotHeading());
+    do Game.localLog(Nav.autopilotPitch());
+    do Game.localLog(Nav.bankAngle());
+    do Game.localLog(Nav.angleOfAttack());
+    do Game.localLog(Nav.sideSlip());
+    do Game.localLog(Nav.northVector());
+    do Game.localLog(Nav.eastVector());
+    do Game.localLog(Nav.craftDirection());
+    do Game.localLog(Nav.craftRight());
+    do Game.localLog(Nav.craftUp());
     // id134-142 Velocity
-    do Game.display(Velocity.orbit());
-    do Game.display(Velocity.surface());
-    do Game.display(Velocity.target());
-    do Game.display(Velocity.gravity());
-    do Game.display(Velocity.acceleration());
-    do Game.display(Velocity.angular());
-    do Game.display(Velocity.lateral());
-    do Game.display(Velocity.vertical());
-    do Game.display(Velocity.mach());
+    do Game.localLog(Velocity.orbit());
+    do Game.localLog(Velocity.surface());
+    do Game.localLog(Velocity.target());
+    do Game.localLog(Velocity.gravity());
+    do Game.localLog(Velocity.acceleration());
+    do Game.localLog(Velocity.angular());
+    do Game.localLog(Velocity.lateral());
+    do Game.localLog(Velocity.vertical());
+    do Game.localLog(Velocity.mach());
     // id143-155 Input
-    do Game.display(Input.roll());
-    do Game.display(Input.pitch());
-    do Game.display(Input.yaw());
-    do Game.display(Input.throttle());
-    do Game.display(Input.brake());
-    do Game.display(Input.slider(1));
-    do Game.display(Input.slider2());
-    do Game.display(Input.slider3());
-    do Game.display(Input.slider4());
-    do Game.display(Input.translateForward());
-    do Game.display(Input.translateRight());
-    do Game.display(Input.translateUp());
-    do Game.display(Input.translationMode());
+    do Game.localLog(Input.roll());
+    do Game.localLog(Input.pitch());
+    do Game.localLog(Input.yaw());
+    do Game.localLog(Input.throttle());
+    do Game.localLog(Input.brake());
+    do Game.localLog(Input.slider(1));
+    do Game.localLog(Input.slider2());
+    do Game.localLog(Input.slider3());
+    do Game.localLog(Input.slider4());
+    do Game.localLog(Input.translateForward());
+    do Game.localLog(Input.translateRight());
+    do Game.localLog(Input.translateUp());
+    do Game.localLog(Input.translationMode());
     // id156-164 Misc
-    do Game.display(Misc.grounded());
-    do Game.display(Misc.stage());
-    do Game.display(Misc.numStages());
-    do Game.display(Misc.solarRadiation());
-    do Game.display(Misc.cameraPosition());
-    do Game.display(Misc.cameraPointing());
-    do Game.display(Misc.cameraUp());
-    do Game.display(Misc.pidPitch());
-    do Game.display(Misc.pidRoll());
+    do Game.localLog(Misc.grounded());
+    do Game.localLog(Misc.stage());
+    do Game.localLog(Misc.numStages());
+    do Game.localLog(Misc.solarRadiation());
+    do Game.localLog(Misc.cameraPosition());
+    do Game.localLog(Misc.cameraPointing());
+    do Game.localLog(Misc.cameraUp());
+    do Game.localLog(Misc.pidPitch());
+    do Game.localLog(Misc.pidRoll());
     // id165-169 Time
-    do Game.display(Time.sinceLaunch());
-    do Game.display(Time.delta());
-    do Game.display(Time.total());
-    do Game.display(Time.warpAmount());
-    do Game.display(Time.realTime());
+    do Game.localLog(Time.sinceLaunch());
+    do Game.localLog(Time.delta());
+    do Game.localLog(Time.total());
+    do Game.localLog(Time.warpAmount());
+    do Game.localLog(Time.realTime());
     // id170-173 names
-    do Game.display(Craft.name());
-    do Game.display(Orbit.planetName());
-    do Game.display(Target.name());
-    do Game.display(Target.planet());
+    do Game.localLog(Craft.name());
+    do Game.localLog(Orbit.planetName());
+    do Game.localLog(Target.name());
+    do Game.localLog(Target.planet());
 
     // id174 <ActivationGroup>
-    do Game.display(Input.activationGroup(1));
+    do Game.localLog(Input.activationGroup(1));
 
     // id175-178 planet conversions — <Planet op="toLatLongAgl" ...> in Vizzy
-    do Game.display(Nav.toLatLongAGL("(0, 0, 0)"));
-    do Game.display(Nav.toLatLongASL("(0, 0, 0)"));
-    do Game.display(Nav.toPosition("(0, 0, 0)"));
-    do Game.display(Nav.toPositionOverSea("(0, 0, 0)"));
+    do Game.localLog(Nav.toLatLongAGL("(0, 0, 0)"));
+    do Game.localLog(Nav.toLatLongASL("(0, 0, 0)"));
+    do Game.localLog(Nav.toPosition("(0, 0, 0)"));
+    do Game.localLog(Nav.toPositionOverSea("(0, 0, 0)"));
 
     // id179-181 terrain / raycast
-    do Game.display(Terrain.height("(0, 0, 0)"));
-    do Game.display(Terrain.color("(0, 0, 0)"));
-    do Game.display(Raycast.raycast("(0, 0, 0)", "(0, 0, 0)"));
+    do Game.localLog(Terrain.height("(0, 0, 0)"));
+    do Game.localLog(Terrain.color("(0, 0, 0)"));
+    do Game.localLog(Raycast.raycast("(0, 0, 0)", "(0, 0, 0)"));
 
     // id182-215 <Planet>
-    do Game.display(Planet.radius("Droo"));
-    do Game.display(Planet.mass("Droo"));
-    do Game.display(Planet.hasTerrain("Droo"));
-    do Game.display(Planet.atmosphereDensity("Droo"));
-    do Game.display(Planet.atmosphereHeight("Droo"));
-    do Game.display(Planet.atmosphereScale("Droo"));
-    do Game.display(Planet.atmosphereElements("Droo"));
-    do Game.display(Planet.atmosphereComposition("Droo"));
-    do Game.display(Planet.hydrosphereElement("Droo"));
-    do Game.display(Planet.hydrosphereDensity("Droo"));
-    do Game.display(Planet.soiradius("Droo"));
-    do Game.display(Planet.solarPosition("Droo"));
-    do Game.display(Planet.childPlanets("Droo"));
-    do Game.display(Planet.crafts("Droo"));
+    do Game.localLog(Planet.radius("Droo"));
+    do Game.localLog(Planet.mass("Droo"));
+    do Game.localLog(Planet.hasTerrain("Droo"));
+    do Game.localLog(Planet.atmosphereDensity("Droo"));
+    do Game.localLog(Planet.atmosphereHeight("Droo"));
+    do Game.localLog(Planet.atmosphereScale("Droo"));
+    do Game.localLog(Planet.atmosphereElements("Droo"));
+    do Game.localLog(Planet.atmosphereComposition("Droo"));
+    do Game.localLog(Planet.hydrosphereElement("Droo"));
+    do Game.localLog(Planet.hydrosphereDensity("Droo"));
+    do Game.localLog(Planet.soiradius("Droo"));
+    do Game.localLog(Planet.solarPosition("Droo"));
+    do Game.localLog(Planet.childPlanets("Droo"));
+    do Game.localLog(Planet.crafts("Droo"));
     // Vizzy op="craftids"
-    do Game.display(Planet.craftID("Droo"));
-    do Game.display(Planet.parent("Droo"));
-    do Game.display(Planet.structures("Droo"));
-    do Game.display(Planet.day("Droo"));
-    do Game.display(Planet.year("Droo"));
-    do Game.display(Planet.velocity("Droo"));
-    do Game.display(Planet.apoapsis("Droo"));
-    do Game.display(Planet.periapsis("Droo"));
-    do Game.display(Planet.period("Droo"));
+    do Game.localLog(Planet.craftID("Droo"));
+    do Game.localLog(Planet.parent("Droo"));
+    do Game.localLog(Planet.structures("Droo"));
+    do Game.localLog(Planet.day("Droo"));
+    do Game.localLog(Planet.year("Droo"));
+    do Game.localLog(Planet.velocity("Droo"));
+    do Game.localLog(Planet.apoapsis("Droo"));
+    do Game.localLog(Planet.periapsis("Droo"));
+    do Game.localLog(Planet.period("Droo"));
     // Vizzy ops apoapsistime/periapsistime
-    do Game.display(Planet.orbitApTime("Droo"));
-    do Game.display(Planet.orbitPeTime("Droo"));
-    do Game.display(Planet.inclination("Droo"));
-    do Game.display(Planet.eccentricity("Droo"));
-    do Game.display(Planet.meananomaly("Droo"));
-    do Game.display(Planet.meanmotion("Droo"));
+    do Game.localLog(Planet.orbitApTime("Droo"));
+    do Game.localLog(Planet.orbitPeTime("Droo"));
+    do Game.localLog(Planet.inclination("Droo"));
+    do Game.localLog(Planet.eccentricity("Droo"));
+    do Game.localLog(Planet.meananomaly("Droo"));
+    do Game.localLog(Planet.meanmotion("Droo"));
     // Vizzy ops periapsisargument/rightascension/trueanomaly/semimajoraxis/semiminoraxis
-    do Game.display(Planet.orbitPeriapsisArgument("Droo"));
-    do Game.display(Planet.orbitRightAscension("Droo"));
-    do Game.display(Planet.orbitTrueAnomaly("Droo"));
-    do Game.display(Planet.orbitSemiMajorAxis("Droo"));
-    do Game.display(Planet.orbitSemiMinorAxis("Droo"));
+    do Game.localLog(Planet.orbitPeriapsisArgument("Droo"));
+    do Game.localLog(Planet.orbitRightAscension("Droo"));
+    do Game.localLog(Planet.orbitTrueAnomaly("Droo"));
+    do Game.localLog(Planet.orbitSemiMajorAxis("Droo"));
+    do Game.localLog(Planet.orbitSemiMinorAxis("Droo"));
 
     // id216-231 <Part>
-    do Game.display(Part.idToName(0));
-    do Game.display(Part.mass(0));
-    do Game.display(Part.dryMass(0));
-    do Game.display(Part.wetMass(0));
-    do Game.display(Part.activated(0));
-    do Game.display(Part.partType(0));
-    do Game.display(Part.position(0));
-    do Game.display(Part.temperature(0));
-    do Game.display(Part.drag(0));
-    do Game.display(Part.thisID(0));
-    do Game.display(Part.minPartId(0));
-    do Game.display(Part.maxPartId(0));
-    do Game.display(Part.underwater(0));
-    do Game.display(Part.nameToID("PartName"));
-    do Game.display(Part.localToPCI(0, "(0, 0, 0)"));
-    do Game.display(Part.pciToLocal(0, "(0, 0, 0)"));
+    do Game.localLog(Part.idToName(0));
+    do Game.localLog(Part.mass(0));
+    do Game.localLog(Part.dryMass(0));
+    do Game.localLog(Part.wetMass(0));
+    do Game.localLog(Part.activated(0));
+    do Game.localLog(Part.partType(0));
+    do Game.localLog(Part.position(0));
+    do Game.localLog(Part.temperature(0));
+    do Game.localLog(Part.drag(0));
+    do Game.localLog(Part.thisID(0));
+    do Game.localLog(Part.minPartId(0));
+    do Game.localLog(Part.maxPartId(0));
+    do Game.localLog(Part.underwater(0));
+    do Game.localLog(Part.nameToID("PartName"));
+    do Game.localLog(Part.localToPCI(0, "(0, 0, 0)"));
+    do Game.localLog(Part.pciToLocal(0, "(0, 0, 0)"));
 
     // id232-258 <Craft>
-    do Game.display(Craft.altitude(0));
-    do Game.display(Craft.isDestroyed(0));
-    do Game.display(Craft.isGrounded(0));
-    do Game.display(Craft.mass(0));
+    do Game.localLog(Craft.altitude(0));
+    do Game.localLog(Craft.isDestroyed(0));
+    do Game.localLog(Craft.isGrounded(0));
+    do Game.localLog(Craft.mass(0));
     // Vizzy reads <CraftProperty property="Craft.IDToName"> from a number
-    do Game.display(Craft.name(0));
-    do Game.display(Craft.partCount(0));
-    do Game.display(Craft.planet(0));
-    do Game.display(Craft.position(0));
-    do Game.display(Craft.velocity(0));
-    do Game.display(Craft.isPlayer(0));
-    do Game.display(Craft.boundingBoxMin(0));
-    do Game.display(Craft.boundingBoxMax(0));
-    do Game.display(Craft.ap(0));
-    do Game.display(Craft.pe(0));
-    do Game.display(Craft.period(0));
-    do Game.display(Craft.apoapsisTime(0));
-    do Game.display(Craft.periapsisTime(0));
-    do Game.display(Craft.inclination(0));
-    do Game.display(Craft.eccentricity(0));
-    do Game.display(Craft.meanAnomaly(0));
-    do Game.display(Craft.meanMotion(0));
-    do Game.display(Craft.periapsisArgument(0));
-    do Game.display(Craft.rightAscension(0));
-    do Game.display(Craft.trueAnomaly(0));
-    do Game.display(Craft.semiMajorAxis(0));
-    do Game.display(Craft.semiMinorAxis(0));
-    do Game.display(Craft.nameToID("CraftName"));
+    do Game.localLog(Craft.name(0));
+    do Game.localLog(Craft.partCount(0));
+    do Game.localLog(Craft.planet(0));
+    do Game.localLog(Craft.position(0));
+    do Game.localLog(Craft.velocity(0));
+    do Game.localLog(Craft.isPlayer(0));
+    do Game.localLog(Craft.boundingBoxMin(0));
+    do Game.localLog(Craft.boundingBoxMax(0));
+    do Game.localLog(Craft.ap(0));
+    do Game.localLog(Craft.pe(0));
+    do Game.localLog(Craft.period(0));
+    do Game.localLog(Craft.apoapsisTime(0));
+    do Game.localLog(Craft.periapsisTime(0));
+    do Game.localLog(Craft.inclination(0));
+    do Game.localLog(Craft.eccentricity(0));
+    do Game.localLog(Craft.meanAnomaly(0));
+    do Game.localLog(Craft.meanMotion(0));
+    do Game.localLog(Craft.periapsisArgument(0));
+    do Game.localLog(Craft.rightAscension(0));
+    do Game.localLog(Craft.trueAnomaly(0));
+    do Game.localLog(Craft.semiMajorAxis(0));
+    do Game.localLog(Craft.semiMinorAxis(0));
+    do Game.localLog(Craft.nameToID("CraftName"));
 
     // id259-260 boolean constants
-    do Game.display(true);
-    do Game.display(false);
+    do Game.localLog(true);
+    do Game.localLog(false);
 
     // id261-267 <SetList>
     do Lists.add(myList, "item");
@@ -381,13 +380,13 @@ on start() {
     list items = ["a", "b", "c"];
 
     // id269-271 <ListOp>
-    do Game.display(items[0]);
-    do Game.display(ListOp.length(items));
-    do Game.display(ListOp.index(items, "item"));
+    do Game.localLog(items[0]);
+    do Game.localLog(ListOp.length(items));
+    do Game.localLog(ListOp.index(items, "item"));
 
     // id272-273 <LogMessage>
-    do Game.display("");
-    do Game.display("");
+    do Game.localLog("");
+    do Game.localLog("");
 }
 
 // id274-277 <ReceiveMessage> + <BroadcastMessage>
