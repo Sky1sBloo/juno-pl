@@ -252,12 +252,12 @@ instruction, `Input.throttle()` as an expression).
 | `Nav.sideSlip` | `()` | Side slip. |
 | `Nav.northVector` | `()` | North vector. |
 | `Nav.eastVector` | `()` | East vector. |
-| `Nav.rollAxis` | `()` | Roll axis vector. |
-| `Nav.pitchAxis` | `()` | Pitch axis vector. |
-| `Nav.yawAxis` | `()` | Yaw axis vector. |
-| `Nav.craftRight` | `()` | Craft right vector. |
-| `Nav.craftUp` | `()` | Craft up vector. |
-| `Nav.craftDirection` | `()` | Craft direction vector. |
+| `Nav.rollAxis` | `()` | Roll axis vector. Alias of `Nav.craftDirection` (same block). |
+| `Nav.pitchAxis` | `()` | Pitch axis vector. Alias of `Nav.craftRight` (same block). |
+| `Nav.yawAxis` | `()` | Yaw axis vector. Alias of `Nav.craftUp` (same block). |
+| `Nav.craftRight` | `()` | Craft right vector. Same block as `Nav.pitchAxis`. |
+| `Nav.craftUp` | `()` | Craft up vector. Same block as `Nav.yawAxis`. |
+| `Nav.craftDirection` | `()` | Craft direction vector. Same block as `Nav.rollAxis`. |
 | `Nav.toLatLongAGL` | `(pos)` | Position to lat/long AGL. |
 | `Nav.toLatLongASL` | `(pos)` | Position to lat/long ASL. |
 | `Nav.toPosition` | `(lat, long)` | Lat/long to position. |
