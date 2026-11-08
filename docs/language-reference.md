@@ -109,7 +109,7 @@ nums[0]         // first element; emitted as data[1] in Vizzy
 
 ### Ternary conditional
 ```
-condition ? trueValue : falseValue
+condition ? trueValue else falseValue
 ```
 
 ### Function calls
