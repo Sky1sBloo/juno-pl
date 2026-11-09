@@ -385,8 +385,7 @@ instruction, `Input.throttle()` as an expression).
 | `Planet.mass` | `(id)` | Planet mass. |
 | `Planet.solidGround` | `(id)` | Whether planet has solid ground. |
 | `Planet.atmosphereHeight` | `(id)` | Atmosphere height. |
-| `Planet.atmosphereScaleHeight` | `(id)` | Atmosphere scale height. |
-| `Planet.atmosphereScale` | `(id)` | Atmosphere scale. |
+| `Planet.atmosphereScale` | `(id)` | Atmosphere scale height. |
 | `Planet.atmosphereElements` | `(id)` | Atmospheric elements. |
 | `Planet.atmosphereComposition` | `(id)` | Atmospheric composition. |
 | `Planet.atmosphereDensity` | `(id)` | Atmosphere density. |

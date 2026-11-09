@@ -440,6 +440,19 @@ expr add3(a, b, c) a + b + c;
           std::string::npos);
 }
 
+TEST_CASE("Compiler XML - atmosphereScale maps to Vizzy planet op") {
+    const auto xml = compileSource(R"(
+program test;
+
+on start() {
+    do Game.display(Planet.atmosphereScale("Droo"));
+})");
+
+    CHECK(xml.find("<Planet op=\"atmosphereScale\" style=\"planet\">") !=
+          std::string::npos);
+    CHECK(xml.find("call=\"atmosphereScale\"") == std::string::npos);
+}
+
 TEST_CASE("Compiler XML - emit inside on block") {
     const auto xml = compileSource(R"(
 program test;
