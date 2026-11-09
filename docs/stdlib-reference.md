@@ -400,9 +400,7 @@ instruction, `Input.throttle()` as an expression).
 | `Planet.hydrosphereDensity` | `(id)` | Hydrosphere density. |
 | `Planet.hydrosphereComposition` | `(id)` | Hydrosphere composition. |
 | `Planet.day` | `(id)` | Day length. |
-| `Planet.dayLength` | `(id)` | Day length. |
 | `Planet.year` | `(id)` | Year length. |
-| `Planet.yearLength` | `(id)` | Year length. |
 | `Planet.velocity` | `(id)` | Planet velocity. |
 | `Planet.apoapsis` | `(id)` | Apoapsis around parent. |
 | `Planet.periapsis` | `(id)` | Periapsis around parent. |

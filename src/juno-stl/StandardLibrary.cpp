@@ -483,8 +483,6 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
             "hydrosphereComposition", {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "hydrosphereDensity",
             {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "dayLength", {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "yearLength", {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "velocity", {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitAp", {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitPe", {{1, 1}});
