@@ -26,7 +26,9 @@ std::string compileSource(const std::string &source) {
 
     JunoPL::Compiler compiler;
     compiler.getVariables(*parseOutput.root);
-    return compiler.compileAST(*parseOutput.root);
+    auto result = compiler.compileAST(*parseOutput.root);
+    REQUIRE(result.has_value());
+    return *result;
 }
 
 std::string variablesOf(const std::string &source) {
@@ -340,16 +342,16 @@ on start() {
     CHECK(xml.find("<Constant number=\"1\" />") != std::string::npos);
 }
 
-TEST_CASE("Compiler XML - SetInput set-craft-property") {
+TEST_CASE("Compiler XML - Part setter maps to SetCraftProperty") {
     const auto xml = compileSource(R"(
 program test;
 
 on start() {
-    do Craft.setInput("throttle", 1);
+    do Part.activate(1, true);
 })");
 
     CHECK(xml.find("<SetCraftProperty property=") != std::string::npos);
-    CHECK(xml.find("property=\"setInput\"") != std::string::npos);
+    CHECK(xml.find("property=\"Part.SetActivated\"") != std::string::npos);
 }
 
 TEST_CASE("Compiler XML - ListIndex expression") {
@@ -735,4 +737,52 @@ on customEvent(a, b) {
     CHECK(xml.find("<Constant number=\"1\" />") != std::string::npos);
     CHECK(xml.find("<Constant number=\"2\" />") != std::string::npos);
     CHECK(xml.find("local=\"true\"") != std::string::npos);
+}
+
+TEST_CASE("Compiler XML - unknown qualified call produces a compile error") {
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode(R"(
+program test;
+on start() {
+    do Game.noSuch(1);
+})");
+
+    JunoPL::Lexer lexer;
+    auto lexOutput = lexer.tokenize(fileHandler);
+    REQUIRE(lexOutput.errors.empty());
+
+    JunoPL::Parser parser;
+    auto parseOutput = parser.parse(lexOutput.tokens);
+    REQUIRE(parseOutput.errors.empty());
+    REQUIRE(parseOutput.root);
+
+    JunoPL::Compiler compiler;
+    compiler.getVariables(*parseOutput.root);
+    auto result = compiler.compileAST(*parseOutput.root);
+    REQUIRE(!result.has_value());
+    CHECK(result.error() == "'Game.noSuch' has no implementation");
+}
+
+TEST_CASE("Compiler XML - unknown qualified expression produces a compile error") {
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode(R"(
+program test;
+on start() {
+    var x = Math.noSuch();
+})");
+
+    JunoPL::Lexer lexer;
+    auto lexOutput = lexer.tokenize(fileHandler);
+    REQUIRE(lexOutput.errors.empty());
+
+    JunoPL::Parser parser;
+    auto parseOutput = parser.parse(lexOutput.tokens);
+    REQUIRE(parseOutput.errors.empty());
+    REQUIRE(parseOutput.root);
+
+    JunoPL::Compiler compiler;
+    compiler.getVariables(*parseOutput.root);
+    auto result = compiler.compileAST(*parseOutput.root);
+    REQUIRE(!result.has_value());
+    CHECK(result.error() == "'Math.noSuch' has no implementation");
 }
