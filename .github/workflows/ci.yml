@@ -26,6 +26,14 @@ jobs:
     name: Build & test (Linux, Clang)
     runs-on: ubuntu-24.04
     steps:
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang ninja-build
       - name: Check C++23 support
         run: |
           clang++ --version
@@ -40,14 +48,6 @@ jobs:
               }' > expected.cpp
           
               clang++ -std=c++23 expected.cpp -o expected
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Install toolchain
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends clang ninja-build
-
       # CMakeLists.txt requires CMake >= 4.0.0, which is newer than the
       # version preinstalled on the runner.
       - name: Install CMake
