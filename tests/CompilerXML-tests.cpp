@@ -786,3 +786,135 @@ on start() {
     REQUIRE(!result.has_value());
     CHECK(result.error() == "'Math.noSuch' has no implementation");
 }
+
+TEST_CASE("Compiler XML - user defined expression call emits custom expression") {
+    const auto xml = compileSource(R"(
+program test;
+
+expr myExpr(x) x + 1;
+
+on start() {
+    var y = myExpr(2);
+})");
+
+    CHECK(xml.find("<CallCustomExpression call=\"myExpr\" "
+                   "style=\"call-custom-expression\">") != std::string::npos);
+    CHECK(xml.find("<Constant number=\"2\" />") != std::string::npos);
+}
+
+TEST_CASE("Compiler XML - Vector.min and Vector.max produce a compile error") {
+    for (const auto *name : {"Vector.min", "Vector.max"}) {
+        JunoPL::Tests::FileHandlerTest fileHandler;
+        fileHandler.setSourceCode(std::string("program test;\non start() {\n"
+                                              "    var x = ") +
+                                  name + "(1, 2);\n}");
+
+        JunoPL::Lexer lexer;
+        auto lexOutput = lexer.tokenize(fileHandler);
+        REQUIRE(lexOutput.errors.empty());
+
+        JunoPL::Parser parser;
+        auto parseOutput = parser.parse(lexOutput.tokens);
+        REQUIRE(parseOutput.errors.empty());
+        REQUIRE(parseOutput.root);
+
+        JunoPL::Compiler compiler;
+        compiler.getVariables(*parseOutput.root);
+        auto result = compiler.compileAST(*parseOutput.root);
+        REQUIRE(!result.has_value());
+        CHECK(result.error() == std::string("'") + name + "' has no implementation");
+    }
+}
+
+TEST_CASE("Compiler XML - friendly variants set the Vizzy subOp") {
+    const auto xml = compileSource(R"(
+program test;
+
+on start() {
+    do Game.localLog(Strings.friendlyMass(1000));
+})");
+
+    CHECK(xml.find("<StringOp op=\"friendly\" subOp=\"mass\" "
+                   "style=\"friendly\">") != std::string::npos);
+}
+
+TEST_CASE("Compiler XML - time mode instructions map to SetTimeMode") {
+    const auto xml = compileSource(R"(
+program test;
+
+on start() {
+    do Game.setTimeModeWarp3();
+    do Game.setTimeModeWarp9();
+})");
+
+    CHECK(xml.find("<SetTimeMode mode=\"TimeWarp3\"") != std::string::npos);
+    CHECK(xml.find("<SetTimeMode mode=\"TimeWarp9\"") != std::string::npos);
+}
+
+TEST_CASE("Compiler XML - Planet ap and pe keep the Vizzy op names") {
+    const auto xml = compileSource(R"(
+program test;
+
+on start() {
+    var a = Planet.ap("Droo");
+    var b = Planet.pe("Droo");
+})");
+
+    CHECK(xml.find("<Planet op=\"apoapsis\" style=\"planet\">") !=
+          std::string::npos);
+    CHECK(xml.find("<Planet op=\"periapsis\" style=\"planet\">") !=
+          std::string::npos);
+}
+
+TEST_CASE("Compiler XML - Part.explode without a strength detaches") {
+    const auto xml = compileSource(R"(
+program test;
+
+on start() {
+    do Part.explode(0);
+})");
+
+    CHECK(xml.find("<SetCraftProperty property=\"Part.SetExplode\"") !=
+          std::string::npos);
+
+    std::size_t count = 0;
+    std::size_t pos = 0;
+    while ((pos = xml.find("<Constant number=\"0\" />", pos)) !=
+           std::string::npos) {
+        ++count;
+        ++pos;
+    }
+    CHECK(count == 2);
+}
+
+TEST_CASE("Compiler XML - Part.fuelTransfer keeps both inputs") {
+    const auto xml = compileSource(R"(
+program test;
+
+on start() {
+    do Part.fuelTransfer(0, -1);
+})");
+
+    CHECK(xml.find("<SetCraftProperty property=\"Part.FuelTransfer\"") !=
+          std::string::npos);
+    CHECK(xml.find("<Constant number=\"-1\" />") != std::string::npos);
+}
+
+TEST_CASE("Compiler XML - sine instructions select the beep waveform") {
+    const auto xml = compileSource(R"(
+program test;
+
+on start() {
+    do Game.sineBeep(1000, 1, 2);
+    do Game.sineTriangle(1000, 1, 2);
+    do Game.sineSaw(1000, 1, 2);
+    do Game.sineSquare(1000, 1, 2);
+    do Game.sineNoise(1000, 1, 2);
+})");
+
+    CHECK(xml.find("<PlayBeep waveform=\"Sine\"") != std::string::npos);
+    CHECK(xml.find("<PlayBeep waveform=\"Triangle\"") != std::string::npos);
+    CHECK(xml.find("<PlayBeep waveform=\"Saw\"") != std::string::npos);
+    CHECK(xml.find("<PlayBeep waveform=\"Square\"") != std::string::npos);
+    CHECK(xml.find("<PlayBeep waveform=\"Noise\"") != std::string::npos);
+}

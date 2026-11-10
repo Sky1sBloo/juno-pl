@@ -154,7 +154,36 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
             {{2, 2}});
         add(Qualifiers::STRINGS, Operations::EXPRESSION, "format",
             {{1, kUnbounded}});
-        add(Qualifiers::STRINGS, Operations::EXPRESSION, "friendly", {{2, 2}});
+        add(Qualifiers::STRINGS, Operations::EXPRESSION, "friendlyAcceleration",
+            {{1, 1}});
+        add(Qualifiers::STRINGS, Operations::EXPRESSION,
+            "friendlyAngularVelocity", {{1, 1}});
+        add(Qualifiers::STRINGS, Operations::EXPRESSION, "friendlyCoordinate",
+            {{1, 1}});
+        add(Qualifiers::STRINGS, Operations::EXPRESSION, "friendlyDensity",
+            {{1, 1}});
+        add(Qualifiers::STRINGS, Operations::EXPRESSION, "friendlyDistance",
+            {{1, 1}});
+        add(Qualifiers::STRINGS, Operations::EXPRESSION, "friendlyEnergy",
+            {{1, 1}});
+        add(Qualifiers::STRINGS, Operations::EXPRESSION, "friendlyForce",
+            {{1, 1}});
+        add(Qualifiers::STRINGS, Operations::EXPRESSION, "friendlyIsp",
+            {{1, 1}});
+        add(Qualifiers::STRINGS, Operations::EXPRESSION, "friendlyMass",
+            {{1, 1}});
+        add(Qualifiers::STRINGS, Operations::EXPRESSION, "friendlyPower",
+            {{1, 1}});
+        add(Qualifiers::STRINGS, Operations::EXPRESSION, "friendlyPressure",
+            {{1, 1}});
+        add(Qualifiers::STRINGS, Operations::EXPRESSION, "friendlyTemperature",
+            {{1, 1}});
+        add(Qualifiers::STRINGS, Operations::EXPRESSION, "friendlyTime",
+            {{1, 1}});
+        add(Qualifiers::STRINGS, Operations::EXPRESSION, "friendlyDate",
+            {{1, 1}});
+        add(Qualifiers::STRINGS, Operations::EXPRESSION, "friendlyVelocity",
+            {{1, 1}});
 
         // Operators - vector expressions
         add(Qualifiers::VECTOR, Operations::EXPRESSION, "vec", {{3, 3}});
@@ -197,12 +226,6 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         // Craft Instructions - craft state
         add(Qualifiers::CRAFT, Operations::INSTRUCTION, "pitchTo", {{1, 1}});
         add(Qualifiers::CRAFT, Operations::INSTRUCTION, "headingTo", {{1, 1}});
-        add(Qualifiers::CRAFT, Operations::INSTRUCTION, "pidPitchTo",
-            {{1, 1}});
-        add(Qualifiers::CRAFT, Operations::INSTRUCTION, "pidRollTo", {{1, 1}});
-        add(Qualifiers::CRAFT, Operations::INSTRUCTION, "setPitchPID",
-            {{3, 3}});
-        add(Qualifiers::CRAFT, Operations::INSTRUCTION, "setRollPID", {{3, 3}});
         add(Qualifiers::CRAFT, Operations::INSTRUCTION, "setTarget", {{1, 1}});
         add(Qualifiers::CRAFT, Operations::INSTRUCTION, "lockPrograde",
             {{0, 0}});
@@ -221,30 +244,55 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         // Craft Instructions - part control
         add(Qualifiers::PART, Operations::INSTRUCTION, "activate", {{2, 2}});
         add(Qualifiers::PART, Operations::INSTRUCTION, "focus", {{2, 2}});
-        add(Qualifiers::PART, Operations::INSTRUCTION, "unfocus", {{1, 1}});
         add(Qualifiers::PART, Operations::INSTRUCTION, "name", {{2, 2}});
-        add(Qualifiers::PART, Operations::INSTRUCTION, "detach", {{1, 1}});
         add(Qualifiers::PART, Operations::INSTRUCTION, "explode", {{1, 2}});
-        add(Qualifiers::PART, Operations::INSTRUCTION, "drainFuel", {{1, 2}});
-        add(Qualifiers::PART, Operations::INSTRUCTION, "fillFuel", {{1, 1}});
+        add(Qualifiers::PART, Operations::INSTRUCTION, "fuelTransfer",
+            {{2, 2}});
 
         // Craft Instructions - game actions
-        add(Qualifiers::GAME, Operations::INSTRUCTION, "timeMode", {{1, 1}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "setTimeModeNormal",
+            {{0, 0}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "setTimeModePaused",
+            {{0, 0}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "setTimeModeSlowMotion",
+            {{0, 0}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "setTimeModeFastForward",
+            {{0, 0}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "setTimeModeWarp1",
+            {{0, 0}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "setTimeModeWarp2",
+            {{0, 0}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "setTimeModeWarp3",
+            {{0, 0}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "setTimeModeWarp4",
+            {{0, 0}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "setTimeModeWarp5",
+            {{0, 0}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "setTimeModeWarp6",
+            {{0, 0}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "setTimeModeWarp7",
+            {{0, 0}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "setTimeModeWarp8",
+            {{0, 0}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "setTimeModeWarp9",
+            {{0, 0}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "setTimeModeWarp10",
+            {{0, 0}});
         add(Qualifiers::GAME, Operations::INSTRUCTION, "switchToCraft",
             {{1, 1}});
         add(Qualifiers::GAME, Operations::INSTRUCTION, "beep", {{3, 3}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "sineBeep", {{3, 3}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "sineTriangle",
+            {{3, 3}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "sineSaw", {{3, 3}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "sineSquare", {{3, 3}});
+        add(Qualifiers::GAME, Operations::INSTRUCTION, "sineNoise", {{3, 3}});
         add(Qualifiers::GAME, Operations::INSTRUCTION, "flightLog",
             {{1, 2}});
         add(Qualifiers::GAME, Operations::INSTRUCTION, "localLog", {{1, 1}});
         add(Qualifiers::GAME, Operations::INSTRUCTION, "display", {{1, 1}});
         add(Qualifiers::GAME, Operations::INSTRUCTION, "speak", {{3, 3}});
         add(Qualifiers::GAME, Operations::EXPRESSION, "frequencyOf", {{2, 2}});
-        add(Qualifiers::GAME, Operations::EXPRESSION, "speak", {{3, 3}});
-        add(Qualifiers::GAME, Operations::EXPRESSION, "sineBeep", {{3, 3}});
-        add(Qualifiers::GAME, Operations::EXPRESSION, "sineTriangle", {{3, 3}});
-        add(Qualifiers::GAME, Operations::EXPRESSION, "sineSaw", {{3, 3}});
-        add(Qualifiers::GAME, Operations::EXPRESSION, "sineSquare", {{3, 3}});
-        add(Qualifiers::GAME, Operations::EXPRESSION, "sineNoise", {{3, 3}});
 
         // Craft Instructions - camera controls
         add(Qualifiers::CAMERA, Operations::INSTRUCTION, "zoom", {{1, 1}});
@@ -383,18 +431,8 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::CRAFT, Operations::EXPRESSION, "name",
             {{0, 0}, {1, 1}});
         add(Qualifiers::CRAFT, Operations::EXPRESSION, "idOf", {{1, 1}});
-        add(Qualifiers::CRAFT, Operations::EXPRESSION, "currentStage",
-            {{0, 0}});
-        add(Qualifiers::CRAFT, Operations::EXPRESSION, "numStages", {{0, 0}});
         add(Qualifiers::CRAFT, Operations::EXPRESSION, "isGrounded",
             {{0, 0}, {1, 1}});
-        add(Qualifiers::CRAFT, Operations::EXPRESSION, "solarRadiation",
-            {{0, 0}});
-        add(Qualifiers::CRAFT, Operations::EXPRESSION, "pitchPID", {{0, 0}});
-        add(Qualifiers::CRAFT, Operations::EXPRESSION, "rollPID", {{0, 0}});
-        add(Qualifiers::CRAFT, Operations::EXPRESSION, "targetName", {{0, 0}});
-        add(Qualifiers::CRAFT, Operations::EXPRESSION, "targetPlanet",
-            {{0, 0}});
         add(Qualifiers::CRAFT, Operations::EXPRESSION, "idOf", {{1, 1}});
         add(Qualifiers::CRAFT, Operations::EXPRESSION, "position", {{1, 1}});
         add(Qualifiers::CRAFT, Operations::EXPRESSION, "velocity", {{1, 1}});
@@ -410,11 +448,7 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
             {{1, 1}});
         add(Qualifiers::CRAFT, Operations::EXPRESSION, "ap", {{1, 1}});
         add(Qualifiers::CRAFT, Operations::EXPRESSION, "pe", {{1, 1}});
-        add(Qualifiers::CRAFT, Operations::EXPRESSION, "orbitAp", {{1, 1}});
-        add(Qualifiers::CRAFT, Operations::EXPRESSION, "orbitPe", {{1, 1}});
         add(Qualifiers::CRAFT, Operations::EXPRESSION, "period", {{1, 1}});
-        add(Qualifiers::CRAFT, Operations::EXPRESSION, "period", {{1, 1}});
-        add(Qualifiers::CRAFT, Operations::EXPRESSION, "orbitPeriod", {{1, 1}});
         add(Qualifiers::CRAFT, Operations::EXPRESSION, "apoapsisTime",
             {{1, 1}});
         add(Qualifiers::CRAFT, Operations::EXPRESSION, "periapsisTime",
@@ -459,8 +493,6 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
 
         add(Qualifiers::PLANET, Operations::EXPRESSION, "radius", {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "mass", {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "solidGround",
-            {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "atmosphereHeight",
             {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "atmosphereElements",
@@ -479,37 +511,9 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::PLANET, Operations::EXPRESSION, "structures", {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "hydrosphereElement",
             {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION,
-            "hydrosphereComposition", {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "hydrosphereDensity",
             {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "velocity", {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitAp", {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitPe", {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitPeriod",
-            {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitApTime",
-            {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitPeTime",
-            {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitInclination",
-            {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitEccentricity",
-            {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitMeanAnomaly",
-            {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitMeanMotion",
-            {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION,
-            "orbitPeriapsisArgument", {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION,
-            "orbitRightAscension", {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION,
-            "orbitTrueAnomaly", {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION,
-            "orbitSemiMajorAxis", {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitSemiMinorAxis",
-            {{1, 1}});
 
         add(Qualifiers::PLANET, Operations::EXPRESSION, "hasTerrain",
             {{1, 1}});
@@ -521,9 +525,17 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
             {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "day", {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "year", {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "apoapsis",
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "ap", {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "pe", {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "apoapsistime",
             {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "periapsis",
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "periapsistime",
+            {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "periapsisargument",
+            {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "rightascension",
+            {{1, 1}});
+        add(Qualifiers::PLANET, Operations::EXPRESSION, "trueanomaly",
             {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "period", {{1, 1}});
         add(Qualifiers::PLANET, Operations::EXPRESSION, "inclination",
@@ -539,10 +551,6 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::PLANET, Operations::EXPRESSION, "semiminoraxis",
             {{1, 1}});
 
-        add(Qualifiers::CRAFT, Operations::EXPRESSION, "boundMin",
-            {{1, 1}});
-        add(Qualifiers::CRAFT, Operations::EXPRESSION, "boundMax",
-            {{1, 1}});
         add(Qualifiers::CRAFT, Operations::EXPRESSION, "meanAnomaly",
             {{1, 1}});
         add(Qualifiers::CRAFT, Operations::EXPRESSION, "meanMotion",
@@ -563,18 +571,6 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::PART, Operations::EXPRESSION, "thisID", {{1, 1}});
         add(Qualifiers::PART, Operations::EXPRESSION, "nameToID",
             {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitMeanMotion",
-            {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION,
-            "orbitPeriapsisArgument", {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitRightAscension",
-            {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitTrueAnomaly",
-            {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitSemiMajorAxis",
-            {{1, 1}});
-        add(Qualifiers::PLANET, Operations::EXPRESSION, "orbitSemiMinorAxis",
-            {{1, 1}});
 
         add(Qualifiers::RAYCAST, Operations::EXPRESSION, "raycast", {{2, 2}});
 
@@ -591,8 +587,6 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::PART, Operations::EXPRESSION, "fuelTransfer",
             {{1, 1}});
         add(Qualifiers::PART, Operations::EXPRESSION, "idToName", {{1, 1}});
-        add(Qualifiers::PART, Operations::EXPRESSION, "programPartId",
-            {{1, 1}});
         add(Qualifiers::PART, Operations::EXPRESSION, "minPartId", {{1, 1}});
         add(Qualifiers::PART, Operations::EXPRESSION, "maxPartId", {{1, 1}});
         add(Qualifiers::PART, Operations::EXPRESSION, "underwater", {{1, 1}});
