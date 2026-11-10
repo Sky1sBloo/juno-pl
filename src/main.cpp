@@ -156,7 +156,12 @@ int main(int argc, char *argv[]) {
 
     JunoPL::Compiler compiler;
     compiler.getVariables(*root);
-    std::string xml = compiler.compileAST(*root);
+    auto compileResult = compiler.compileAST(*root);
+    if (!compileResult) {
+        std::cerr << "error: " << compileResult.error() << "\n";
+        return 1;
+    }
+    std::string xml = *compileResult;
 
     auto writeResult = compiler.writeToFile(outputPath, xml);
     if (!writeResult.has_value()) {

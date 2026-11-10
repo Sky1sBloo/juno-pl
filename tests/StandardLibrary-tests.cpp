@@ -174,13 +174,81 @@ TEST_CASE("STL - doc entries") {
     CHECK(JunoSTL::find(Qualifiers::GAME, "funk", Operations::EXPRESSION)
               .has_value());
 
-    // Craft.currentStage replaced Craft.stage
-    CHECK(
+    // Craft stage/stats live under Misc now
+    CHECK_FALSE(
         JunoSTL::find(Qualifiers::CRAFT, "currentStage", Operations::EXPRESSION)
             .has_value());
+    CHECK(JunoSTL::find(Qualifiers::MISC, "stage", Operations::EXPRESSION)
+              .has_value());
     CHECK_FALSE(
-        JunoSTL::find(Qualifiers::CRAFT, "stage", Operations::EXPRESSION)
+        JunoSTL::find(Qualifiers::CRAFT, "boundMin", Operations::EXPRESSION)
             .has_value());
+    CHECK(JunoSTL::find(Qualifiers::CRAFT, "boundingBoxMin",
+                        Operations::EXPRESSION)
+              .has_value());
+
+    // Planet ap/pe replace the longer names
+    CHECK(JunoSTL::find(Qualifiers::PLANET, "ap", Operations::EXPRESSION)
+              .has_value());
+    CHECK(JunoSTL::find(Qualifiers::PLANET, "pe", Operations::EXPRESSION)
+              .has_value());
+    CHECK_FALSE(
+        JunoSTL::find(Qualifiers::PLANET, "apoapsis", Operations::EXPRESSION)
+            .has_value());
+    CHECK_FALSE(
+        JunoSTL::find(Qualifiers::PLANET, "orbitAp", Operations::EXPRESSION)
+            .has_value());
+
+    // Speak and the sine helpers are instructions only
+    CHECK(JunoSTL::find(Qualifiers::GAME, "speak", Operations::INSTRUCTION)
+              .has_value());
+    CHECK_FALSE(JunoSTL::find(Qualifiers::GAME, "speak",
+                              Operations::EXPRESSION)
+                    .has_value());
+    CHECK(JunoSTL::find(Qualifiers::GAME, "sineBeep", Operations::INSTRUCTION)
+              .has_value());
+    CHECK(JunoSTL::find(Qualifiers::GAME, "sineNoise",
+                        Operations::INSTRUCTION)
+              .has_value());
+    CHECK_FALSE(JunoSTL::find(Qualifiers::GAME, "sineBeep",
+                              Operations::EXPRESSION)
+                    .has_value());
+
+    // Friendly formatting is split by unit
+    CHECK(JunoSTL::find(Qualifiers::STRINGS, "friendlyMass",
+                        Operations::EXPRESSION)
+              .has_value());
+    CHECK_FALSE(JunoSTL::find(Qualifiers::STRINGS, "friendly",
+                              Operations::EXPRESSION)
+                    .has_value());
+
+    // Time modes are zero-argument instructions, including Warp3-9
+    CHECK(JunoSTL::find(Qualifiers::GAME, "setTimeModeWarp3",
+                        Operations::INSTRUCTION)
+              .has_value());
+    CHECK(JunoSTL::find(Qualifiers::GAME, "setTimeModeWarp9",
+                        Operations::INSTRUCTION)
+              .has_value());
+    CHECK_FALSE(JunoSTL::find(Qualifiers::GAME, "timeMode",
+                              Operations::INSTRUCTION)
+                    .has_value());
+
+    // Part.fuelTransfer replaces drainFuel/fillFuel, detach is explode
+    CHECK(JunoSTL::find(Qualifiers::PART, "fuelTransfer",
+                        Operations::INSTRUCTION)
+              .has_value());
+    CHECK_FALSE(JunoSTL::find(Qualifiers::PART, "drainFuel",
+                              Operations::INSTRUCTION)
+                    .has_value());
+    CHECK_FALSE(JunoSTL::find(Qualifiers::PART, "fillFuel",
+                              Operations::INSTRUCTION)
+                    .has_value());
+    CHECK_FALSE(JunoSTL::find(Qualifiers::PART, "detach",
+                              Operations::INSTRUCTION)
+                    .has_value());
+    CHECK_FALSE(JunoSTL::find(Qualifiers::PART, "unfocus",
+                              Operations::INSTRUCTION)
+                    .has_value());
 
     // List expressions are qualified
     CHECK(JunoSTL::find(Qualifiers::LISTS, "length", Operations::EXPRESSION)

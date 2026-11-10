@@ -182,7 +182,7 @@ const StdExpr *findStdExpr(const std::string &qualifier,
             {{"Fuel", "monoProp"}, {"Fuel.Mono", "prop-fuel"}},
             {{"Fuel", "totalFuel"}, {"Fuel.AllStages", "prop-fuel"}},
             // Nav expressions
-            {{"Nav", "nav"}, {"Nav.Position", "prop-nav"}},
+            {{"Nav", "position"}, {"Nav.Position", "prop-nav"}},
             {{"Nav", "target"}, {"Target.Position", "prop-nav"}},
             {{"Nav", "heading"}, {"Nav.CraftHeading", "prop-nav"}},
             {{"Nav", "pitch"}, {"Nav.Pitch", "prop-nav"}},
@@ -251,15 +251,12 @@ const StdExpr *findStdExpr(const std::string &qualifier,
             {{"Time", "realTime"}, {"Time.RealTime", "prop-time"}},
             // Craft expressions
             {{"Craft", "ap"}, {"Craft.Apoapsis", "craft"}},
-            {{"Craft", "orbitAp"}, {"Craft.Apoapsis", "craft"}},
             {{"Craft", "pe"}, {"Craft.Periapsis", "craft"}},
-            {{"Craft", "orbitPe"}, {"Craft.Periapsis", "craft"}},
             {{"Craft", "timeToAp"}, {"Craft.ApoapsisTime", "craft"}},
             {{"Craft", "timeToPe"}, {"Craft.PeriapsisTime", "craft"}},
             {{"Craft", "eccentricity"}, {"Craft.Eccentricity", "craft"}},
             {{"Craft", "inclination"}, {"Craft.Inclination", "craft"}},
             {{"Craft", "period"}, {"Craft.Period", "craft"}},
-            {{"Craft", "orbitPeriod"}, {"Craft.Period", "craft"}},
             {{"Craft", "planet"}, {"Craft.Planet", "craft"}},
             {{"Craft", "planetName"}, {"Craft.Planet", "craft"}},
             {{"Craft", "mass"}, {"Craft.Mass", "craft"}},
@@ -384,13 +381,8 @@ const PlanetOp *findPlanetOp(const std::string &identifier) {
     };
     static const std::map<std::string, std::string> kAliases = {
         {"craftid", "craftids"},
-        {"orbitaptime", "apoapsistime"},
-        {"orbitpetime", "periapsistime"},
-        {"orbitperiapsisargument", "periapsisargument"},
-        {"orbitrightascension", "rightascension"},
-        {"orbittrueanomaly", "trueanomaly"},
-        {"orbitsemimajoraxis", "semimajoraxis"},
-        {"orbitsemiminoraxis", "semiminoraxis"},
+        {"ap", "apoapsis"},
+        {"pe", "periapsis"},
     };
     std::string key;
     key.reserve(identifier.size());
@@ -487,6 +479,7 @@ letter(index, text) and substring(start, length, text).
 struct StringBlock {
     const char *op;
     const char *style;
+    const char *subOp = nullptr;
 };
 
 const StringBlock *findStringOp(const std::string &identifier) {
@@ -497,12 +490,58 @@ const StringBlock *findStringOp(const std::string &identifier) {
         {"substr", {"substring", "substring"}},
         {"strContains", {"contains", "contains"}},
         {"format", {"format", "format"}},
+        // Human readable values: Vizzy stores the unit in subOp
+        {"friendlyAcceleration", {"friendly", "friendly", "acceleration"}},
+        {"friendlyAngularVelocity",
+         {"friendly", "friendly", "angularvelocity"}},
+        {"friendlyCoordinate", {"friendly", "friendly", "coordinate"}},
+        {"friendlyDensity", {"friendly", "friendly", "density"}},
+        {"friendlyDistance", {"friendly", "friendly", "distance"}},
+        {"friendlyEnergy", {"friendly", "friendly", "energy"}},
+        {"friendlyForce", {"friendly", "friendly", "force"}},
+        {"friendlyIsp", {"friendly", "friendly", "isp"}},
+        {"friendlyMass", {"friendly", "friendly", "mass"}},
+        {"friendlyPower", {"friendly", "friendly", "power"}},
+        {"friendlyPressure", {"friendly", "friendly", "pressure"}},
+        {"friendlyTemperature", {"friendly", "friendly", "temperature"}},
+        {"friendlyTime", {"friendly", "friendly", "time"}},
+        {"friendlyDate", {"friendly", "friendly", "date"}},
+        {"friendlyVelocity", {"friendly", "friendly", "velocity"}},
     };
     auto it = kStringOps.find(identifier);
     if (it == kStringOps.end()) {
         return nullptr;
     }
     return &it->second;
+}
+
+/**
+Time mode instructions (e.g. Game.setTimeModeWarp3()) compile to Vizzy
+SetTimeMode blocks. The Juno name omits the duplicated "Time", but the
+game attribute keeps it: setTimeModeWarp3 -> mode="TimeWarp3".
+*/
+const char *findTimeMode(const std::string &identifier) {
+    static const std::map<std::string, const char *> kTimeModes = {
+        {"setTimeModeNormal", "Normal"},
+        {"setTimeModePaused", "Paused"},
+        {"setTimeModeSlowMotion", "SlowMotion"},
+        {"setTimeModeFastForward", "FastForward"},
+        {"setTimeModeWarp1", "TimeWarp1"},
+        {"setTimeModeWarp2", "TimeWarp2"},
+        {"setTimeModeWarp3", "TimeWarp3"},
+        {"setTimeModeWarp4", "TimeWarp4"},
+        {"setTimeModeWarp5", "TimeWarp5"},
+        {"setTimeModeWarp6", "TimeWarp6"},
+        {"setTimeModeWarp7", "TimeWarp7"},
+        {"setTimeModeWarp8", "TimeWarp8"},
+        {"setTimeModeWarp9", "TimeWarp9"},
+        {"setTimeModeWarp10", "TimeWarp10"},
+    };
+    auto it = kTimeModes.find(identifier);
+    if (it == kTimeModes.end()) {
+        return nullptr;
+    }
+    return it->second;
 }
 
 /**
@@ -740,9 +779,16 @@ std::string Compiler::nextThreadPos() {
     return pos;
 }
 
-std::string Compiler::compileAST(const RootNode &root) {
+void Compiler::setError(const std::string &message) {
+    if (!mError.has_value()) {
+        mError = message;
+    }
+}
+
+std::expected<std::string, std::string> Compiler::compileAST(const RootNode &root) {
     mThreadX = -10;
     mHandlerParams.clear();
+    mError = std::nullopt;
 
     pugi::xml_document doc;
     auto prog = doc.append_child("Program");
@@ -909,6 +955,10 @@ std::string Compiler::compileAST(const RootNode &root) {
             xml.insert(endPos, " encoding=\"utf-8\"");
         }
     }
+
+    if (mError.has_value()) {
+        return std::unexpected(*mError);
+    }
     return xml;
 }
 
@@ -919,6 +969,9 @@ std::expected<void, FileHandlerError> Compiler::writeToFile(
 
 void Compiler::emitBody(const Body &body, pugi::xml_node parent,
                         std::function<std::string()> nextId) {
+    if (mError.has_value()) {
+        return;
+    }
     for (std::size_t index = 0; index < body.body.size(); ++index) {
         if (body.body[index]) {
             emitStatement(*body.body[index], index, parent, nextId);
@@ -929,6 +982,9 @@ void Compiler::emitBody(const Body &body, pugi::xml_node parent,
 bool Compiler::emitTopLevelInits(const RootNode &root,
                                  pugi::xml_node parent,
                                  std::function<std::string()> nextId) {
+    if (mError.has_value()) {
+        return false;
+    }
     bool emitted = false;
     for (const auto &node : root.body) {
         std::visit(
@@ -958,6 +1014,9 @@ bool Compiler::emitTopLevelInits(const RootNode &root,
 void Compiler::emitVarDeclaration(const VarDeclaration &varDecl,
                                   pugi::xml_node parent,
                                   std::function<std::string()> nextId) {
+    if (mError.has_value()) {
+        return;
+    }
     auto el = parent.append_child("SetVariable");
     el.append_attribute("id") = nextId().c_str();
     el.append_attribute("style") = "set-variable";
@@ -977,6 +1036,9 @@ void Compiler::emitVarDeclaration(const VarDeclaration &varDecl,
 void Compiler::emitListDeclaration(const ListDeclaration &listDecl,
                                    pugi::xml_node parent,
                                    std::function<std::string()> nextId) {
+    if (mError.has_value()) {
+        return;
+    }
     auto el = parent.append_child("SetVariable");
     el.append_attribute("id") = nextId().c_str();
     el.append_attribute("style") = "list-init";
@@ -1006,6 +1068,9 @@ void Compiler::emitListDeclaration(const ListDeclaration &listDecl,
 void Compiler::emitStatement(const Statements &statement, std::size_t index,
                              pugi::xml_node parent,
                              std::function<std::string()> nextId) {
+    if (mError.has_value()) {
+        return;
+    }
     std::visit(
         Overload{
             [&](const Body &body) {
@@ -1233,15 +1298,14 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                         for (const auto &p : instr.params) {
                             emitExpression(*p, el);
                         }
-                    } else {
-                        auto el = parent.append_child("SetCraftProperty");
-                        el.append_attribute("property") =
-                            instr.identifier.c_str();
+                    } else if (const char *mode =
+                                   findTimeMode(instr.identifier)) {
+                        auto el = parent.append_child("SetTimeMode");
+                        el.append_attribute("mode") = mode;
                         el.append_attribute("id") = nextId().c_str();
-                        el.append_attribute("style") = "set-part";
-                        for (const auto &p : instr.params) {
-                            emitExpression(*p, el);
-                        }
+                        el.append_attribute("style") = "set-time-mode";
+                    } else {
+                        setError(std::format("'Game.{}' has no implementation", instr.identifier));
                     }
                 } else if (instr.qualifier == "Input") {
                     // Vizzy uses SetInput for input controls, not
@@ -1327,15 +1391,7 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                         };
                     auto entry = kListSets.find(instr.identifier);
                     if (entry == kListSets.end()) {
-                        // Not a setter Vizzy knows: keep the old shape
-                        auto el = parent.append_child("SetCraftProperty");
-                        el.append_attribute("property") =
-                            instr.identifier.c_str();
-                        el.append_attribute("id") = nextId().c_str();
-                        el.append_attribute("style") = "set-part";
-                        for (const auto &p : instr.params) {
-                            emitExpression(*p, el);
-                        }
+                        setError(std::format("'Lists.{}' has no implementation", instr.identifier));
                         return;
                     }
                     const char *op = entry->second.first;
@@ -1371,19 +1427,26 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                             {"focus", "Part.SetFocused"},
                             {"name", "Part.SetName"},
                             {"explode", "Part.SetExplode"},
-                            {"drainFuel", "Part.FuelTransfer"},
+                            {"fuelTransfer", "Part.FuelTransfer"},
                         };
                     const auto property =
                         kPartProperties.find(instr.identifier);
+                    if (property == kPartProperties.end()) {
+                        setError(std::format("'Part.{}' has no implementation", instr.identifier));
+                        return;
+                    }
                     auto el = parent.append_child("SetCraftProperty");
-                    el.append_attribute("property") =
-                        property != kPartProperties.end()
-                            ? property->second.c_str()
-                            : instr.identifier.c_str();
+                    el.append_attribute("property") = property->second.c_str();
                     el.append_attribute("id") = nextId().c_str();
                     el.append_attribute("style") = "set-part";
                     for (const auto &p : instr.params) {
                         emitExpression(*p, el);
+                    }
+                    // Exploding without a strength is a detach
+                    if (instr.identifier == "explode" &&
+                        instr.params.size() == 1) {
+                        auto c = el.append_child("Constant");
+                        c.append_attribute("number") = "0";
                     }
                 } else if (instr.qualifier.empty()) {
                     // An unqualified do is a call to a user defined
@@ -1468,22 +1531,6 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                         for (const auto &p : instr.params) {
                             emitExpression(*p, el);
                         }
-                    } else if (instr.identifier == "pidPitchTo") {
-                        auto el = parent.append_child("SetTargetHeading");
-                        el.append_attribute("property") = "pid-pitch";
-                        el.append_attribute("id") = nextId().c_str();
-                        el.append_attribute("style") = "set-heading";
-                        for (const auto &p : instr.params) {
-                            emitExpression(*p, el);
-                        }
-                    } else if (instr.identifier == "pidRollTo") {
-                        auto el = parent.append_child("SetTargetHeading");
-                        el.append_attribute("property") = "pid-roll";
-                        el.append_attribute("id") = nextId().c_str();
-                        el.append_attribute("style") = "set-heading";
-                        for (const auto &p : instr.params) {
-                            emitExpression(*p, el);
-                        }
                     } else if (instr.identifier == "pitchTo") {
                         auto el = parent.append_child("SetTargetHeading");
                         el.append_attribute("property") = "pitch";
@@ -1501,14 +1548,7 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                             emitExpression(*p, el);
                         }
                     } else {
-                        auto el = parent.append_child("SetCraftProperty");
-                        el.append_attribute("property") =
-                            instr.identifier.c_str();
-                        el.append_attribute("id") = nextId().c_str();
-                        el.append_attribute("style") = "set-part";
-                        for (const auto &p : instr.params) {
-                            emitExpression(*p, el);
-                        }
+                        setError(std::format("'{}.{}' has no implementation", instr.qualifier, instr.identifier));
                     }
                 }
             },
@@ -1767,6 +1807,9 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
 }
 
 void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
+    if (mError.has_value()) {
+        return;
+    }
     std::visit(Overload{
                    [&](const Value &v) {
                        if (v.kind == Value::Kind::Literal) {
@@ -1928,7 +1971,7 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                            emitExpression(*t.valueIfFalse, el);
                    },
                    [&](const CallExpression &call) {
-                       // The block Vizzy writes for a call it does not know
+                       // The block Vizzy writes for a user defined `expr`
                        auto appendCustom = [&] {
                            auto el = parent.append_child(
                                "CallCustomExpression");
@@ -1959,9 +2002,9 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                            el.append_attribute("op") = planetOp->op;
                            el.append_attribute("style") = planetOp->style;
                            appendParams(el);
-                       } else if (call.qualifier == "Planet") {
-                           appendCustom();
-                       } else if (call.qualifier == "ListOp") {
+                        } else if (call.qualifier == "Planet") {
+                            setError(std::format("'Planet.{}' has no implementation", call.identifier));
+                        } else if (call.qualifier == "ListOp") {
                             if (auto listOp = findListOp(call.identifier)) {
                                 auto el = parent.append_child("ListOp");
                                 el.append_attribute("op") = listOp->op;
@@ -1970,15 +2013,7 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                                     emitExpression(*p, el);
                                 }
                             } else {
-                                auto el = parent.append_child(
-                                    "CallCustomExpression");
-                                el.append_attribute("call") =
-                                    call.identifier.c_str();
-                                el.append_attribute("style") =
-                                    "call-custom-expression";
-                                for (const auto &p : call.params) {
-                                    emitExpression(*p, el);
-                                }
+                                setError(std::format("'ListOp.{}' has no implementation", call.identifier));
                             }
                         } else if (call.qualifier == "Math") {
                             if (auto block =
@@ -1991,13 +2026,17 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                                 el.append_attribute("style") = block->style;
                                 appendParams(el);
                             } else {
-                                appendCustom();
+                                setError(std::format("'Math.{}' has no implementation", call.identifier));
                             }
                         } else if (call.qualifier == "String" ||
                                    call.qualifier == "Strings") {
                             if (auto block = findStringOp(call.identifier)) {
                                 auto el = parent.append_child("StringOp");
                                 el.append_attribute("op") = block->op;
+                                if (block->subOp) {
+                                    el.append_attribute("subOp") =
+                                        block->subOp;
+                                }
                                 el.append_attribute("style") = block->style;
                                 if (call.identifier == "letterOf" &&
                                     call.params.size() == 2) {
@@ -2015,7 +2054,7 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                                     appendParams(el);
                                 }
                             } else {
-                                appendCustom();
+                                setError(std::format("'String.{}' has no implementation", call.identifier));
                             }
                         } else if (call.qualifier == "Vector") {
                             if (call.identifier == "vec") {
@@ -2030,7 +2069,7 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                                 el.append_attribute("style") = block->style;
                                 appendParams(el);
                             } else {
-                                appendCustom();
+                                setError(std::format("'Vector.{}' has no implementation", call.identifier));
                             }
                         } else if (call.qualifier == "Input" &&
                                    call.identifier == "slider") {
@@ -2055,7 +2094,7 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                                         .c_str();
                                 el.append_attribute("style") = "prop-input";
                             } else {
-                                appendCustom();
+                                setError(std::format("'Input.slider' has no implementation for slider index '{}'", index->value));
                             }
                         } else if (call.qualifier == "Input" &&
                                    call.identifier == "activationGroup") {
@@ -2081,8 +2120,11 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                                 stdExpr->property;
                             el.append_attribute("style") = stdExpr->style;
                             appendParams(el);
-                        } else {
+                        } else if (call.qualifier.empty()) {
+                            // An unqualified call is a user defined `expr`
                             appendCustom();
+                        } else {
+                            setError(std::format("'{}.{}' has no implementation", call.qualifier, call.identifier));
                         }
                     },
                 },

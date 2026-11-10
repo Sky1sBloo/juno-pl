@@ -114,11 +114,9 @@ on start() {
     do Input.translateUp(0);
     do Input.translationMode(0);
 
-    // id62-65 <SetTargetHeading>
+    // id62-63 <SetTargetHeading>
     do Craft.pitchTo(0);
     do Craft.headingTo(0);
-    do Craft.pidPitchTo(0);
-    do Craft.pidRollTo(0);
 
     // id66 <SetTarget>
     do Craft.setTarget("name");
@@ -152,7 +150,7 @@ on start() {
     // Vizzy property Part.SetExplode with two inputs
     do Part.explode(0, 0);
     // Vizzy property Part.FuelTransfer with two inputs
-    do Part.drainFuel(0, 0);
+    do Part.fuelTransfer(0, 0);
 
     // id87 <SwitchCraft>
     do Game.switchToCraft(0);
@@ -201,7 +199,7 @@ on start() {
     do Game.localLog(Fuel.monoProp());
     do Game.localLog(Fuel.totalFuel());
     // id120-133 Nav
-    do Game.localLog(Nav.nav());
+    do Game.localLog(Nav.position());
     do Game.localLog(Nav.target());
     do Game.localLog(Nav.heading());
     do Game.localLog(Nav.pitch());
@@ -297,22 +295,22 @@ on start() {
     do Game.localLog(Planet.day("Droo"));
     do Game.localLog(Planet.year("Droo"));
     do Game.localLog(Planet.velocity("Droo"));
-    do Game.localLog(Planet.apoapsis("Droo"));
-    do Game.localLog(Planet.periapsis("Droo"));
+    do Game.localLog(Planet.ap("Droo"));
+    do Game.localLog(Planet.pe("Droo"));
     do Game.localLog(Planet.period("Droo"));
     // Vizzy ops apoapsistime/periapsistime
-    do Game.localLog(Planet.orbitApTime("Droo"));
-    do Game.localLog(Planet.orbitPeTime("Droo"));
+    do Game.localLog(Planet.apoapsistime("Droo"));
+    do Game.localLog(Planet.periapsistime("Droo"));
     do Game.localLog(Planet.inclination("Droo"));
     do Game.localLog(Planet.eccentricity("Droo"));
     do Game.localLog(Planet.meananomaly("Droo"));
     do Game.localLog(Planet.meanmotion("Droo"));
     // Vizzy ops periapsisargument/rightascension/trueanomaly/semimajoraxis/semiminoraxis
-    do Game.localLog(Planet.orbitPeriapsisArgument("Droo"));
-    do Game.localLog(Planet.orbitRightAscension("Droo"));
-    do Game.localLog(Planet.orbitTrueAnomaly("Droo"));
-    do Game.localLog(Planet.orbitSemiMajorAxis("Droo"));
-    do Game.localLog(Planet.orbitSemiMinorAxis("Droo"));
+    do Game.localLog(Planet.periapsisargument("Droo"));
+    do Game.localLog(Planet.rightascension("Droo"));
+    do Game.localLog(Planet.trueanomaly("Droo"));
+    do Game.localLog(Planet.semimajoraxis("Droo"));
+    do Game.localLog(Planet.semiminoraxis("Droo"));
 
     // id216-231 <Part>
     do Game.localLog(Part.idToName(0));

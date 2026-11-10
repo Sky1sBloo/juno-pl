@@ -14,13 +14,22 @@ instruction, `Input.throttle()` as an expression).
 |----------|-----------|-------------|
 | `Game.delay` | `(seconds)` | Waits the given number of seconds. |
 | `Game.delayUntil` | `(condition)` | Waits until the given mission condition. |
-| `Game.timeMode` | `(mode)` | Sets time warp mode. |
+| `Game.setTimeModeNormal` | `()` | Sets normal time. |
+| `Game.setTimeModePaused` | `()` | Pauses time. |
+| `Game.setTimeModeSlowMotion` | `()` | Sets slow motion. |
+| `Game.setTimeModeFastForward` | `()` | Sets fast forward. |
+| `Game.setTimeModeWarp1` ... `Game.setTimeModeWarp10` | `()` | Sets the corresponding time warp level (all ten levels). |
 | `Game.switchToCraft` | `(craftId)` | Switches active craft. |
 | `Game.beep` | `(freq, dur, vol)` | Plays a beep sound. |
 | `Game.flightLog` | `(text, overwrite)` | Writes a message to the flight log.  |
 | `Game.localLog` | `(text)` | Logs a message in the local log. |
 | `Game.display` | `(text)` | Shows a message on screen. |
 | `Game.speak` | `(text, pitch, speed)` | Speak text aloud. |
+| `Game.sineBeep` | `(freq, dur, vol)` | Sine-wave beep. |
+| `Game.sineTriangle` | `(freq, dur, vol)` | Triangle-wave beep. |
+| `Game.sineSaw` | `(freq, dur, vol)` | Saw-wave beep. |
+| `Game.sineSquare` | `(freq, dur, vol)` | Square-wave beep. |
+| `Game.sineNoise` | `(freq, dur, vol)` | Noise beep. |
 
 ## Math — `Math` (expressions)
 
@@ -59,7 +68,7 @@ instruction, `Input.throttle()` as an expression).
 | `String.substr` | `(s, start, len)` | Substring. |
 | `String.strContains` | `(s, sub)` | Whether s contains sub. |
 | `String.format` | `(template, ...)` | Format string with substitutions (variadic). |
-| `String.friendly` | `(a, b)` | Friendly comparison/formatting. |
+| `String.friendlyAcceleration`, `String.friendlyAngularVelocity`, `String.friendlyCoordinate`, `String.friendlyDensity`, `String.friendlyDistance`, `String.friendlyEnergy`, `String.friendlyForce`, `String.friendlyIsp`, `String.friendlyMass`, `String.friendlyPower`, `String.friendlyPressure`, `String.friendlyTemperature`, `String.friendlyTime`, `String.friendlyDate`, `String.friendlyVelocity` | `(value)` | Formats a value as human-readable text for that unit. |
 
 ## Vectors — `Vector` (expressions)
 
@@ -87,12 +96,6 @@ instruction, `Input.throttle()` as an expression).
 |----------|-----------|-------------|
 | `Game.funk` | `(x)` | Funk transformation. |
 | `Game.frequencyOf` | `(note, octave)` | Frequency for a musical note. |
-| `Game.speak` | `(text, pitch, speed)` | Speak text aloud. |
-| `Game.sineBeep` | `(freq, dur, vol)` | Sine-wave beep. |
-| `Game.sineTriangle` | `(freq, dur, vol)` | Triangle-wave beep. |
-| `Game.sineSaw` | `(freq, dur, vol)` | Saw-wave beep. |
-| `Game.sineSquare` | `(freq, dur, vol)` | Square-wave beep. |
-| `Game.sineNoise` | `(freq, dur, vol)` | Noise beep. |
 
 ## Craft instructions — `Craft` (instructions)
 
@@ -100,10 +103,6 @@ instruction, `Input.throttle()` as an expression).
 |----------|-----------|-------------|
 | `Craft.pitchTo` | `(degrees)` | Pitch craft to angle. |
 | `Craft.headingTo` | `(degrees)` | Heading to angle. |
-| `Craft.pidPitchTo` | `(value)` | Set the pitch PID target. |
-| `Craft.pidRollTo` | `(value)` | Set the roll PID target. |
-| `Craft.setPitchPID` | `(p, i, d)` | Set pitch PID gains. |
-| `Craft.setRollPID` | `(p, i, d)` | Set roll PID gains. |
 | `Craft.setTarget` | `(target)` | Set target. |
 | `Craft.lockPrograde` | `()` | Lock to prograde. |
 | `Craft.lockRetrograde` | `()` | Lock to retrograde. |
@@ -137,12 +136,9 @@ instruction, `Input.throttle()` as an expression).
 |----------|-----------|-------------|
 | `Part.activate` | `(partId, state)` | Activate/deactivate a part. |
 | `Part.focus` | `(partId, state)` | Focus/unfocus a part. |
-| `Part.unfocus` | `(partId)` | Unfocus a part. |
 | `Part.name` | `(partId, name)` | Rename a part. |
-| `Part.detach` | `(partId)` | Detach a part. |
-| `Part.explode` | `(partId)` or `(partId, ...)` | Explode a part; an optional second argument fills Vizzy's second input. |
-| `Part.drainFuel` | `(partId)` or `(partId, ...)` | Drain fuel from a part; an optional second argument fills Vizzy's second input. |
-| `Part.fillFuel` | `(partId)` | Fill fuel in a part. |
+| `Part.explode` | `(partId)` or `(partId, explosionStrength)` | Explode a part; with no strength this detaches (strength 0). |
+| `Part.fuelTransfer` | `(partId, amount)` | Transfer fuel: positive fills, negative drains, zero does nothing. |
 
 ## Camera controls — `Camera` (instructions)
 
@@ -241,7 +237,7 @@ instruction, `Input.throttle()` as an expression).
 ### `Nav`
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `Nav.nav` | `()` | Navigation data. |
+| `Nav.position` | `()` | Navigation position data. |
 | `Nav.target` | `()` | Target data. |
 | `Nav.heading` | `()` | Current heading. |
 | `Nav.pitch` | `()` | Current pitch. |
@@ -303,14 +299,7 @@ instruction, `Input.throttle()` as an expression).
 |----------|-----------|-------------|
 | `Craft.name` | `()` or `(id)` | Name of this craft, or of the craft with the given id. |
 | `Craft.idOf` | `(name)` | ID of a named craft. |
-| `Craft.currentStage` | `()` | Current stage number. |
-| `Craft.numStages` | `()` | Total stage count. |
 | `Craft.isGrounded` | `()` or `(partId)` | Whether craft/part is grounded. |
-| `Craft.solarRadiation` | `()` | Solar radiation level. |
-| `Craft.pitchPID` | `()` | Pitch PID values. |
-| `Craft.rollPID` | `()` | Roll PID values. |
-| `Craft.targetName` | `()` | Target name. |
-| `Craft.targetPlanet` | `()` | Target planet. |
 | `Craft.position` | `(id)` | Position of craft/part. |
 | `Craft.velocity` | `(id)` | Velocity of craft/part. |
 | `Craft.isPlayer` | `(id)` | Whether craft is player-controlled. |
@@ -321,13 +310,9 @@ instruction, `Input.throttle()` as an expression).
 | `Craft.planet` | `(id)` | Planet of craft/part. |
 | `Craft.boundingBoxMin` | `(id)` | Bounding box minimum. |
 | `Craft.boundingBoxMax` | `(id)` | Bounding box maximum. |
-| `Craft.boundMin` | `(id)` | Bounding box minimum. |
-| `Craft.boundMax` | `(id)` | Bounding box maximum. |
-| `Craft.orbitAp` | `(id)` | Apoapsis of craft/part. |
-| `Craft.orbitPe` | `(id)` | Periapsis of craft/part. |
 | `Craft.ap` | `(id)` | Apoapsis of craft/part. |
 | `Craft.pe` | `(id)` | Periapsis of craft/part. |
-| `Craft.orbitPeriod` | `(id)` | Orbital period of craft/part. |
+| `Craft.period` | `(id)` | Orbital period of craft/part. |
 | `Craft.apoapsisTime` | `(id)` | Apoapsis time of craft/part. |
 | `Craft.periapsisTime` | `(id)` | Periapsis time of craft/part. |
 | `Craft.eccentricity` | `(id)` | Orbital eccentricity of craft/part. |
@@ -383,7 +368,6 @@ instruction, `Input.throttle()` as an expression).
 |----------|-----------|-------------|
 | `Planet.radius` | `(id)` | Planet radius. |
 | `Planet.mass` | `(id)` | Planet mass. |
-| `Planet.solidGround` | `(id)` | Whether planet has solid ground. |
 | `Planet.atmosphereHeight` | `(id)` | Atmosphere height. |
 | `Planet.atmosphereScale` | `(id)` | Atmosphere scale height. |
 | `Planet.atmosphereElements` | `(id)` | Atmospheric elements. |
@@ -398,31 +382,21 @@ instruction, `Input.throttle()` as an expression).
 | `Planet.structures` | `(id)` | Structures on planet. |
 | `Planet.hydrosphereElement` | `(id)` | Hydrosphere element. |
 | `Planet.hydrosphereDensity` | `(id)` | Hydrosphere density. |
-| `Planet.hydrosphereComposition` | `(id)` | Hydrosphere composition. |
 | `Planet.day` | `(id)` | Day length. |
 | `Planet.year` | `(id)` | Year length. |
 | `Planet.velocity` | `(id)` | Planet velocity. |
-| `Planet.apoapsis` | `(id)` | Apoapsis around parent. |
-| `Planet.periapsis` | `(id)` | Periapsis around parent. |
+| `Planet.ap` | `(id)` | Apoapsis around parent. |
+| `Planet.pe` | `(id)` | Periapsis around parent. |
+| `Planet.apoapsistime` | `(id)` | Time to apoapsis. |
+| `Planet.periapsistime` | `(id)` | Time to periapsis. |
+| `Planet.periapsisargument` | `(id)` | Argument of periapsis. |
+| `Planet.rightascension` | `(id)` | Right ascension of ascending node. |
+| `Planet.trueanomaly` | `(id)` | True anomaly. |
 | `Planet.period` | `(id)` | Orbital period around parent. |
 | `Planet.eccentricity` | `(id)` | Orbital eccentricity. |
 | `Planet.inclination` | `(id)` | Orbital inclination. |
 | `Planet.meananomaly` | `(id)` | Mean anomaly. |
 | `Planet.meanmotion` | `(id)` | Mean motion. |
-| `Planet.orbitAp` | `(id)` | Apoapsis around parent. |
-| `Planet.orbitPe` | `(id)` | Periapsis around parent. |
-| `Planet.orbitPeriod` | `(id)` | Orbital period around parent. |
-| `Planet.orbitApTime` | `(id)` | Time to apoapsis. |
-| `Planet.orbitPeTime` | `(id)` | Time to periapsis. |
-| `Planet.orbitInclination` | `(id)` | Orbital inclination. |
-| `Planet.orbitEccentricity` | `(id)` | Orbital eccentricity. |
-| `Planet.orbitMeanAnomaly` | `(id)` | Mean anomaly. |
-| `Planet.orbitMeanMotion` | `(id)` | Mean motion. |
-| `Planet.orbitPeriapsisArgument` | `(id)` | Argument of periapsis. |
-| `Planet.orbitRightAscension` | `(id)` | Right ascension of ascending node. |
-| `Planet.orbitTrueAnomaly` | `(id)` | True anomaly. |
-| `Planet.orbitSemiMajorAxis` | `(id)` | Semi-major axis. |
-| `Planet.orbitSemiMinorAxis` | `(id)` | Semi-minor axis. |
 | `Planet.semimajoraxis` | `(id)` | Semi-major axis. |
 | `Planet.semiminoraxis` | `(id)` | Semi-minor axis. |
 | `Planet.soiradius` | `(id)` | Sphere of influence radius. |
@@ -462,7 +436,6 @@ instruction, `Input.throttle()` as an expression).
 | `Part.position` | `(id)` | Part position. |
 | `Part.temperature` | `(id)` | Part temperature. |
 | `Part.drag` | `(id)` | Part drag. |
-| `Part.programPartId` | `(id)` | Part running the program. |
 | `Part.minPartId` | `(id)` | Minimum part ID. |
 | `Part.maxPartId` | `(id)` | Maximum part ID. |
 | `Part.underwater` | `(id)` | Whether part is underwater. |
