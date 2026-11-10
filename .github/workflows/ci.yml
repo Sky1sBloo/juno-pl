@@ -21,10 +21,25 @@ env:
   CMAKE_BUILD_TYPE: Release
 
 jobs:
+
   build-and-test:
     name: Build & test (Linux, Clang)
     runs-on: ubuntu-24.04
     steps:
+      - name: Check C++23 support
+        run: |
+          clang++ --version
+              clang++ -v
+              g++ --version
+          
+              echo '#include <expected>
+              #include <iostream>
+              int main() {
+                  std::expected<int, int> x = 42;
+                  std::cout << *x;
+              }' > expected.cpp
+          
+              clang++ -std=c++23 expected.cpp -o expected
       - name: Check out repository
         uses: actions/checkout@v4
 
