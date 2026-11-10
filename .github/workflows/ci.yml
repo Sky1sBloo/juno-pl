@@ -96,7 +96,10 @@ jobs:
       - name: Package binary
         run: |
           mkdir -p dist
-          tar -czf "dist/juno-pl-${GITHUB_REF_NAME}.tar.gz" -C "$BUILD_DIR" juno-pl
+          # GITHUB_REF_NAME is "9/merge" for pull requests, which would be
+          # treated as a directory separator in the tar path.
+          ref_name="${GITHUB_REF_NAME//\//-}"
+          tar -czf "dist/juno-pl-${ref_name}.tar.gz" -C "$BUILD_DIR" juno-pl
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
