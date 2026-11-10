@@ -7,6 +7,8 @@ project(juno-pl
     DESCRIPTION "Juno Programming Language"
     LANGUAGES CXX)
 
+enable_testing()
+
 add_executable(juno-pl src/main.cpp)
 add_subdirectory(src/common)
 add_subdirectory(src/juno-stl)

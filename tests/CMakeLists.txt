@@ -15,5 +15,4 @@ target_compile_features(juno-pl-tests PRIVATE cxx_std_23)
 target_link_libraries(juno-pl-tests doctest juno-pl-lexer juno-pl-parser juno-pl-tests-impl juno-pl-stl juno-pl-semantic-analyzer juno-pl-config juno-pl-compiler)
 add_subdirectory(parser)
 
-enable_testing()
-add_test(NAME lexer_test COMMAND lexer_test)
+add_test(NAME juno-pl-tests COMMAND juno-pl-tests)
