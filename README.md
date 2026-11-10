@@ -1,9 +1,24 @@
-# JunoPL 
+<div align="center">
 
-JunoPL is a programming language that compiles to Vizzy, the visual
-programming language used in *Juno New Origins*. The Juno compiler
-(`juno-pl`) reads `.juno` source files and emits `.xml` files that can be
-loaded into the game.
+<img src="images/icon.png" alt="JunoPL logo" width="120" height="120">
+
+# JunoPL
+
+**A programming language that compiles to Vizzy**, the visual programming
+language used in *Juno New Origins*.
+
+The Juno compiler (`juno-pl`) reads `.juno` source files and emits `.xml`
+files that can be loaded directly into the game.
+
+<img src="images/comparison.png" alt="Juno source code beside the Vizzy program it compiles to" width="800">
+
+<sub><code>.juno</code> source on the left, the compiled Vizzy on the right</sub>
+
+</div>
+
+
+## Syntax Highlighting
+I suggest using this [extension](https://marketplace.visualstudio.com/items?itemName=Sky1sBloo.juno-pl) for syntax highlighting. Or compile it yourself at this [link](https://github.com/Sky1sBloo/juno-pl-vscode.git).
 
 ## Documentation
 1. [Api Reference](docs/api-reference.md)
@@ -60,10 +75,6 @@ file, not against the directory the compiler runs from. A config that exists
 but cannot be parsed, or that has no string `outputDir`, is reported as an
 error rather than silently ignored. `-d` overrides the configured value but
 does not suppress that check.
-
-The compiler pipeline is: **lex → parse → semantic analyze → compile to XML
-→ write file**. Errors at any stage are printed to stderr and the process
-exits with code 1.
 
 ## Example
 
