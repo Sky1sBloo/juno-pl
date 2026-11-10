@@ -1,0 +1,129 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Cancel superseded runs on the same branch/PR.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  BUILD_DIR: build
+  CMAKE_BUILD_TYPE: Release
+  # Pin the compiler so CI matches local development. Bump both this and the
+  # libstdc++ version below together if you move to a newer toolchain.
+  CLANG_VERSION: "23"
+  GCC_VERSION: "14"
+
+jobs:
+  build-and-test:
+    name: Build & test (Linux, pinned Clang)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Add LLVM apt repository
+        run: |
+          sudo install -d -m 0755 /etc/apt/keyrings
+          curl -fsSL https://apt.llvm.org/llvm-snapshot.gpg.key \
+            | sudo tee /etc/apt/keyrings/apt.llvm.org.asc > /dev/null
+          CODENAME=$(. /etc/os-release && echo "$VERSION_CODENAME")
+          echo "deb [signed-by=/etc/apt/keyrings/apt.llvm.org.asc] http://apt.llvm.org/${CODENAME}/ llvm-toolchain-${CODENAME}-${CLANG_VERSION} main" \
+            | sudo tee /etc/apt/sources.list.d/llvm.list
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            "clang-${CLANG_VERSION}" \
+            "g++-${GCC_VERSION}" \
+            "libstdc++-${GCC_VERSION}-dev" \
+            ninja-build
+
+      - name: Verify C++23 toolchain
+        run: |
+          clang++-${CLANG_VERSION} --version
+
+          selected_gcc=$(clang++-${CLANG_VERSION} -v 2>&1 | sed -n 's/^Selected GCC installation: //p')
+          echo "libstdc++ headers from: ${selected_gcc}"
+          if [[ "${selected_gcc}" != */"${GCC_VERSION}" ]]; then
+            echo "::error::Expected libstdc++ ${GCC_VERSION} headers, got '${selected_gcc}'"
+            exit 1
+          fi
+
+          cat > /tmp/expected.cpp <<'EOF'
+          #include <expected>
+          #include <format>
+          #include <iostream>
+
+          int main() {
+              std::expected<int, int> value = 42;
+              std::cout << std::format("expected={}\n", *value);
+          }
+          EOF
+
+          clang++-${CLANG_VERSION} -std=c++23 /tmp/expected.cpp -o /tmp/expected
+          /tmp/expected
+
+      # CMakeLists.txt requires CMake >= 4.0.0, which is newer than the
+      # version preinstalled on the runner.
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Configure
+        run: >
+          cmake -S . -B "$BUILD_DIR"
+          -G Ninja
+          -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE"
+          -DCMAKE_CXX_COMPILER="clang++-${CLANG_VERSION}"
+
+      - name: Build
+        run: cmake --build "$BUILD_DIR" --parallel
+
+      - name: Test
+        run: ctest --test-dir "$BUILD_DIR" --output-on-failure
+
+      - name: Package binary
+        run: |
+          mkdir -p dist
+          # GITHUB_REF_NAME is "9/merge" for pull requests, which would be
+          # treated as a directory separator in the tar path.
+          ref_name="${GITHUB_REF_NAME//\//-}"
+          tar -czf "dist/juno-pl-${ref_name}.tar.gz" -C "$BUILD_DIR" juno-pl
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: juno-pl-linux-x86_64
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: build-and-test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: juno-pl-linux-x86_64
+          path: dist
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.tar.gz
+          generate_release_notes: true

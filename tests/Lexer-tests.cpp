@@ -1,4 +1,5 @@
 #include "doctest.h"
+#include <string>
 
 import junopl.tests.filehandler;
 import junopl.lexer;
