@@ -201,7 +201,7 @@ on start() {
     do Game.localLog(Fuel.monoProp());
     do Game.localLog(Fuel.totalFuel());
     // id120-133 Nav
-    do Game.localLog(Nav.nav());
+    do Game.localLog(Nav.position());
     do Game.localLog(Nav.target());
     do Game.localLog(Nav.heading());
     do Game.localLog(Nav.pitch());

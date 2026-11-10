@@ -182,7 +182,7 @@ const StdExpr *findStdExpr(const std::string &qualifier,
             {{"Fuel", "monoProp"}, {"Fuel.Mono", "prop-fuel"}},
             {{"Fuel", "totalFuel"}, {"Fuel.AllStages", "prop-fuel"}},
             // Nav expressions
-            {{"Nav", "nav"}, {"Nav.Position", "prop-nav"}},
+            {{"Nav", "position"}, {"Nav.Position", "prop-nav"}},
             {{"Nav", "target"}, {"Target.Position", "prop-nav"}},
             {{"Nav", "heading"}, {"Nav.CraftHeading", "prop-nav"}},
             {{"Nav", "pitch"}, {"Nav.Pitch", "prop-nav"}},

@@ -241,7 +241,7 @@ instruction, `Input.throttle()` as an expression).
 ### `Nav`
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `Nav.nav` | `()` | Navigation data. |
+| `Nav.position` | `()` | Navigation position data. |
 | `Nav.target` | `()` | Target data. |
 | `Nav.heading` | `()` | Current heading. |
 | `Nav.pitch` | `()` | Current pitch. |

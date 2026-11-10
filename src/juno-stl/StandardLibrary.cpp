@@ -315,7 +315,7 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::LISTOP, Operations::EXPRESSION, "length", {{1, 1}});
         add(Qualifiers::LISTOP, Operations::EXPRESSION, "index", {{2, 2}});
 
-        add(Qualifiers::NAV, Operations::EXPRESSION, "nav", {{0, 0}});
+        add(Qualifiers::NAV, Operations::EXPRESSION, "position", {{0, 0}});
         add(Qualifiers::NAV, Operations::EXPRESSION, "target", {{0, 0}});
         add(Qualifiers::NAV, Operations::EXPRESSION, "heading", {{0, 0}});
         add(Qualifiers::NAV, Operations::EXPRESSION, "pitch", {{0, 0}});
