@@ -1,4 +1,5 @@
 #include "doctest.h"
+#include <string>
 #include <variant>
 
 import junopl.lexer;
