@@ -4,6 +4,7 @@ module;
 #include <filesystem>
 #include <functional>
 #include <map>
+#include <optional>
 #include <pugixml.hpp>
 #include <set>
 #include <string>
@@ -18,8 +19,9 @@ import junopl.filehandler;
 namespace JunoPL {
 export class Compiler {
   public:
-    /** Returns the compiled Vizzy XML as a string. */
-    std::string compileAST(const RootNode &root);
+    /** Returns the compiled Vizzy XML as a string, or an error when a
+    qualified call or instruction has no implementation. */
+    std::expected<std::string, std::string> compileAST(const RootNode &root);
 
     /** Writes the compiled XML string to a file. */
     std::expected<void, FileHandlerError>
@@ -124,6 +126,12 @@ export class Compiler {
     std::map<std::string, int> mHandlerParams;
     /** Canvas X of the thread being laid out, -10 for the first one. */
     int mThreadX = -10;
+
+    /** First error encountered while emitting, if any qualified call or
+    instruction has no implementation. */
+    std::optional<std::string> mError;
+
+    void setError(const std::string &message);
 
     /**
     Claims the name of each top level variable, which is already global, so
