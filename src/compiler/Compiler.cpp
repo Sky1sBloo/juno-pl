@@ -7,6 +7,7 @@ module;
 #include <format>
 #include <functional>
 #include <map>
+#include <optional>
 #include <pugixml.hpp>
 #include <set>
 #include <sstream>

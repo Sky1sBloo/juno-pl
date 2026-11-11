@@ -1,8 +1,11 @@
 module;
+#include <cstddef>
 #include <format>
+#include <optional>
 #include <string>
 #include <utility>
 #include <variant>
+#include <vector>
 module junopl.semantic;
 
 /**
