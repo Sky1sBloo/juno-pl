@@ -616,6 +616,83 @@ on start() {
     CHECK(xml.find("<Constant number=\"2\" />") != std::string::npos);
 }
 
+TEST_CASE("Compiler XML - inline call expands instr body instead of a call") {
+    const auto xml = compileSource(R"(
+program test;
+
+instr await(condition) {
+    do Game.delayUntil(condition);
+    do Game.display("works!");
+}
+
+on start() {
+    do inline await(Altitude.getASL() < 5000);
+})");
+
+    // The body is expanded inline: no CallCustomInstruction block
+    CHECK(xml.find("<CallCustomInstruction") == std::string::npos);
+
+    // WaitUntil from delayUntil with the substituted condition
+    CHECK(xml.find("<WaitUntil id=\"") != std::string::npos);
+    CHECK(xml.find("style=\"wait-until\"") != std::string::npos);
+    CHECK(xml.find("<Comparison op=\"l\" style=\"op-lt\">") != std::string::npos);
+    CHECK(xml.find("property=\"Altitude.ASL\"") != std::string::npos);
+    CHECK(xml.find("<Constant number=\"5000\" />") != std::string::npos);
+
+    // DisplayMessage from the second statement in the body
+    CHECK(xml.find("<DisplayMessage id=\"") != std::string::npos);
+    CHECK(xml.find("style=\"display\"") != std::string::npos);
+    CHECK(xml.find("<Constant text=\"works!\" />") != std::string::npos);
+    CHECK(xml.find("<Constant number=\"7\" />") != std::string::npos);
+}
+
+TEST_CASE("Compiler XML - same inline instr expanded at multiple call sites") {
+    const auto xml = compileSource(R"(
+program test;
+
+instr await(condition) {
+    do Game.delayUntil(condition);
+    do Game.display("works!");
+}
+
+on start() {
+    do inline await(Altitude.getASL() < 5000);
+    do await(100);
+}
+
+on update() {
+    do inline await(Velocity.surface() < 10);
+})");
+
+    // Each inline call expands the body into its own thread; the instr
+    // definition thread also contains its own body WaitUntil, so there are
+    // 3 total: one in the definition, one per inline call site.
+    std::size_t waitUntilCount = 0;
+    std::size_t pos = 0;
+    while ((pos = xml.find("<WaitUntil id=\"", pos)) != std::string::npos) {
+        waitUntilCount++;
+        pos += 15;
+    }
+    CHECK(waitUntilCount == 3);
+
+    // Both inline calls carry their own substituted condition
+    CHECK(xml.find("property=\"Altitude.ASL\"") != std::string::npos);
+    CHECK(xml.find("<Constant number=\"5000\" />") != std::string::npos);
+    CHECK(xml.find("property=\"Vel.SurfaceVelocity\"") != std::string::npos);
+    CHECK(xml.find("<Constant number=\"10\" />") != std::string::npos);
+
+    // The non-inline call still emits a CallCustomInstruction block
+    CHECK(xml.find("<CallCustomInstruction call=\"await\" id=\"") !=
+          std::string::npos);
+    CHECK(xml.find("style=\"call-custom-instruction\"") != std::string::npos);
+    CHECK(xml.find("<Constant number=\"100\" />") != std::string::npos);
+
+    // The instr definition thread is still emitted
+    CHECK(xml.find("<CustomInstruction callFormat=\"await (0) \" "
+                   "format=\"await |condition| \" name=\"await\"") !=
+          std::string::npos);
+}
+
 TEST_CASE("Compiler XML - compound assignment keeps its operator") {
     const auto xml = compileSource(R"(
 program test;

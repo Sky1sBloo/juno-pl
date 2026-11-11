@@ -39,7 +39,7 @@ export struct DoInstruction {
     std::string qualifier;
     std::string identifier;
     std::vector<ExpressionHandle> params;
-    bool isInline = false;
+    bool isInline{false};
     SourceLocation loc;
 };
 

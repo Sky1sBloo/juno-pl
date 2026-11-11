@@ -13,6 +13,13 @@ Parser::parseDoInstruction(TokenList &tokens) {
         return std::nullopt;
     }
 
+    // Optional inline keyword: do inline await(...);
+    bool isInline = false;
+    if (!mTokens->empty() && mTokens->current().type == TokenType::K_INLINE) {
+        mTokens->advance();
+        isInline = true;
+    }
+
     auto ident = expectToken(TokenType::IDENT);
     if (!ident) {
         recoverTo(TokenType::OP_SEMICOLON);
@@ -20,12 +27,7 @@ Parser::parseDoInstruction(TokenList &tokens) {
     }
 
     DoInstruction instr;
-
-    // check for inline
-    if (!mTokens->empty() && mTokens->current().type == TokenType::K_INLINE) {
-        mTokens->advance();
-        instr.isInline = true;
-    }
+    instr.isInline = isInline;
 
     instr.identifier = ident->value;
 

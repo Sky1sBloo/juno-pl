@@ -108,3 +108,32 @@ TEST_CASE("Parser Do Instruction - missing identifier") {
     auto result = JunoPL::parseDoInstruction(tokens);
     CHECK(!result.has_value());
 }
+
+TEST_CASE("Parser Do Instruction - inline keyword") {
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("do inline await(alt < 5000);");
+
+    JunoPL::Lexer lexer;
+    auto lexOutput = lexer.tokenize(fileHandler);
+    REQUIRE(lexOutput.errors.empty());
+
+    JunoPL::TokenList tokens;
+    for (std::size_t i = 0; i < lexOutput.tokens.size(); ++i) {
+        tokens.push_back(lexOutput.tokens.at(i));
+    }
+
+    auto result = JunoPL::parseDoInstruction(tokens);
+    REQUIRE(result.has_value());
+    CHECK(result.value().identifier == "await");
+    CHECK(result.value().qualifier.empty());
+    CHECK(result.value().isInline);
+    REQUIRE(result.value().params.size() == 1);
+    CHECK(std::holds_alternative<JunoPL::BinaryOp>(
+        result.value().params[0]->value));
+    const auto &binOp = std::get<JunoPL::BinaryOp>(result.value().params[0]->value);
+    CHECK(binOp.operation == JunoPL::BinaryOp::Operation::LESS);
+    CHECK(std::holds_alternative<JunoPL::Value>(binOp.lhs->value));
+    CHECK(std::get<JunoPL::Value>(binOp.lhs->value).value == "alt");
+    CHECK(std::holds_alternative<JunoPL::Value>(binOp.rhs->value));
+    CHECK(std::get<JunoPL::Value>(binOp.rhs->value).value == "5000");
+}
