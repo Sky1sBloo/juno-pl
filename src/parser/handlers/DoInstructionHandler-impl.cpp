@@ -20,6 +20,13 @@ Parser::parseDoInstruction(TokenList &tokens) {
     }
 
     DoInstruction instr;
+
+    // check for inline
+    if (!mTokens->empty() && mTokens->current().type == TokenType::K_INLINE) {
+        mTokens->advance();
+        instr.isInline = true;
+    }
+
     instr.identifier = ident->value;
 
     // Check for qualified identifier: identifier.identifier
