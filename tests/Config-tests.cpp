@@ -92,7 +92,9 @@ TEST_CASE("Config - absolute outputDir is kept as written") {
     const fs::path elsewhere =
         fs::weakly_canonical(fs::temp_directory_path()) / "elsewhere";
     tree.write("config.json",
-               R"({"outputDir": ")" + elsewhere.string() + R"("})");
+               // generic_string() keeps the JSON valid on Windows, where
+               // the native spelling uses backslashes.
+               R"({"outputDir": ")" + elsewhere.generic_string() + R"("})");
 
     const auto config = JunoPL::loadConfig(tree.root());
     REQUIRE(config.has_value());

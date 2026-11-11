@@ -29,8 +29,8 @@ I suggest using this [extension](https://marketplace.visualstudio.com/items?item
 ### Requirements
  - C++23
  - CMake (minimum version 4.0.0)
- - Clang++ (with modules support)
- - Ninja
+ - Clang++ (with modules support), or MSVC 17.4+ on Windows
+ - Ninja (optional; the Visual Studio generator works without it)
 
 ### Building
 1. Create the build files
@@ -42,6 +42,22 @@ cmake -B build -DCMAKE_CXX_COMPILER=clang++ -G Ninja
 ninja -C build
 ```
 > Alternatively run `build.sh` to run both automatically
+
+### Building on Windows
+
+From a normal terminal — CMake locates Visual Studio automatically:
+```
+cmake -B build -A x64
+cmake --build build --config Release
+```
+The test suite is built alongside the compiler:
+```
+ctest --test-dir build -C Release --output-on-failure
+```
+
+MSVC 17.4 or newer is required, because that is the first toolset whose C++
+module support CMake can drive. The CI workflow builds and tests both the
+Linux/Clang and Windows/MSVC configurations.
 
 ## CLI usage
 ```

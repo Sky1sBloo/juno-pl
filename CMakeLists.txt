@@ -9,6 +9,18 @@ project(juno-pl
 
 enable_testing()
 
+# MSVC compiler settings:
+#  /utf-8           keep UTF-8 sources and string literals intact (otherwise
+#                   MSVC uses the system code page and warns C4819).
+#  /Zc:__cplusplus  make __cplusplus report the selected standard; vendored
+#                   headers such as pugixml test it directly.
+# A static runtime lets the released juno-pl.exe run without the Visual C++
+# redistributable installed.
+if(MSVC)
+    add_compile_options(/utf-8 /Zc:__cplusplus)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
 add_executable(juno-pl src/main.cpp)
 add_subdirectory(src/common)
 add_subdirectory(src/juno-stl)

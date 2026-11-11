@@ -26,13 +26,41 @@ env:
 
 jobs:
   build-and-test:
-    name: Build & test (Linux, pinned Clang)
-    runs-on: ubuntu-24.04
+    name: Build & test (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            name: Linux x86_64, pinned Clang
+            artifact: juno-pl-linux-x86_64
+            configure: >-
+              cmake -S . -B "$BUILD_DIR" -G Ninja
+              -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE"
+              -DCMAKE_CXX_COMPILER="clang++-${CLANG_VERSION}"
+            build: cmake --build "$BUILD_DIR" --parallel
+            test: >-
+              ctest --test-dir "$BUILD_DIR"
+              --output-on-failure --no-tests=error
+          # MSVC is the most reliable Windows toolchain for C++23 modules;
+          # CMake drives the scan/BMI steps through the Visual Studio
+          # generator.
+          - os: windows-latest
+            name: Windows x86_64, MSVC
+            artifact: juno-pl-windows-x86_64
+            configure: cmake -S . -B "$BUILD_DIR" -A x64
+            build: cmake --build "$BUILD_DIR" --parallel --config Release
+            test: >-
+              ctest --test-dir "$BUILD_DIR"
+              --output-on-failure --no-tests=error -C Release
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
       - name: Add LLVM apt repository
+        if: runner.os == 'Linux'
         run: |
           sudo install -d -m 0755 /etc/apt/keyrings
           curl -fsSL https://apt.llvm.org/llvm-snapshot.gpg.key \
@@ -42,6 +70,7 @@ jobs:
             | sudo tee /etc/apt/sources.list.d/llvm.list
 
       - name: Install toolchain
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
@@ -51,6 +80,7 @@ jobs:
             ninja-build
 
       - name: Verify C++23 toolchain
+        if: runner.os == 'Linux'
         run: |
           clang++-${CLANG_VERSION} --version
 
@@ -76,36 +106,50 @@ jobs:
           /tmp/expected
 
       # CMakeLists.txt requires CMake >= 4.0.0, which is newer than the
-      # version preinstalled on the runner.
+      # version preinstalled on the runners.
       - name: Install CMake
         uses: lukka/get-cmake@latest
 
       - name: Configure
-        run: >
-          cmake -S . -B "$BUILD_DIR"
-          -G Ninja
-          -DCMAKE_BUILD_TYPE="$CMAKE_BUILD_TYPE"
-          -DCMAKE_CXX_COMPILER="clang++-${CLANG_VERSION}"
+        shell: bash
+        run: ${{ matrix.configure }}
 
       - name: Build
-        run: cmake --build "$BUILD_DIR" --parallel
+        shell: bash
+        run: ${{ matrix.build }}
 
       - name: Test
-        run: ctest --test-dir "$BUILD_DIR" --output-on-failure
+        shell: bash
+        run: ${{ matrix.test }}
 
-      - name: Package binary
+      - name: Package binary (Linux)
+        if: runner.os == 'Linux'
         run: |
           mkdir -p dist
           # GITHUB_REF_NAME is "9/merge" for pull requests, which would be
-          # treated as a directory separator in the tar path.
+          # treated as a directory separator in the archive path.
           ref_name="${GITHUB_REF_NAME//\//-}"
           tar -czf "dist/juno-pl-${ref_name}.tar.gz" -C "$BUILD_DIR" juno-pl
+
+      - name: Package binary (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $refName = $env:GITHUB_REF_NAME -replace '/', '-'
+          $exe = Get-ChildItem -Path $env:BUILD_DIR -Recurse -Filter juno-pl.exe |
+            Select-Object -First 1
+          if (-not $exe) {
+            throw "juno-pl.exe not found under $env:BUILD_DIR"
+          }
+          Compress-Archive -Path $exe.FullName `
+            -DestinationPath "dist/juno-pl-$refName.zip"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: juno-pl-linux-x86_64
-          path: dist/*.tar.gz
+          name: ${{ matrix.artifact }}
+          path: dist/*
           if-no-files-found: error
 
   release:
@@ -116,14 +160,14 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download build artifact
+      - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: juno-pl-linux-x86_64
           path: dist
+          merge-multiple: true
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.tar.gz
+          files: dist/*
           generate_release_notes: true
