@@ -59,9 +59,14 @@ export class Compiler {
     void collectBody(const Body &body);
     void collectStatement(const Statements &stmt, std::size_t index);
 
-    /** Canvas position of the next top level thread. Vizzy stores a pos on
-     * the first block of every thread, each thread in its own column. */
+    /** Canvas position of the next top level thread. Returns the current
+     * (x,y) without advancing; call advanceThreadPos() after emitting a
+     * thread's body to move down by that thread's total block height. */
     std::string nextThreadPos();
+
+    /** Moves the canvas cursor down by the height of the just-emitted
+     * thread (blockCount blocks at kBlockHeight each, plus a gap). */
+    void advanceThreadPos(std::size_t blockCount);
 
     /** pugixml-emitting traversal used by compileAST. */
     void emitBody(const Body &body, pugi::xml_node parent,
@@ -124,8 +129,8 @@ export class Compiler {
     referenced as they are instead of being declared.
      */
     std::map<std::string, int> mHandlerParams;
-    /** Canvas X of the thread being laid out, -10 for the first one. */
-    int mThreadX = -10;
+    /** Canvas Y of the thread being laid out, -20 for the first one. */
+    int mThreadY = -20;
 
     /** First error encountered while emitting, if any qualified call or
     instruction has no implementation. */

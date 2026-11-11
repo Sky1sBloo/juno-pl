@@ -773,12 +773,84 @@ bool hasTopLevelInits(const RootNode &root) {
 
 } // namespace
 
+constexpr int kBlockHeight = 30;
+constexpr int kThreadGap = 30;
+
+/** Recursively counts every block element a thread will emit, including
+ * blocks nested inside conditionals, loops, and other containers. */
+std::size_t countTopLevelInitBlocks(const RootNode &root) {
+    std::size_t count = 0;
+    for (const auto &node : root.body) {
+        std::visit(
+            Overload{
+                [&](const VarDeclaration &vd) {
+                    if (vd.value)
+                        ++count;
+                },
+                [&](const ListDeclaration &ld) {
+                    if (!ld.values.empty())
+                        ++count;
+                },
+                [](const auto &) {},
+            },
+            node);
+    }
+    return count;
+}
+
+/** Recursively counts every block element a thread will emit, including
+ * blocks nested inside conditionals, loops, and other containers. */
+std::size_t countThreadBlocks(const Body &body) {
+    std::size_t count = 0;
+    for (const auto &stmt : body.body) {
+        if (!stmt) continue;
+        std::visit(
+            Overload{
+                [&](const Body &nested) {
+                    count += countThreadBlocks(nested);
+                },
+                [&](const VarDeclaration &) { ++count; },
+                [&](const VarAssignment &) { ++count; },
+                [&](const ListDeclaration &) { ++count; },
+                [&](const DoInstruction &) { ++count; },
+                [&](const BreakStatement &) { ++count; },
+                [&](const ConditionalStatement &cond) {
+                    ++count; // the If block itself
+                    count += countThreadBlocks(cond.ifStatement.body);
+                    for (const auto &elif : cond.elifStatements)
+                        count += countThreadBlocks(elif.body);
+                    count += countThreadBlocks(cond.elseStatement);
+                },
+                [&](const EmitEvent &) { ++count; },
+                [&](const RepeatLoop &repeat) {
+                    ++count; // the Repeat block itself
+                    count += countThreadBlocks(repeat.body);
+                },
+                [&](const WhileLoop &loop) {
+                    ++count; // the While block itself
+                    count += countThreadBlocks(loop.body);
+                },
+                [&](const ForLoop &loop) {
+                    ++count; // the For block itself
+                    count += countThreadBlocks(loop.body);
+                },
+            },
+            stmt->statement);
+    }
+    return count;
+}
+
 std::string Compiler::nextThreadPos() {
-    // One column per thread, every thread starting on the same canvas row,
-    // matching how Vizzy lays out independent event handlers.
-    const std::string pos = std::format("{},-20", mThreadX);
-    mThreadX += 400;
-    return pos;
+    // One row per thread, every thread starting on the same canvas column,
+    // stacking independent event handlers vertically. The y position is
+    // advanced by advanceThreadPos() after each thread's body is emitted,
+    // so taller threads (e.g. on start with many blocks underneath) push
+    // subsequent threads lower.
+    return std::format("-10,{}", mThreadY);
+}
+
+void Compiler::advanceThreadPos(std::size_t blockCount) {
+    mThreadY += static_cast<int>(blockCount * kBlockHeight + kThreadGap);
 }
 
 void Compiler::setError(const std::string &message) {
@@ -788,7 +860,7 @@ void Compiler::setError(const std::string &message) {
 }
 
 std::expected<std::string, std::string> Compiler::compileAST(const RootNode &root) {
-    mThreadX = -10;
+    mThreadY = -20;
     mHandlerParams.clear();
     mError = std::nullopt;
 
@@ -866,6 +938,9 @@ std::expected<std::string, std::string> Compiler::compileAST(const RootNode &roo
                             isMessage ? static_cast<int>(k) + 1 : -1;
 
                     emitBody(event.body, threadEl, nextId);
+                    advanceThreadPos(1 + countThreadBlocks(event.body) +
+                                     (isStart ? countTopLevelInitBlocks(root)
+                                              : 0));
                     mHandlerParams.clear();
                     mScopePath.pop_back();
                 },
@@ -887,6 +962,7 @@ std::expected<std::string, std::string> Compiler::compileAST(const RootNode &roo
                     for (const auto &p : func.params)
                         mHandlerParams[p] = -1;
                     emitBody(func.body, threadEl, nextId);
+                    advanceThreadPos(1 + countThreadBlocks(func.body));
                     mHandlerParams.clear();
                     mScopePath.pop_back();
                 },
@@ -908,6 +984,7 @@ std::expected<std::string, std::string> Compiler::compileAST(const RootNode &roo
         el.append_attribute("style") = "flight-start";
         el.append_attribute("pos") = nextThreadPos().c_str();
         emitTopLevelInits(root, threadEl, nextId);
+        advanceThreadPos(1 + countTopLevelInitBlocks(root));
     } else if (!hasThread) {
         // A program without any handler still needs the container Vizzy reads
         prog.append_child("Instructions");
@@ -937,6 +1014,7 @@ std::expected<std::string, std::string> Compiler::compileAST(const RootNode &roo
 
                     if (customExpr.expression)
                         emitExpression(*customExpr.expression, el);
+                    advanceThreadPos(1);
                     mHandlerParams.clear();
                 },
                 [](const auto &) {},

@@ -526,8 +526,8 @@ instr helper() {
     CHECK(threads == 3);
 
     CHECK(xml.find("pos=\"-10,-20\"") != std::string::npos);
-    CHECK(xml.find("pos=\"390,-20\"") != std::string::npos);
-    CHECK(xml.find("pos=\"790,-20\"") != std::string::npos);
+    CHECK(xml.find("pos=\"-10,70\"") != std::string::npos);
+    CHECK(xml.find("pos=\"-10,160\"") != std::string::npos);
 
     // only the head block of a thread carries a position
     CHECK(xml.find("<SetVariable id=\"1\" style=\"set-variable\" pos=") ==
