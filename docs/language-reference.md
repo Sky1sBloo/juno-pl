@@ -2,12 +2,13 @@
 
 ## Program structure
 
-A Juno source file begins with a `program` declaration, followed by
-top-level declarations:
+A Juno source file begins with a `program` declaration, optionally followed
+by `import` declarations, then top-level declarations:
 
 ```
 program <name>;
 
+import "<path>";        // optional, may repeat
 <top-level declaration>
 ...
 ```
@@ -18,6 +19,41 @@ Top-level declarations can be:
 - Event handlers: `on start() { ... }`
 - Custom expressions: `expr add(a, b) a + b;`
 - Custom instructions: `instr logMsg(msg) { ... }`
+
+## Imports
+
+An `import` declaration splices another Juno source file into the program:
+
+```
+program myApp;
+
+import "utils.juno";
+
+on start() {
+    do Game.display(helper());
+}
+```
+
+`utils.juno`:
+```
+program utils;
+
+expr helper() "hello from utils";
+```
+
+Rules:
+
+- Imports must come immediately after the `program` declaration, before any
+  other declaration.
+- The path is a quoted string. It is resolved relative to the importing file
+  first, then relative to the compiler's working directory.
+- An imported file is a complete Juno program and must begin with its own
+  `program` declaration. Only the entry file's program name is used.
+- Declarations from imported files are merged into the entry program, so
+  variables, lists, events, custom expressions, and custom instructions are
+  shared across files.
+- Each file is included once, even if several files import it. Import cycles
+  are reported as errors.
 
 ## Variables and lists
 

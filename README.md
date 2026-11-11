@@ -81,12 +81,25 @@ does not suppress that check.
 `hello.juno`:
 ```
 program hello;
+import "greeting.juno";
+
 var message = "Hello World!";
 
 on start() {
-    do Game.display(message);
+    do displayGreeting(message);
 }
 ```
+
+`greeting.juno`:
+```
+program greeting;
+
+instr displayGreeting(text) {
+    do Game.display(text);
+}
+```
+
+`greeting.juno` is resolved relative to `hello.juno`.
 
 Compile:
 ```
