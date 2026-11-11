@@ -10,9 +10,10 @@ StandardLibrary-tests.cpp
 SemanticAnalyzer-tests.cpp
 Config-tests.cpp
 Compiler-tests.cpp
-CompilerXML-tests.cpp)
+CompilerXML-tests.cpp
+ProjectGenerator-tests.cpp)
 target_compile_features(juno-pl-tests PRIVATE cxx_std_23)
-target_link_libraries(juno-pl-tests doctest juno-pl-lexer juno-pl-parser juno-pl-tests-impl juno-pl-stl juno-pl-semantic-analyzer juno-pl-config juno-pl-compiler)
+target_link_libraries(juno-pl-tests doctest juno-pl-lexer juno-pl-parser juno-pl-tests-impl juno-pl-stl juno-pl-semantic-analyzer juno-pl-config juno-pl-compiler juno-pl-projectgenerator)
 add_subdirectory(parser)
 
 add_test(NAME juno-pl-tests COMMAND juno-pl-tests)

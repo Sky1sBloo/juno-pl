@@ -1,0 +1,7 @@
+program {{project}};
+// import "file.juno";
+
+var message = "Hello world!";
+on start() {
+    do Game.display(message);
+}
