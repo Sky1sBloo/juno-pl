@@ -1,6 +1,7 @@
 module;
 #include <memory>
 #include <optional>
+#include <string>
 #include <utility>
 #include <vector>
 module junopl.parser;

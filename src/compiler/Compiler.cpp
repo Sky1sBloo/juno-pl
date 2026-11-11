@@ -7,6 +7,7 @@ module;
 #include <format>
 #include <functional>
 #include <map>
+#include <optional>
 #include <pugixml.hpp>
 #include <set>
 #include <sstream>
@@ -632,7 +633,8 @@ bool isNumericLiteral(const std::string &s) {
 
     std::size_t used = 0;
     try {
-        std::stod(s, &used);
+        // The parsed value is deliberately ignored: this only validates it.
+        (void)std::stod(s, &used);
     } catch (...) {
         return false;
     }
