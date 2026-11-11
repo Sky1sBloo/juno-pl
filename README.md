@@ -63,6 +63,7 @@ Linux/Clang and Windows/MSVC configurations.
 ```
 juno-pl -c <source.juno> [-d <output-dir>]
 juno-pl -P [-d <output-dir>]
+juno-pl -g <project-name>
 ```
 
 - `-c <file>` — compile this source file
@@ -71,6 +72,8 @@ juno-pl -P [-d <output-dir>]
 - `-d <dir>` — output directory. Defaults to `outputDir` from `config.json`,
   which is searched for the same way. With neither, the XML is written next
   to the source file.
+- `-g <name>`, `--generate <name>` — generate a sample project in `./<name>`
+  containing `main.juno` and `config.json`
 - `-h`, `--help` — show usage
 
 The output directory is created when it does not exist. The file is named
@@ -100,6 +103,30 @@ file, not against the directory the compiler runs from. A config that exists
 but cannot be parsed, that has no string `outputDir`, or that has a non-string
 `outputFile`, is reported as an error rather than silently ignored. `-d`
 overrides the configured value but does not suppress that check.
+
+### Generating a project
+
+```
+juno-pl -g hello
+```
+
+creates:
+
+```
+hello/
+├── main.juno
+└── config.json
+```
+
+The files are generated from templates that are compiled into the `juno-pl`
+executable, so the generator works without any extra files next to the binary.
+Edit `templates/main.juno`, `templates/config.windows.json`, or
+`templates/config.linux.json` and rebuild to change what new projects look
+like. Every `{{project}}` placeholder is replaced with the project name;
+`config.windows.json` and `config.linux.json` are chosen by the target
+platform.
+
+Existing `main.juno` or `config.json` files are never overwritten.
 
 ## Example
 

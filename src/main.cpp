@@ -13,6 +13,7 @@ import junopl.diagnostics;
 import junopl.filehandler;
 import junopl.moduleloader;
 import junopl.parser.nodes;
+import junopl.projectgenerator;
 import junopl.semantic;
 import junopl.semantic.diagnostic;
 
@@ -21,9 +22,11 @@ namespace fs = std::filesystem;
 namespace {
 
 struct Options {
-    fs::path source;         // -c: the file to compile
-    bool searchMain = false; // -P: look for main.juno instead
-    fs::path outDir;         // -d: output directory
+    fs::path source;             // -c: the file to compile
+    bool searchMain = false;     // -P: look for main.juno instead
+    fs::path outDir;             // -d: output directory
+    std::string generateProject; // -g: project name
+    bool generate = false;       // -g/--generate was given
     bool help = false;
 };
 
@@ -36,6 +39,8 @@ void printUsage(std::ostream &out) {
            "               its parents; -c is used as given when both appear\n"
            "  -d <dir>     output directory; defaults to \"outputDir\" from\n"
            "               config.json, searched the same way as main.juno\n"
+           "  -g <name>    generate a project in ./<name> and print its path\n"
+           "               (--generate is an alias)\n"
            "  -h, --help   show this help\n"
            "\n"
            "Without -d and without a config.json the XML is written next to\n"
@@ -52,6 +57,13 @@ std::optional<Options> parseOptions(int argc, char *argv[],
         const std::string arg = argv[i];
         if (arg == "-h" || arg == "--help") {
             options.help = true;
+        } else if (arg == "-g" || arg == "--generate") {
+            if (i + 1 >= argc) {
+                error = arg + " expects an argument";
+                return std::nullopt;
+            }
+            options.generate = true;
+            options.generateProject = argv[++i];
         } else if (arg == "-c" || arg == "-d") {
             if (i + 1 >= argc) {
                 error = arg + " expects an argument";
@@ -71,8 +83,9 @@ std::optional<Options> parseOptions(int argc, char *argv[],
         }
     }
 
-    if (!options.help && options.source.empty() && !options.searchMain) {
-        error = "no input given, pass -c <file> or -P";
+    if (!options.help && options.source.empty() && !options.searchMain &&
+        !options.generate) {
+        error = "no input given, pass -c <file>, -P, or -g <name>";
         return std::nullopt;
     }
     return options;
@@ -89,6 +102,18 @@ int main(int argc, char *argv[]) {
     }
     if (options->help) {
         printUsage(std::cout);
+        return 0;
+    }
+    if (options->generate) {
+        const fs::path cwd = fs::current_path();
+        const auto generated =
+            JunoPL::generateProject(cwd, options->generateProject);
+        if (!generated) {
+            std::cerr << "error: " << generated.error() << "\n";
+            return 1;
+        }
+
+        std::cout << "Generated " << *generated << "\n";
         return 0;
     }
 
