@@ -17,6 +17,9 @@ export struct Config {
     // Where the compiled XML goes, exactly as the config resolved it.
     // Empty when there is no config.
     std::filesystem::path outputDir;
+    // File name for the compiled XML, exactly as written in the config.
+    // Empty when the config does not set one.
+    std::filesystem::path outputFile;
     // The config file it came from, empty when there is none. Relative
     // outputDir values are resolved against this file's directory.
     std::filesystem::path path;
@@ -37,6 +40,13 @@ or that lacks the outputDir string yields an error message instead.
  */
 export std::expected<Config, std::string>
 loadConfig(const std::filesystem::path &startDir);
+
+/**
+The file name the compiled XML is written as: the config's outputFile when
+set, otherwise `<programName>.xml`.
+ */
+export std::filesystem::path
+outputFileName(const Config &config, const std::string &programName);
 
 /**
 The directory the output belongs in: the one named on the command line,

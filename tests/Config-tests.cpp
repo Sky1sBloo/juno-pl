@@ -73,6 +73,7 @@ TEST_CASE("Config - absent config is not an error") {
     REQUIRE(config.has_value());
     CHECK(config->path.empty());
     CHECK(config->outputDir.empty());
+    CHECK(config->outputFile.empty());
 }
 
 TEST_CASE("Config - relative outputDir resolves against the config") {
@@ -96,6 +97,35 @@ TEST_CASE("Config - absolute outputDir is kept as written") {
     const auto config = JunoPL::loadConfig(tree.root());
     REQUIRE(config.has_value());
     CHECK(config->outputDir == elsewhere);
+}
+
+TEST_CASE("Config - outputFile is read as written") {
+    TempTree tree;
+    tree.write("config.json",
+               R"({"outputDir": "build/xml", "outputFile": "custom.xml"})");
+
+    const auto config = JunoPL::loadConfig(tree.root());
+    REQUIRE(config.has_value());
+    CHECK(config->outputFile == "custom.xml");
+}
+
+TEST_CASE("Config - outputFile must be a string") {
+    TempTree tree;
+    tree.write("config.json",
+               R"({"outputDir": "build/xml", "outputFile": 12})");
+
+    const auto config = JunoPL::loadConfig(tree.root());
+    REQUIRE(!config.has_value());
+    CHECK(config.error().find("outputFile") != std::string::npos);
+}
+
+TEST_CASE("Config - output file name defaults to the program name") {
+    const JunoPL::Config empty;
+    CHECK(JunoPL::outputFileName(empty, "myApp") == "myApp.xml");
+
+    JunoPL::Config configured;
+    configured.outputFile = "custom.xml";
+    CHECK(JunoPL::outputFileName(configured, "myApp") == "custom.xml");
 }
 
 TEST_CASE("Config - malformed json reports the file") {

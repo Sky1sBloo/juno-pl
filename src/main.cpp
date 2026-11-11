@@ -39,7 +39,8 @@ void printUsage(std::ostream &out) {
            "  -h, --help   show this help\n"
            "\n"
            "Without -d and without a config.json the XML is written next to\n"
-           "the source file.\n";
+           "the source file. The file is named after the program declaration;\n"
+           "config.json's \"outputFile\" overrides that name.\n";
 }
 
 // Reads the command line. Returns nothing and fills `error` when the
@@ -117,8 +118,6 @@ int main(int argc, char *argv[]) {
     }
     const fs::path outputDir =
         JunoPL::outputDirectory(options->outDir, config, inputPath);
-    const fs::path outputPath =
-        outputDir / (inputPath.stem().string() + ".xml");
 
     if (!outputDir.empty()) {
         std::error_code ec;
@@ -136,6 +135,9 @@ int main(int argc, char *argv[]) {
     if (!root) {
         return 1;
     }
+
+    const fs::path outputPath =
+        outputDir / JunoPL::outputFileName(config, root->programName);
 
     // Snippet source for semantic diagnostics. SourceLocation does not carry
     // a file identity yet, so a diagnostic from an imported module cannot be

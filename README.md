@@ -54,10 +54,13 @@ juno-pl -P [-d <output-dir>]
   parents; when both are given, `-c` is used as given
 - `-d <dir>` — output directory. Defaults to `outputDir` from `config.json`,
   which is searched for the same way. With neither, the XML is written next
-  to the source file as `<source>.xml`.
+  to the source file.
 - `-h`, `--help` — show usage
 
-The output directory is created when it does not exist.
+The output directory is created when it does not exist. The file is named
+`<program>.xml` after the `program` declaration in the entry file (the `-c`
+file, or `main.juno` with `-P`). Set `outputFile` in `config.json` to use a
+different name.
 
 ### Configuration
 
@@ -66,15 +69,21 @@ directory, so one project config applies from anywhere inside the project:
 
 ```json
 {
-    "outputDir": "build/xml"
+    "outputDir": "build/xml",
+    "outputFile": "custom.xml"
 }
 ```
 
+`outputFile` is optional and is used verbatim as the output file name. When
+it is omitted, the compiler writes `<program>.xml`, using the program
+declaration from the entry file. `-d` overrides the directory but not the
+file name.
+
 A relative `outputDir` is resolved against the directory holding the config
 file, not against the directory the compiler runs from. A config that exists
-but cannot be parsed, or that has no string `outputDir`, is reported as an
-error rather than silently ignored. `-d` overrides the configured value but
-does not suppress that check.
+but cannot be parsed, that has no string `outputDir`, or that has a non-string
+`outputFile`, is reported as an error rather than silently ignored. `-d`
+overrides the configured value but does not suppress that check.
 
 ## Example
 
