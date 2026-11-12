@@ -213,6 +213,7 @@ for i from 0 to 10 by 1 {
 `break` exits the innermost loop.
 
 ### Do instruction
+All instructions should by called by `do`.
 ```
 do Game.delay(5);
 do Craft.activateStage();
@@ -220,6 +221,25 @@ do Input.throttle(0.5);
 do logMsg("hello");     // custom instruction call
 ```
 
+### Do inline instruction
+`do inline` inlines the body of the instruction to its caller.
+```
+instr await(condition) {
+  do Game.delayUntil(condition);
+  do Game.display("works!");
+}
+
+on start() 
+   do await(Altitude.getASL() < 5000);
+}
+```
+Resolves to
+```
+on start() 
+   do await(Altitude.getASL() < 5000);
+   do Game.display("works!");
+}
+```
 ### Emit event
 ```
 emit message() to script;
