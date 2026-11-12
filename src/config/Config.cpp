@@ -1,4 +1,5 @@
 module;
+#include <cstdlib>
 #include <expected>
 #include <filesystem>
 #include <fstream>
@@ -12,10 +13,19 @@ module junopl.config;
 namespace JunoPL {
 namespace fs = std::filesystem;
 
-fs::path expandHome(fs::path p) {
-    const std::string native = p.native();
+// Expands leading `~` to the user's home directory ($HOME on Unix,
+// %USERPROFILE% on Windows) and %VAR% environment placeholders (e.g.
+// %APPDATA% on Windows). Paths that need no expansion are returned
+// unchanged. `~user` (another user's home) is not supported.
+fs::path expandPath(fs::path p) {
+    std::string native = p.native();
+
+    // Expand a leading `~` to the home directory.
     if (!native.empty() && native[0] == '~') {
         const char *home = std::getenv("HOME");
+        if (!home || *home == '\0') {
+            home = std::getenv("USERPROFILE");
+        }
         if (home && *home != '\0') {
             fs::path result(home);
             std::string rest = native.substr(1);
@@ -25,10 +35,33 @@ fs::path expandHome(fs::path p) {
             if (!rest.empty()) {
                 result /= rest;
             }
-            return result;
+            native = result.native();
+        } else {
+            return p;
         }
     }
-    return p;
+
+    // Expand %VAR% environment variable placeholders.
+    std::string result;
+    result.reserve(native.size());
+    for (size_t i = 0; i < native.size(); ++i) {
+        if (native[i] == '%') {
+            const size_t end = native.find('%', i + 1);
+            if (end != std::string::npos) {
+                const std::string var = native.substr(i + 1, end - i - 1);
+                const char *value = std::getenv(var.c_str());
+                if (value && *value != '\0') {
+                    result += value;
+                } else {
+                    result.append(native, i, end - i + 1);
+                }
+                i = end;
+                continue;
+            }
+        }
+        result += native[i];
+    }
+    return fs::path(result);
 }
 
 std::optional<fs::path> findFileUpwards(const fs::path &startDir,
@@ -88,7 +121,7 @@ std::expected<Config, std::string> loadConfig(const fs::path &startDir) {
 
     Config config;
     config.path = *found;
-    config.outputDir = expandHome(root.at("outputDir").get<std::string>());
+    config.outputDir = expandPath(root.at("outputDir").get<std::string>());
     if (root.contains("outputFile")) {
         config.outputFile = root.at("outputFile").get<std::string>();
     }
