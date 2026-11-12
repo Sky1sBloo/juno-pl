@@ -1,5 +1,8 @@
 module;
 #include <cstdlib>
+#ifdef _WIN32
+#include <cwchar>
+#endif
 #include <expected>
 #include <filesystem>
 #include <fstream>
@@ -18,40 +21,54 @@ namespace fs = std::filesystem;
 // %APPDATA% on Windows). Paths that need no expansion are returned
 // unchanged. `~user` (another user's home) is not supported.
 fs::path expandPath(fs::path p) {
-    std::string native = p.native();
+    using string_type = fs::path::string_type;
+    using value_type = fs::path::value_type;
 
     // Expand a leading `~` to the home directory.
-    if (!native.empty() && native[0] == '~') {
+    if (!p.empty() && p.native()[0] == static_cast<value_type>('~')) {
         const char *home = std::getenv("HOME");
         if (!home || *home == '\0') {
             home = std::getenv("USERPROFILE");
         }
         if (home && *home != '\0') {
             fs::path result(home);
-            std::string rest = native.substr(1);
-            while (!rest.empty() && (rest[0] == '/' || rest[0] == '\\')) {
-                rest = rest.substr(1);
+            const string_type &native = p.native();
+            std::size_t i = 1;
+            while (i < native.size() &&
+                   (native[i] == static_cast<value_type>('/') ||
+                    native[i] == static_cast<value_type>('\\'))) {
+                ++i;
             }
-            if (!rest.empty()) {
-                result /= rest;
+            if (i < native.size()) {
+                result /= fs::path(native.substr(i));
             }
-            native = result.native();
-        } else {
-            return p;
+            return result;
         }
+        return p;
     }
 
     // Expand %VAR% environment variable placeholders.
-    std::string result;
+    const string_type &native = p.native();
+    string_type result;
     result.reserve(native.size());
-    for (size_t i = 0; i < native.size(); ++i) {
-        if (native[i] == '%') {
-            const size_t end = native.find('%', i + 1);
-            if (end != std::string::npos) {
-                const std::string var = native.substr(i + 1, end - i - 1);
-                const char *value = std::getenv(var.c_str());
-                if (value && *value != '\0') {
-                    result += value;
+    for (std::size_t i = 0; i < native.size(); ++i) {
+        if (native[i] == static_cast<value_type>('%')) {
+            const std::size_t end =
+                native.find(static_cast<value_type>('%'), i + 1);
+            if (end != string_type::npos) {
+                const string_type var = native.substr(i + 1, end - i - 1);
+                fs::path value;
+#ifdef _WIN32
+                if (const wchar_t *wide = _wgetenv(var.c_str())) {
+                    value = fs::path(wide);
+                }
+#else
+                if (const char *narrow = std::getenv(var.c_str())) {
+                    value = fs::path(narrow);
+                }
+#endif
+                if (!value.empty()) {
+                    result += value.native();
                 } else {
                     result.append(native, i, end - i + 1);
                 }
