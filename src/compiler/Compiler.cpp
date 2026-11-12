@@ -862,11 +862,20 @@ void Compiler::setError(const std::string &message) {
 std::expected<std::string, std::string> Compiler::compileAST(const RootNode &root) {
     mThreadY = -20;
     mHandlerParams.clear();
+    mInlineSubstitutions.clear();
     mError = std::nullopt;
 
     pugi::xml_document doc;
     auto prog = doc.append_child("Program");
     prog.append_attribute("name") = root.programName.c_str();
+
+    // Build a lookup of user instr definitions for inline calls 
+    mFunctions.clear();
+    for (const auto &node : root.body) {
+        if (const auto *func = std::get_if<FunctionNode>(&node)) {
+            mFunctions.emplace(func->identifier, func);
+        }
+    }
 
     // ---- Variables ----
     auto varsEl = prog.append_child("Variables");
@@ -1290,6 +1299,27 @@ void Compiler::emitStatement(const Statements &statement, std::size_t index,
                 emitListDeclaration(listDecl, parent, nextId);
             },
             [&](const DoInstruction &instr) {
+                if (instr.qualifier.empty() && instr.isInline) {
+                    auto it = mFunctions.find(instr.identifier);
+                    if (it == mFunctions.end()) {
+                        setError(std::format("'{}' is not defined", instr.identifier));
+                        return;
+                    }
+                    const FunctionNode &func = *it->second;
+
+                    auto saved = mInlineSubstitutions;
+                    mInlineSubstitutions.clear();
+                    for (std::size_t i = 0;
+                         i < func.params.size() && i < instr.params.size();
+                         ++i) {
+                        mInlineSubstitutions.emplace(func.params[i],
+                                                     instr.params[i].get());
+                    }
+                    emitBody(func.body, parent, nextId);
+                    mInlineSubstitutions = std::move(saved);
+                    return;
+                }
+
                 if (instr.qualifier == "Game") {
                     if (instr.identifier == "display") {
                         auto el = parent.append_child("DisplayMessage");
@@ -1896,13 +1926,23 @@ void Compiler::emitExpression(const Expression &expr, pugi::xml_node parent) {
                            appendConstant(parent, v.value);
                            return;
                        }
-                       if (v.kind == Value::Kind::String) {
-                           appendStringConstant(parent, v.value);
-                           return;
-                       }
+                        if (v.kind == Value::Kind::String) {
+                            appendStringConstant(parent, v.value);
+                            return;
+                        }
 
-                       const std::string resolved =
-                           resolveVariableName(v.value);
+                        // Inline substitution: replace a formal parameter with
+                        // the argument expression from the call site.
+                        if (v.kind == Value::Kind::Identifier) {
+                            auto sub = mInlineSubstitutions.find(v.value);
+                            if (sub != mInlineSubstitutions.end()) {
+                                emitExpression(*sub->second, parent);
+                                return;
+                            }
+                        }
+
+                        const std::string resolved =
+                            resolveVariableName(v.value);
                        auto param = mHandlerParams.find(v.value);
                        // A parameter only wins while no local of the same
                        // name shadows it inside the handler

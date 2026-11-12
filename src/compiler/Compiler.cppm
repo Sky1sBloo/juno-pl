@@ -136,6 +136,15 @@ export class Compiler {
     instruction has no implementation. */
     std::optional<std::string> mError;
 
+    /** Formal-parameter -> argument-expression map used while emitting an
+    inlined instr body, so parameter references resolve to the caller's
+    expressions instead of local parameter slots. */
+    std::map<std::string, const Expression *> mInlineSubstitutions;
+
+    /** Lookup of user instr definitions by name, so an inline call can find
+    the body to expand. Populated at the start of compileAST. */
+    std::map<std::string, const FunctionNode *> mFunctions;
+
     void setError(const std::string &message);
 
     /**
