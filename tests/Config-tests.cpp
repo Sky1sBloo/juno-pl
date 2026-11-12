@@ -50,8 +50,8 @@ TEST_CASE("Config - finds a file in a parent directory") {
     tree.write("config.json", "{}");
     tree.write("project/sub/deep/keep.txt", "");
 
-    const auto found =
-        JunoPL::findFileUpwards(tree.root() / "project/sub/deep", "config.json");
+    const auto found = JunoPL::findFileUpwards(tree.root() / "project/sub/deep",
+                                               "config.json");
     REQUIRE(found.has_value());
     CHECK(*found == tree.root() / "config.json");
 }
@@ -60,8 +60,8 @@ TEST_CASE("Config - missing file yields nothing") {
     TempTree tree;
     tree.write("project/keep.txt", "");
 
-    const auto found = JunoPL::findFileUpwards(tree.root() / "project",
-                                               "main.juno");
+    const auto found =
+        JunoPL::findFileUpwards(tree.root() / "project", "main.juno");
     CHECK(!found.has_value());
 }
 
@@ -85,6 +85,16 @@ TEST_CASE("Config - relative outputDir resolves against the config") {
     REQUIRE(config.has_value());
     CHECK(config->path == tree.root() / "config.json");
     CHECK(config->outputDir == tree.root() / "build/xml");
+}
+
+TEST_CASE("Config - tilde outputDir expands to the home directory") {
+    TempTree tree;
+    tree.write("config.json", R"({"outputDir": "~/.steam/out"})");
+
+    const auto config = JunoPL::loadConfig(tree.root());
+    REQUIRE(config.has_value());
+    CHECK(config->outputDir ==
+          fs::weakly_canonical(fs::path(std::getenv("HOME")) / ".steam/out"));
 }
 
 TEST_CASE("Config - absolute outputDir is kept as written") {
@@ -152,8 +162,8 @@ TEST_CASE("Config - finds main.juno from a nested directory") {
     TempTree tree;
     tree.write("project/main.juno", "program test;");
 
-    const auto found = JunoPL::findFileUpwards(tree.root() / "project",
-                                               "main.juno");
+    const auto found =
+        JunoPL::findFileUpwards(tree.root() / "project", "main.juno");
     REQUIRE(found.has_value());
     CHECK(*found == tree.root() / "project/main.juno");
 }
