@@ -2,15 +2,34 @@ module;
 #include <expected>
 #include <filesystem>
 #include <fstream>
+#include <json.hpp>
 #include <optional>
 #include <sstream>
 #include <string>
 #include <system_error>
-#include <json.hpp>
 module junopl.config;
 
 namespace JunoPL {
 namespace fs = std::filesystem;
+
+fs::path expandHome(fs::path p) {
+    const std::string native = p.native();
+    if (!native.empty() && native[0] == '~') {
+        const char *home = std::getenv("HOME");
+        if (home && *home != '\0') {
+            fs::path result(home);
+            std::string rest = native.substr(1);
+            while (!rest.empty() && (rest[0] == '/' || rest[0] == '\\')) {
+                rest = rest.substr(1);
+            }
+            if (!rest.empty()) {
+                result /= rest;
+            }
+            return result;
+        }
+    }
+    return p;
+}
 
 std::optional<fs::path> findFileUpwards(const fs::path &startDir,
                                         const std::string &name) {
@@ -33,8 +52,7 @@ std::optional<fs::path> findFileUpwards(const fs::path &startDir,
     }
 }
 
-std::expected<Config, std::string>
-loadConfig(const fs::path &startDir) {
+std::expected<Config, std::string> loadConfig(const fs::path &startDir) {
     const auto found = findFileUpwards(startDir, "config.json");
     if (!found) {
         return Config{};
@@ -70,7 +88,7 @@ loadConfig(const fs::path &startDir) {
 
     Config config;
     config.path = *found;
-    config.outputDir = root.at("outputDir").get<std::string>();
+    config.outputDir = expandHome(root.at("outputDir").get<std::string>());
     if (root.contains("outputFile")) {
         config.outputFile = root.at("outputFile").get<std::string>();
     }
@@ -98,4 +116,4 @@ fs::path outputDirectory(const fs::path &cliDir, const Config &config,
     }
     return sourcePath.parent_path();
 }
-} 
+}
