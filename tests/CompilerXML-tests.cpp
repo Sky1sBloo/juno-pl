@@ -693,6 +693,39 @@ on update() {
           std::string::npos);
 }
 
+TEST_CASE("Compiler XML - inline call expands instr body with multiple params") {
+    const auto xml = compileSource(R"(
+program test;
+var a = 0;
+var b = 0;
+
+instr setBoth(x, y) {
+    a = x;
+    b = y;
+}
+
+on start() {
+    do inline setBoth(10, 20);
+})");
+
+    // Body expanded inline: no CallCustomInstruction
+    CHECK(xml.find("<CallCustomInstruction") == std::string::npos);
+
+    // Formal parameters substituted with their argument expressions
+    CHECK(xml.find("<SetVariable id=\"") != std::string::npos);
+    CHECK(xml.find("<Variable list=\"false\" local=\"false\" variableName=\"a\" />") !=
+          std::string::npos);
+    CHECK(xml.find("<Constant number=\"10\" />") != std::string::npos);
+    CHECK(xml.find("<Variable list=\"false\" local=\"false\" variableName=\"b\" />") !=
+          std::string::npos);
+    CHECK(xml.find("<Constant number=\"20\" />") != std::string::npos);
+
+    // Definition thread still emitted
+    CHECK(xml.find("<CustomInstruction callFormat=\"setBoth (0) (1) \" "
+                   "format=\"setBoth |x| |y| \" name=\"setBoth\"") !=
+          std::string::npos);
+}
+
 TEST_CASE("Compiler XML - compound assignment keeps its operator") {
     const auto xml = compileSource(R"(
 program test;
