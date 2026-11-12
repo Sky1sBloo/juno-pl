@@ -49,14 +49,13 @@ export class Compiler {
     std::map<std::string, std::string> getVariables(const RootNode &root);
 
   private:
-    /**
-    Stores expressions, events, and instructions
-     */
-    void writeHeader();
-    void loadFunctions();
-
     /** Scope-tracking traversal used by getVariables. */
     void collectBody(const Body &body);
+    /**
+    index is the position of the statement in its body. It becomes the path
+    component of any scope the statement opens, which is what keeps two
+    sibling blocks that declare the same name apart.
+    */
     void collectStatement(const Statements &stmt, std::size_t index);
 
     /** Canvas position of the next top level thread. Returns the current
@@ -76,6 +75,35 @@ export class Compiler {
                        std::function<std::string()> nextId);
     void emitExpression(const Expression &expr, pugi::xml_node parent);
     void emitCondition(const Expression &expr, pugi::xml_node parent);
+
+    /** Statement emitters, one per alternative of Statements so each can
+     * live in its own translation unit. */
+    void emitConditionalStatement(const ConditionalStatement &cond,
+                                  std::size_t index, pugi::xml_node parent,
+                                  std::function<std::string()> nextId);
+    void emitEmitEvent(const EmitEvent &emit, pugi::xml_node parent,
+                       std::function<std::string()> nextId);
+    void emitRepeatLoop(const RepeatLoop &repeat, std::size_t index,
+                        pugi::xml_node parent,
+                        std::function<std::string()> nextId);
+    void emitWhileLoop(const WhileLoop &loop, std::size_t index,
+                       pugi::xml_node parent,
+                       std::function<std::string()> nextId);
+    void emitForLoop(const ForLoop &loop, std::size_t index,
+                     pugi::xml_node parent,
+                     std::function<std::string()> nextId);
+    void emitVarAssignment(const VarAssignment &assign, pugi::xml_node parent,
+                           std::function<std::string()> nextId);
+    void emitDoInstruction(const DoInstruction &instr, pugi::xml_node parent,
+                           std::function<std::string()> nextId);
+
+    /** Expression emitters, one per alternative of Expression. */
+    void emitValue(const Value &v, pugi::xml_node parent);
+    void emitBinaryOp(const BinaryOp &bop, pugi::xml_node parent);
+    void emitUnaryOp(const UnaryOp &uop, pugi::xml_node parent);
+    void emitListIndexGet(const ListIndex &li, pugi::xml_node parent);
+    void emitTernary(const TernaryOp &t, pugi::xml_node parent);
+    void emitCallExpression(const CallExpression &call, pugi::xml_node parent);
 
     /**
     Writes the assignments that give top level declarations the values they
@@ -159,14 +187,5 @@ export class Compiler {
 
     /** "name" plus the hash of key, made unique against mUsedNames. */
     std::string makeUnique(const std::string &name, const std::string &key);
-
-    void visitBody(const Body &body);
-    /**
-    index is the position of the statement in its body. It becomes the path
-    component of any scope the statement opens, which is what keeps two
-    sibling blocks that declare the same name apart.
-     */
-    void visitStatement(const Statements &stmt, std::size_t index);
-    void visitExpression(const Expression &expr);
 };
 }
