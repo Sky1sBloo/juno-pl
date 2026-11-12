@@ -3,7 +3,14 @@ target_sources(
   juno-pl-compiler
   PUBLIC
   FILE_SET CXX_MODULES FILES Compiler.cppm
-  PRIVATE Compiler.cpp)
+  PRIVATE
+    Compiler.cpp
+    VariableScopes.cpp
+    StatementCodegen.cpp
+    AssignmentCodegen.cpp
+    InstructionCodegen.cpp
+    ExpressionCodegen.cpp
+    CallCodegen.cpp)
 
 target_link_libraries(juno-pl-compiler PRIVATE juno-pl-parse-nodes juno-pl-stl pugixml juno-pl-file-handler)
 
