@@ -1044,18 +1044,35 @@ on start() {
     CHECK(xml.find("</StartSockets>") != std::string::npos);
 }
 
-TEST_CASE("Compiler XML - Socket.send maps to SentSockets") {
+TEST_CASE("Compiler XML - Socket.send maps to SentSockets with port first") {
     const auto xml = compileSource(R"(
 program test;
 
 on start() {
-    do Socket.send("data", 10809);
+    do Socket.send(10809, "data");
 })");
 
     CHECK(xml.find("<SentSockets id=\"") != std::string::npos);
     CHECK(xml.find("style=\"SentSockets\"") != std::string::npos);
-    CHECK(xml.find("<Constant text=\"data\" />") != std::string::npos);
+    // Port is the first parameter
     CHECK(xml.find("<Constant number=\"10809\" />") != std::string::npos);
+    // Values joined with "|" and a trailing "|"
+    CHECK(xml.find("<Constant text=\"data|\" />") != std::string::npos);
+    CHECK(xml.find("</SentSockets>") != std::string::npos);
+}
+
+TEST_CASE("Compiler XML - Socket.send joins multiple values with pipe") {
+    const auto xml = compileSource(R"(
+program test;
+
+on start() {
+    do Socket.send(10809, "a", "b", "c");
+})");
+
+    CHECK(xml.find("<SentSockets id=\"") != std::string::npos);
+    CHECK(xml.find("style=\"SentSockets\"") != std::string::npos);
+    CHECK(xml.find("<Constant number=\"10809\" />") != std::string::npos);
+    CHECK(xml.find("<Constant text=\"a|b|c|\" />") != std::string::npos);
     CHECK(xml.find("</SentSockets>") != std::string::npos);
 }
 

@@ -274,8 +274,9 @@ TEST_CASE("STL - Socket functions are instructions") {
         JunoSTL::find(Qualifiers::SOCKET, "send", Operations::INSTRUCTION);
     REQUIRE(send.has_value());
     CHECK(send->accepts(2));
+    CHECK(send->accepts(3));
+    CHECK(send->accepts(4));
     CHECK_FALSE(send->accepts(1));
-    CHECK_FALSE(send->accepts(3));
 
     auto stop =
         JunoSTL::find(Qualifiers::SOCKET, "stop", Operations::INSTRUCTION);

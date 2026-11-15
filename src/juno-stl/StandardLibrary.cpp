@@ -613,7 +613,7 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         // Sockets service mod - instructions (only available when the
         // socketsMod config setting is enabled)
         add(Qualifiers::SOCKET, Operations::INSTRUCTION, "start", {{2, 2}});
-        add(Qualifiers::SOCKET, Operations::INSTRUCTION, "send", {{2, 2}});
+        add(Qualifiers::SOCKET, Operations::INSTRUCTION, "send", {{2, 999}});
         add(Qualifiers::SOCKET, Operations::INSTRUCTION, "stop", {{1, 1}});
 
         return registry;

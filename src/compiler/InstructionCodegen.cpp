@@ -319,11 +319,54 @@ void Compiler::emitDoInstruction(const DoInstruction &instr,
                 emitExpression(*p, el);
             }
         } else if (instr.identifier == "send") {
+            // Socket.send(port, valueA, valueB, ...) - port first, then the
+            // values joined with "|" and a trailing "|" for vz-socket-receiver
             auto el = parent.append_child("SentSockets");
             el.append_attribute("id") = nextId().c_str();
             el.append_attribute("style") = "SentSockets";
-            for (const auto &p : instr.params) {
-                emitExpression(*p, el);
+
+            // Port is the first parameter
+            emitExpression(*instr.params[0], el);
+
+            // Remaining parameters joined with "|" + trailing "|"
+            if (instr.params.size() > 1) {
+                const auto firstValueIdx = 1;
+                const auto valueCount = instr.params.size() - 1;
+
+                bool allLiterals = true;
+                for (std::size_t k = firstValueIdx; k < instr.params.size(); ++k) {
+                    const auto *v = std::get_if<Value>(&instr.params[k]->value);
+                    if (!v || (v->kind != Value::Kind::Literal &&
+                               v->kind != Value::Kind::String)) {
+                        allLiterals = false;
+                        break;
+                    }
+                }
+
+                if (allLiterals) {
+                    std::string joined;
+                    for (std::size_t k = firstValueIdx; k < instr.params.size(); ++k) {
+                        if (k > firstValueIdx)
+                            joined += "|";
+                        joined += std::get<Value>(instr.params[k]->value).value;
+                    }
+                    joined += "|";
+                    auto c = el.append_child("Constant");
+                    c.append_attribute("text") = joined.c_str();
+                } else {
+                    auto join = el.append_child("StringOp");
+                    join.append_attribute("op") = "join";
+                    join.append_attribute("style") = "join";
+                    for (std::size_t k = firstValueIdx; k < instr.params.size(); ++k) {
+                        if (k > firstValueIdx) {
+                            auto sep = join.append_child("Constant");
+                            sep.append_attribute("text") = "|";
+                        }
+                        emitExpression(*instr.params[k], join);
+                    }
+                    auto trailing = join.append_child("Constant");
+                    trailing.append_attribute("text") = "|";
+                }
             }
         } else if (instr.identifier == "stop") {
             auto el = parent.append_child("StopSockets");
