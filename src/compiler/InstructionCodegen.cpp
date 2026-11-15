@@ -335,13 +335,25 @@ void Compiler::emitDoInstruction(const DoInstruction &instr,
             }
         } else if (instr.identifier == "send") {
             // Socket.send(port, valueA, valueB, ...) - port is last,
-            // values joined with ", " and trailing ", |" via ListOp create
-            auto el = parent.append_child("SentSockets");
-            el.append_attribute("id") = nextId().c_str();
-            el.append_attribute("style") = "SentSockets";
+            // values are stored in a temp list variable (matching
+            // SocketsMod.xml pattern), then SentSockets references it
+            // Unique temp list name
+            std::string listName =
+                "sendList_" + std::to_string(mSendListCounter++);
 
-            // Values joined with ", " + trailing ", |"
-            if (instr.params.size() > 1) {
+            // SetVariable (list-init) creating the temp list with joined
+            // values + trailing ", |" (must come before SentSockets)
+            {
+                auto setVarEl = parent.append_child("SetVariable");
+                setVarEl.append_attribute("id") = nextId().c_str();
+                setVarEl.append_attribute("style") = "list-init";
+                auto ref = setVarEl.append_child("Variable");
+                ref.append_attribute("list") = "true";
+                ref.append_attribute("local") = "false";
+                ref.append_attribute("variableName") = listName.c_str();
+                auto listOp = setVarEl.append_child("ListOp");
+                listOp.append_attribute("op") = "create";
+                listOp.append_attribute("style") = "list-create";
                 std::string joined;
                 for (std::size_t k = 1; k < instr.params.size(); ++k) {
                     if (k > 1)
@@ -349,15 +361,20 @@ void Compiler::emitDoInstruction(const DoInstruction &instr,
                     joined += emitExpressionString(instr.params[k]);
                 }
                 joined += ", |";
-
-                auto listOp = el.append_child("ListOp");
-                listOp.append_attribute("op") = "create";
-                listOp.append_attribute("style") = "list-create";
                 auto c = listOp.append_child("Constant");
                 c.append_attribute("text") = joined.c_str();
             }
 
-            // Port is emitted last
+            // SentSockets references the temp list + port (port last)
+            auto el = parent.append_child("SentSockets");
+            el.append_attribute("id") = nextId().c_str();
+            el.append_attribute("style") = "SentSockets";
+            {
+                auto ref = el.append_child("Variable");
+                ref.append_attribute("list") = "true";
+                ref.append_attribute("local") = "false";
+                ref.append_attribute("variableName") = listName.c_str();
+            }
             emitExpression(*instr.params[0], el);
         } else if (instr.identifier == "stop") {
             auto el = parent.append_child("StopSockets");
