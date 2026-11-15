@@ -146,6 +146,9 @@ std::expected<Config, std::string> loadConfig(const fs::path &startDir) {
 
         config.outputDir = config.path.parent_path() / config.outputDir;
     }
+    if (root.contains("socketsMod")) {
+        config.socketsMod = root.at("socketsMod").get<bool>();
+    }
     return config;
 }
 

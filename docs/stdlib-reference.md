@@ -152,6 +152,25 @@ instruction, `Input.throttle()` as an expression).
 | `Camera.modeIndex` | `(index)` | Set the camera mode by index. |
 | `Camera.targetOffset` | `(offset)` or `(x, y, z)` | Target offset (1 or 3 args). |
 
+## Sockets service mod — `Socket` (instructions)
+
+The sockets service mod is opt-in: set `"socketsMod": true` in `config.json`
+(default is `false`). When enabled, the following instructions compile to
+Vizzy's `StartSockets`, `SentSockets`, and `StopSockets` blocks.
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `Socket.start` | `(port, bufferSize)` | Opens a socket on the given port with the given buffer size. |
+| `Socket.send` | `(data, port)` | Sends data on the given port. |
+| `Socket.stop` | `(port)` | Closes the socket on the given port. |
+
+Socket events are handled as `ReceiveMessage` Vizzy events:
+
+| Event | Signature | Description |
+|-------|-----------|-------------|
+| `on socketReceive(port, data)` | — | Fires when a message is received on `port`; `data` holds the message. |
+| `on socketError(data)` | — | Fires on a socket error; `data` holds the error message. |
+
 ## List operations — `Lists` (instructions)
 
 | Function | Signature | Description |

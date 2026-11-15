@@ -261,3 +261,39 @@ TEST_CASE("STL - doc entries") {
         JunoSTL::find(Qualifiers::INPUT, "setVariable", Operations::INSTRUCTION)
             .has_value());
 }
+
+TEST_CASE("STL - Socket functions are instructions") {
+    auto start =
+        JunoSTL::find(Qualifiers::SOCKET, "start", Operations::INSTRUCTION);
+    REQUIRE(start.has_value());
+    CHECK(start->accepts(2));
+    CHECK_FALSE(start->accepts(1));
+    CHECK_FALSE(start->accepts(3));
+
+    auto send =
+        JunoSTL::find(Qualifiers::SOCKET, "send", Operations::INSTRUCTION);
+    REQUIRE(send.has_value());
+    CHECK(send->accepts(2));
+    CHECK_FALSE(send->accepts(1));
+    CHECK_FALSE(send->accepts(3));
+
+    auto stop =
+        JunoSTL::find(Qualifiers::SOCKET, "stop", Operations::INSTRUCTION);
+    REQUIRE(stop.has_value());
+    CHECK(stop->accepts(1));
+    CHECK_FALSE(stop->accepts(0));
+    CHECK_FALSE(stop->accepts(2));
+
+    // Socket functions are not registered as expressions
+    CHECK_FALSE(JunoSTL::find(Qualifiers::SOCKET, "start",
+                              Operations::EXPRESSION)
+                    .has_value());
+    CHECK_FALSE(JunoSTL::find(Qualifiers::SOCKET, "stop",
+                              Operations::EXPRESSION)
+                    .has_value());
+}
+
+TEST_CASE("STL - Socket qualifier string") {
+    CHECK(JunoSTL::qualifierFromString("Socket") == Qualifiers::SOCKET);
+    CHECK(JunoSTL::qualifierToString(Qualifiers::SOCKET) == "Socket");
+}

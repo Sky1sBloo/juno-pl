@@ -1028,3 +1028,75 @@ on start() {
     CHECK(xml.find("<PlayBeep waveform=\"Square\"") != std::string::npos);
     CHECK(xml.find("<PlayBeep waveform=\"Noise\"") != std::string::npos);
 }
+
+TEST_CASE("Compiler XML - Socket.start maps to StartSockets") {
+    const auto xml = compileSource(R"(
+program test;
+
+on start() {
+    do Socket.start(10809, 2048);
+})");
+
+    CHECK(xml.find("<StartSockets id=\"") != std::string::npos);
+    CHECK(xml.find("style=\"StartSockets\"") != std::string::npos);
+    CHECK(xml.find("<Constant number=\"10809\" />") != std::string::npos);
+    CHECK(xml.find("<Constant number=\"2048\" />") != std::string::npos);
+    CHECK(xml.find("</StartSockets>") != std::string::npos);
+}
+
+TEST_CASE("Compiler XML - Socket.send maps to SentSockets") {
+    const auto xml = compileSource(R"(
+program test;
+
+on start() {
+    do Socket.send("data", 10809);
+})");
+
+    CHECK(xml.find("<SentSockets id=\"") != std::string::npos);
+    CHECK(xml.find("style=\"SentSockets\"") != std::string::npos);
+    CHECK(xml.find("<Constant text=\"data\" />") != std::string::npos);
+    CHECK(xml.find("<Constant number=\"10809\" />") != std::string::npos);
+    CHECK(xml.find("</SentSockets>") != std::string::npos);
+}
+
+TEST_CASE("Compiler XML - Socket.stop maps to StopSockets") {
+    const auto xml = compileSource(R"(
+program test;
+
+on start() {
+    do Socket.stop(10809);
+})");
+
+    CHECK(xml.find("<StopSockets id=\"") != std::string::npos);
+    CHECK(xml.find("style=\"StopSockets\"") != std::string::npos);
+    CHECK(xml.find("<Constant number=\"10809\" />") != std::string::npos);
+    CHECK(xml.find("</StopSockets>") != std::string::npos);
+}
+
+TEST_CASE("Compiler XML - socketReceive event writes port as constant") {
+    const auto xml = compileSource(R"(
+program test;
+
+on socketReceive(port, data) {
+    x = 1;
+})");
+
+    CHECK(xml.find("<Event event=\"ReceiveMessage\" id=\"0\" "
+                   "style=\"receive-msg\"") != std::string::npos);
+    CHECK(xml.find("<Constant canReplace=\"false\" text=\"port\" />") !=
+          std::string::npos);
+}
+
+TEST_CASE("Compiler XML - socketError event writes socket error constant") {
+    const auto xml = compileSource(R"(
+program test;
+
+on socketError(data) {
+    x = 1;
+})");
+
+    CHECK(xml.find("<Event event=\"ReceiveMessage\" id=\"0\" "
+                   "style=\"receive-msg\"") != std::string::npos);
+    CHECK(xml.find("<Constant canReplace=\"false\" text=\"socket error\" />") !=
+          std::string::npos);
+}

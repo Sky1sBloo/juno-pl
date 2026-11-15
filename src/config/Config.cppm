@@ -23,6 +23,9 @@ export struct Config {
     // The config file it came from, empty when there is none. Relative
     // outputDir values are resolved against this file's directory.
     std::filesystem::path path;
+    // When true, the sockets service mod is enabled: Socket.* instructions
+    // and socketReceive/socketError events can be used. Defaults to false.
+    bool socketsMod = false;
 };
 
 /**

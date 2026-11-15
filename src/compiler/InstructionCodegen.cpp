@@ -309,6 +309,32 @@ void Compiler::emitDoInstruction(const DoInstruction &instr,
             auto c = el.append_child("Constant");
             c.append_attribute("number") = "0";
         }
+    } else if (instr.qualifier == "Socket") {
+        // Sockets service mod blocks: StartSockets, SentSockets, StopSockets
+        if (instr.identifier == "start") {
+            auto el = parent.append_child("StartSockets");
+            el.append_attribute("id") = nextId().c_str();
+            el.append_attribute("style") = "StartSockets";
+            for (const auto &p : instr.params) {
+                emitExpression(*p, el);
+            }
+        } else if (instr.identifier == "send") {
+            auto el = parent.append_child("SentSockets");
+            el.append_attribute("id") = nextId().c_str();
+            el.append_attribute("style") = "SentSockets";
+            for (const auto &p : instr.params) {
+                emitExpression(*p, el);
+            }
+        } else if (instr.identifier == "stop") {
+            auto el = parent.append_child("StopSockets");
+            el.append_attribute("id") = nextId().c_str();
+            el.append_attribute("style") = "StopSockets";
+            for (const auto &p : instr.params) {
+                emitExpression(*p, el);
+            }
+        } else {
+            setError(std::format("'Socket.{}' has no implementation", instr.identifier));
+        }
     } else if (instr.qualifier.empty()) {
         // An unqualified do is a call to a user defined
         // `instr`, Vizzy's CallCustomInstruction block

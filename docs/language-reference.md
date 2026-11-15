@@ -90,6 +90,16 @@ on message(a, b) {
     // indexed data[1], data[2]
     // called with emit message(<expr>, <expr>);
 }
+
+on socketReceive(port, data) {
+    // fires when a message is received on `port`; `data` holds the message.
+    // `port` is written as a constant on the ReceiveMessage event block.
+}
+
+on socketError(data) {
+    // fires on a socket error; `data` holds the error message.
+    // The event block carries a constant text "socket error".
+}
 ```
 
 Custom event parameters are referenced through Vizzy's built-in `data`
