@@ -319,19 +319,15 @@ void Compiler::emitDoInstruction(const DoInstruction &instr,
                 emitExpression(*p, el);
             }
         } else if (instr.identifier == "send") {
-            // Socket.send(port, valueA, valueB, ...) - port first, then the
-            // values joined with "|" and a trailing "|" for vz-socket-receiver
+            // Socket.send(port, valueA, valueB, ...) - port is last,
+            // values joined with ", " and trailing ", |"
             auto el = parent.append_child("SentSockets");
             el.append_attribute("id") = nextId().c_str();
             el.append_attribute("style") = "SentSockets";
 
-            // Port is the first parameter
-            emitExpression(*instr.params[0], el);
-
-            // Remaining parameters joined with "|" + trailing "|"
+            // Values joined with ", " + trailing ", |"
             if (instr.params.size() > 1) {
                 const auto firstValueIdx = 1;
-                const auto valueCount = instr.params.size() - 1;
 
                 bool allLiterals = true;
                 for (std::size_t k = firstValueIdx; k < instr.params.size(); ++k) {
@@ -368,6 +364,9 @@ void Compiler::emitDoInstruction(const DoInstruction &instr,
                     trailing.append_attribute("text") = ", |";
                 }
             }
+
+            // Port is emitted last
+            emitExpression(*instr.params[0], el);
         } else if (instr.identifier == "stop") {
             auto el = parent.append_child("StopSockets");
             el.append_attribute("id") = nextId().c_str();
