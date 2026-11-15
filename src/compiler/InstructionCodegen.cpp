@@ -45,6 +45,21 @@ const char *findTimeMode(const std::string &identifier) {
     return it->second;
 }
 
+/**
+Converts an expression to its flat string form (for joining into a single
+Constant text). Only literal/string values and identifier names can be
+flattened; anything else yields an empty string.
+*/
+std::string emitExpressionString(const ExpressionHandle &expr) {
+    const auto *v = std::get_if<Value>(&expr->value);
+    if (v &&
+        (v->kind == Value::Kind::Literal || v->kind == Value::Kind::String ||
+         v->kind == Value::Kind::Identifier)) {
+        return v->value;
+    }
+    return "";
+}
+
 } // namespace
 
 void Compiler::emitDoInstruction(const DoInstruction &instr,
@@ -327,48 +342,19 @@ void Compiler::emitDoInstruction(const DoInstruction &instr,
 
             // Values joined with ", " + trailing ", |"
             if (instr.params.size() > 1) {
-                const auto firstValueIdx = 1;
-
-                bool allLiterals = true;
-                for (std::size_t k = firstValueIdx; k < instr.params.size(); ++k) {
-                    const auto *v = std::get_if<Value>(&instr.params[k]->value);
-                    if (!v || (v->kind != Value::Kind::Literal &&
-                               v->kind != Value::Kind::String)) {
-                        allLiterals = false;
-                        break;
-                    }
+                std::string joined;
+                for (std::size_t k = 1; k < instr.params.size(); ++k) {
+                    if (k > 1)
+                        joined += ", ";
+                    joined += emitExpressionString(instr.params[k]);
                 }
+                joined += ", |";
 
-                if (allLiterals) {
-                    std::string joined;
-                    for (std::size_t k = firstValueIdx; k < instr.params.size(); ++k) {
-                        if (k > firstValueIdx)
-                            joined += ", ";
-                        const auto *v =
-                            std::get_if<Value>(&instr.params[k]->value);
-                        joined += v->value;
-                    }
-                    joined += ", |";
-
-                    auto listOp = el.append_child("ListOp");
-                    listOp.append_attribute("op") = "create";
-                    listOp.append_attribute("style") = "list-create";
-                    auto c = listOp.append_child("Constant");
-                    c.append_attribute("text") = joined.c_str();
-                } else {
-                    auto join = el.append_child("StringOp");
-                    join.append_attribute("op") = "join";
-                    join.append_attribute("style") = "join";
-                    for (std::size_t k = firstValueIdx; k < instr.params.size(); ++k) {
-                        if (k > firstValueIdx) {
-                            auto sep = join.append_child("Constant");
-                            sep.append_attribute("text") = ", ";
-                        }
-                        emitExpression(*instr.params[k], join);
-                    }
-                    auto trailing = join.append_child("Constant");
-                    trailing.append_attribute("text") = ", |";
-                }
+                auto listOp = el.append_child("ListOp");
+                listOp.append_attribute("op") = "create";
+                listOp.append_attribute("style") = "list-create";
+                auto c = listOp.append_child("Constant");
+                c.append_attribute("text") = joined.c_str();
             }
 
             // Port is emitted last
