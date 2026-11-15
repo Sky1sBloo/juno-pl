@@ -1057,9 +1057,13 @@ on start() {
     // Values joined via ListOp create, port last
     CHECK(xml.find("<ListOp op=\"create\" style=\"list-create\">") !=
           std::string::npos);
-    CHECK(xml.find("<Constant text=\"data, |\" />") != std::string::npos);
+    CHECK(xml.find("<StringOp op=\"join\" style=\"join\">") !=
+          std::string::npos);
+    CHECK(xml.find("<Constant text=\"data\" />") != std::string::npos);
+    CHECK(xml.find("<Constant text=\", |\" />") != std::string::npos);
     CHECK(xml.find("<Constant number=\"10809\" />") != std::string::npos);
     CHECK(xml.find("</SentSockets>") != std::string::npos);
+    CHECK(xml.find("<SetVariable") == std::string::npos);
 }
 
 TEST_CASE("Compiler XML - Socket.send joins multiple values with comma pipe") {
@@ -1074,9 +1078,16 @@ on start() {
     CHECK(xml.find("style=\"SentSockets\"") != std::string::npos);
     CHECK(xml.find("<ListOp op=\"create\" style=\"list-create\">") !=
           std::string::npos);
-    CHECK(xml.find("<Constant text=\"a, b, c, |\" />") != std::string::npos);
+    CHECK(xml.find("<StringOp op=\"join\" style=\"join\">") !=
+          std::string::npos);
+    CHECK(xml.find("<Constant text=\"a\" />") != std::string::npos);
+    CHECK(xml.find("<Constant text=\"b\" />") != std::string::npos);
+    CHECK(xml.find("<Constant text=\"c\" />") != std::string::npos);
+    CHECK(xml.find("<Constant text=\", \" />") != std::string::npos);
+    CHECK(xml.find("<Constant text=\", |\" />") != std::string::npos);
     CHECK(xml.find("<Constant number=\"10809\" />") != std::string::npos);
     CHECK(xml.find("</SentSockets>") != std::string::npos);
+    CHECK(xml.find("<SetVariable") == std::string::npos);
 }
 
 TEST_CASE("Compiler XML - Socket.stop maps to StopSockets") {

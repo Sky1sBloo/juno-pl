@@ -160,9 +160,6 @@ export class Compiler {
     /** Canvas Y of the thread being laid out, -20 for the first one. */
     int mThreadY = -20;
 
-    /** Counter for unique temp list names used by Socket.send. */
-    int mSendListCounter = 0;
-
     /** First error encountered while emitting, if any qualified call or
     instruction has no implementation. */
     std::optional<std::string> mError;
