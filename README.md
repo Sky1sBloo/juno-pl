@@ -89,7 +89,8 @@ directory, so one project config applies from anywhere inside the project:
 ```json
 {
     "outputDir": "build/xml",
-    "outputFile": "custom.xml"
+    "outputFile": "custom.xml",
+    "socketsMod": false
 }
 ```
 
@@ -103,6 +104,10 @@ file, not against the directory the compiler runs from. A config that exists
 but cannot be parsed, that has no string `outputDir`, or that has a non-string
 `outputFile`, is reported as an error rather than silently ignored. `-d`
 overrides the configured value but does not suppress that check.
+
+`socketsMod` allows support for [Sockets service for Vizzy](https://www.simplerockets.com/Mods/View/298478/Sockets-service-for-Vizzy).
+Used to communicate the script to other applications outside of the game. [vz-socket-receiver](https://github.com/Sky1sBloo/vz-socket-receiver)
+is a C# program that helps resolve types from this.
 
 ### Generating a project
 

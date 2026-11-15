@@ -63,6 +63,10 @@ std::pair<std::string, std::string> eventName(const std::string &junoEvent) {
         return {"PartExplode", "part-explode"};
     if (junoEvent == "enterSOI")
         return {"ChangeSoi", "change-soi"};
+    if (junoEvent == "socketReceive")
+        return {"ReceiveMessage", "receive-msg"};
+    if (junoEvent == "socketError")
+        return {"ReceiveMessage", "receive-msg"};
     // Any other event is a custom Vizzy ReceiveMessage broadcast
     return {"ReceiveMessage", "receive-msg"};
 }
@@ -237,12 +241,21 @@ std::expected<std::string, std::string> Compiler::compileAST(const RootNode &roo
 
                     // Vizzy emits a text constant child for receive-msg
                     // events (e.g. on update() => ReceiveMessage with
-                    // Constant text="update").
+                    // Constant text="update"). Socket events carry the port
+                    // (or "socket error") as that constant instead.
                     if (xmlStyle == "receive-msg") {
                         auto c = el.append_child("Constant");
                         c.append_attribute("canReplace") = "false";
-                        c.append_attribute("text") =
-                            event.identifier.c_str();
+                        if (event.identifier == "socketError") {
+                            c.append_attribute("text") = "socket error";
+                        } else if (event.identifier == "socketReceive" &&
+                                   !event.params.empty()) {
+                            c.append_attribute("text") =
+                                event.params.front().c_str();
+                        } else {
+                            c.append_attribute("text") =
+                                event.identifier.c_str();
+                        }
                     }
 
                     mScopePath.push_back(event.identifier);

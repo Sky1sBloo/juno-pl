@@ -43,7 +43,8 @@ export class JunoSTL {
         LISTOP,
         RAYCAST,
         TARGET,
-        MISC
+        MISC,
+        SOCKET
     };
 
     // To identify if this is an instruction (do) or an expression

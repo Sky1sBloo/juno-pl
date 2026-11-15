@@ -610,6 +610,12 @@ const std::map<std::pair<JunoSTL::Qualifiers, std::string>,
         add(Qualifiers::LISTS, Operations::EXPRESSION, "idxOf", {{2, 2}});
         add(Qualifiers::LISTS, Operations::EXPRESSION, "index", {{2, 2}});
 
+        // Sockets service mod - instructions (only available when the
+        // socketsMod config setting is enabled)
+        add(Qualifiers::SOCKET, Operations::INSTRUCTION, "start", {{2, 2}});
+        add(Qualifiers::SOCKET, Operations::INSTRUCTION, "send", {{2, 2}});
+        add(Qualifiers::SOCKET, Operations::INSTRUCTION, "stop", {{1, 1}});
+
         return registry;
     }();
 
@@ -640,7 +646,8 @@ const std::unordered_map<std::string, JunoSTL::Qualifiers>
         {"ListOp", JunoSTL::Qualifiers::LISTOP},
         {"Raycast", JunoSTL::Qualifiers::RAYCAST},
         {"Target", JunoSTL::Qualifiers::TARGET},
-        {"Misc", JunoSTL::Qualifiers::MISC}};
+        {"Misc", JunoSTL::Qualifiers::MISC},
+        {"Socket", JunoSTL::Qualifiers::SOCKET}};
 
 const std::map<JunoSTL::Qualifiers, std::string> JunoSTL::kQualifierReverseMap =
     {{JunoSTL::Qualifiers::COMMON, "Common"},
@@ -666,5 +673,6 @@ const std::map<JunoSTL::Qualifiers, std::string> JunoSTL::kQualifierReverseMap =
      {JunoSTL::Qualifiers::LISTOP, "ListOp"},
      {JunoSTL::Qualifiers::RAYCAST, "Raycast"},
      {JunoSTL::Qualifiers::TARGET, "Target"},
-     {JunoSTL::Qualifiers::MISC, "Misc"}};
+     {JunoSTL::Qualifiers::MISC, "Misc"},
+     {JunoSTL::Qualifiers::SOCKET, "Socket"}};
 }
