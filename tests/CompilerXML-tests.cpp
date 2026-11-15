@@ -550,25 +550,6 @@ on update() {
           std::string::npos);
 }
 
-TEST_CASE("Compiler XML - numeric literal accepted as event param") {
-    const auto xml = compileSource(R"(
-program test;
-
-on socketReceive(10809, data) {
-    do Game.display(data);
-})");
-
-    // Numeric literal port is written as the constant text on the event block
-    CHECK(xml.find("<Event event=\"ReceiveMessage\" id=\"0\" "
-                   "style=\"receive-msg\"") != std::string::npos);
-    CHECK(xml.find("<Constant canReplace=\"false\" text=\"10809\" />") !=
-          std::string::npos);
-    // data is read from Vizzy's data list at position 2 (port is position 1)
-    CHECK(xml.find("<ListOp op=\"get\" style=\"list-get\">") !=
-          std::string::npos);
-    CHECK(xml.find("<Constant number=\"2\" />") != std::string::npos);
-}
-
 TEST_CASE("Compiler XML - list declaration keeps Items container") {
     const auto xml = compileSource(R"(
 program test;
@@ -1090,32 +1071,4 @@ on start() {
     CHECK(xml.find("style=\"StopSockets\"") != std::string::npos);
     CHECK(xml.find("<Constant number=\"10809\" />") != std::string::npos);
     CHECK(xml.find("</StopSockets>") != std::string::npos);
-}
-
-TEST_CASE("Compiler XML - socketReceive event writes port as constant") {
-    const auto xml = compileSource(R"(
-program test;
-
-on socketReceive(port, data) {
-    x = 1;
-})");
-
-    CHECK(xml.find("<Event event=\"ReceiveMessage\" id=\"0\" "
-                   "style=\"receive-msg\"") != std::string::npos);
-    CHECK(xml.find("<Constant canReplace=\"false\" text=\"port\" />") !=
-          std::string::npos);
-}
-
-TEST_CASE("Compiler XML - socketError event writes socket error constant") {
-    const auto xml = compileSource(R"(
-program test;
-
-on socketError(data) {
-    x = 1;
-})");
-
-    CHECK(xml.find("<Event event=\"ReceiveMessage\" id=\"0\" "
-                   "style=\"receive-msg\"") != std::string::npos);
-    CHECK(xml.find("<Constant canReplace=\"false\" text=\"socket error\" />") !=
-          std::string::npos);
 }

@@ -21,6 +21,14 @@ export struct EventNode {
     SourceLocation loc;
 };
 
+// delimeter is added on the compiler not here
+export struct ReceiveSocketNode {
+    std::string port;
+    std::vector<std::string> params;
+    Body body;
+    SourceLocation loc;
+};
+
 export struct FunctionNode {
     std::string identifier;
     std::vector<std::string> params;
@@ -29,8 +37,8 @@ export struct FunctionNode {
 };
 
 using RootNodes =
-    std::variant<ImportNode, EventNode, FunctionNode, VarDeclaration,
-                 CustomExpression, ListDeclaration>;
+    std::variant<ImportNode, EventNode, ReceiveSocketNode, FunctionNode,
+                 VarDeclaration, CustomExpression, ListDeclaration>;
 export struct RootNode {
     std::string programName;
     std::vector<RootNodes> body;

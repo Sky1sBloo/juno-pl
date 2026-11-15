@@ -19,7 +19,7 @@ std::optional<std::vector<std::string>> Parser::parseParam(TokenList &tokens) {
 
     std::vector<std::string> params;
     while (mTokens->current().type != TokenType::OP_PAR_CLO) {
-        auto ident = expectToken({TokenType::IDENT, TokenType::NUM});
+        auto ident = expectToken(TokenType::IDENT);
         if (!ident) {
             recoverTo(TokenType::OP_PAR_CLO);
             return std::nullopt;
