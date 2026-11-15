@@ -131,6 +131,12 @@ Parser::Output Parser::parse(TokenList &tokens) {
             }
             break;
         }
+        case TokenType::K_RECEIVE: {
+            if (auto recv = parseReceiveSocket(tokens)) {
+                root.body.push_back(std::move(recv.value()));
+            }
+            break;
+        }
         case TokenType::K_EXPR: {
             if (auto expr = parseCustomExpression(tokens)) {
                 root.body.push_back(std::move(expr.value()));
@@ -338,5 +344,45 @@ std::optional<BreakStatement> Parser::parseBreakStatement(TokenList &tokens) {
     }
 
     return BreakStatement{locationOf(*breakToken)};
+}
+
+std::optional<ReceiveSocketNode>
+Parser::parseReceiveSocket(TokenList &tokens) {
+    mTokens = &tokens;
+
+    auto recvToken = expectToken(TokenType::K_RECEIVE);
+    if (!recvToken) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
+    }
+
+    ReceiveSocketNode node;
+    node.loc = locationOf(*recvToken);
+
+    // Port is a numeric literal
+    auto portToken = expectToken(TokenType::NUM);
+    if (!portToken) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
+    }
+    node.port = portToken->value;
+
+    // Parameters
+    auto params = parseParam(tokens);
+    if (!params) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
+    }
+    node.params = std::move(params.value());
+
+    // Body
+    auto body = parseBody(tokens);
+    if (!body) {
+        recoverTo(TokenType::OP_SEMICOLON);
+        return std::nullopt;
+    }
+    node.body = std::move(body.value());
+
+    return node;
 }
 }

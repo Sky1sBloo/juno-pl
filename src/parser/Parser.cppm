@@ -30,6 +30,7 @@ export class Parser {
     std::optional<VarAssignment> parseVarAssignment(TokenList &tokens);
     std::optional<DoInstruction>
     parseQualifiedInstruction(TokenList &tokens);
+    std::optional<ReceiveSocketNode> parseReceiveSocket(TokenList &tokens);
     std::optional<ListDeclaration> parseListDeclaration(TokenList &tokens);
     std::optional<DoInstruction> parseDoInstruction(TokenList &tokens);
     std::optional<BreakStatement> parseBreakStatement(TokenList &tokens);

@@ -37,6 +37,7 @@ export enum class TokenType {
     K_VAR,
     K_LIST,
     K_INLINE,
+    K_RECEIVE,
     OP_SEMICOLON,
     OP_COMMA,
     OP_PLUS,
