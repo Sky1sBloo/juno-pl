@@ -164,12 +164,11 @@ Vizzy's `StartSockets`, `SentSockets`, and `StopSockets` blocks.
 | `Socket.send` | `(data, port)` | Sends data on the given port. |
 | `Socket.stop` | `(port)` | Closes the socket on the given port. |
 
-Socket events are handled as `ReceiveMessage` Vizzy events:
+Socket events are handled via the `receive` keyword as `ReceiveMessage` Vizzy events:
 
 | Event | Signature | Description |
 |-------|-----------|-------------|
-| `on socketReceive(port, data)` | — | Fires when a message is received on `port`; `data` holds the message. |
-| `on socketError(data)` | — | Fires on a socket error; `data` holds the error message. |
+| `receive <port>(port, data)` | — | Fires when a message is received on `port`; `data` holds the message at `data[2]` (port is `data[1]`). |
 
 ## List operations — `Lists` (instructions)
 

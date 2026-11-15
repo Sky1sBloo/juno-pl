@@ -91,14 +91,10 @@ on message(a, b) {
     // called with emit message(<expr>, <expr>);
 }
 
-on socketReceive(port, data) {
-    // fires when a message is received on `port`; `data` holds the message.
-    // `port` is written as a constant on the ReceiveMessage event block.
-}
-
-on socketError(data) {
-    // fires on a socket error; `data` holds the error message.
-    // The event block carries a constant text "socket error".
+receive 10809(port, data) {
+    // fires when a message is received on port 10809; `data` holds the
+    // message at data[2] (port occupies data[1]). The port number is
+    // written as a constant on the ReceiveMessage event block.
 }
 ```
 
