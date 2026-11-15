@@ -1072,3 +1072,21 @@ on start() {
     CHECK(xml.find("<Constant number=\"10809\" />") != std::string::npos);
     CHECK(xml.find("</StopSockets>") != std::string::npos);
 }
+
+TEST_CASE("Compiler XML - receive event maps to ReceiveMessage with port constant") {
+    const auto xml = compileSource(R"(
+program test;
+
+receive 10809(port, data) {
+    do Game.display(data);
+})");
+
+    CHECK(xml.find("<Event event=\"ReceiveMessage\" id=\"0\" "
+                   "style=\"receive-msg\"") != std::string::npos);
+    CHECK(xml.find("<Constant canReplace=\"false\" text=\"10809\" />") !=
+          std::string::npos);
+    // data is read from Vizzy's data list at position 2 (port is position 1)
+    CHECK(xml.find("<ListOp op=\"get\" style=\"list-get\">") !=
+          std::string::npos);
+    CHECK(xml.find("<Constant number=\"2\" />") != std::string::npos);
+}

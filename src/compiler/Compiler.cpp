@@ -268,6 +268,34 @@ std::expected<std::string, std::string> Compiler::compileAST(const RootNode &roo
                     mHandlerParams.clear();
                     mScopePath.pop_back();
                 },
+                [&](const ReceiveSocketNode &recv) {
+                    hasThread = true;
+                    auto threadEl = prog.append_child("Instructions");
+                    auto el = threadEl.append_child("Event");
+                    el.append_attribute("event") = "ReceiveMessage";
+                    el.append_attribute("id") = nextId().c_str();
+                    el.append_attribute("style") = "receive-msg";
+                    el.append_attribute("pos") = nextThreadPos().c_str();
+
+                    // Port is written as a constant on the ReceiveMessage
+                    // block (e.g. receive 10809(...) => text="10809").
+                    auto c = el.append_child("Constant");
+                    c.append_attribute("canReplace") = "false";
+                    c.append_attribute("text") = recv.port.c_str();
+
+                    mScopePath.push_back(recv.port);
+
+                    // Parameters are delivered through Vizzy's built-in
+                    // data list, indexed by position starting at 1
+                    for (std::size_t k = 0; k < recv.params.size(); ++k)
+                        mHandlerParams[recv.params[k]] =
+                            static_cast<int>(k) + 1;
+
+                    emitBody(recv.body, threadEl, nextId);
+                    advanceThreadPos(1 + countThreadBlocks(recv.body));
+                    mHandlerParams.clear();
+                    mScopePath.pop_back();
+                },
                 [&](const FunctionNode &func) {
                     hasThread = true;
                     auto threadEl = prog.append_child("Instructions");
