@@ -320,7 +320,7 @@ void Compiler::emitDoInstruction(const DoInstruction &instr,
             }
         } else if (instr.identifier == "send") {
             // Socket.send(port, valueA, valueB, ...) - port is last,
-            // values joined with ", " and trailing ", |"
+            // values joined with ", " and trailing ", |" via ListOp create
             auto el = parent.append_child("SentSockets");
             el.append_attribute("id") = nextId().c_str();
             el.append_attribute("style") = "SentSockets";
@@ -344,10 +344,16 @@ void Compiler::emitDoInstruction(const DoInstruction &instr,
                     for (std::size_t k = firstValueIdx; k < instr.params.size(); ++k) {
                         if (k > firstValueIdx)
                             joined += ", ";
-                        joined += std::get<Value>(instr.params[k]->value).value;
+                        const auto *v =
+                            std::get_if<Value>(&instr.params[k]->value);
+                        joined += v->value;
                     }
                     joined += ", |";
-                    auto c = el.append_child("Constant");
+
+                    auto listOp = el.append_child("ListOp");
+                    listOp.append_attribute("op") = "create";
+                    listOp.append_attribute("style") = "list-create";
+                    auto c = listOp.append_child("Constant");
                     c.append_attribute("text") = joined.c_str();
                 } else {
                     auto join = el.append_child("StringOp");
