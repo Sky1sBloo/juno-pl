@@ -347,10 +347,10 @@ void Compiler::emitDoInstruction(const DoInstruction &instr,
                     std::string joined;
                     for (std::size_t k = firstValueIdx; k < instr.params.size(); ++k) {
                         if (k > firstValueIdx)
-                            joined += "|";
+                            joined += ", ";
                         joined += std::get<Value>(instr.params[k]->value).value;
                     }
-                    joined += "|";
+                    joined += ", |";
                     auto c = el.append_child("Constant");
                     c.append_attribute("text") = joined.c_str();
                 } else {
@@ -360,12 +360,12 @@ void Compiler::emitDoInstruction(const DoInstruction &instr,
                     for (std::size_t k = firstValueIdx; k < instr.params.size(); ++k) {
                         if (k > firstValueIdx) {
                             auto sep = join.append_child("Constant");
-                            sep.append_attribute("text") = "|";
+                            sep.append_attribute("text") = ", ";
                         }
                         emitExpression(*instr.params[k], join);
                     }
                     auto trailing = join.append_child("Constant");
-                    trailing.append_attribute("text") = "|";
+                    trailing.append_attribute("text") = ", |";
                 }
             }
         } else if (instr.identifier == "stop") {

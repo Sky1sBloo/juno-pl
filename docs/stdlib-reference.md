@@ -161,7 +161,7 @@ Vizzy's `StartSockets`, `SentSockets`, and `StopSockets` blocks.
 | Function | Signature | Description |
 |----------|-----------|-------------|
 | `Socket.start` | `(port, bufferSize)` | Opens a socket on the given port with the given buffer size. |
-| `Socket.send` | `(port, value1, value2, ...)` | Sends `value1|value2|...|` on the given port. The values are joined with `|` and a trailing `|` for the `vz-socket-receiver`. Minimum 2 arguments (port + at least one value). |
+| `Socket.send` | `(port, value1, value2, ...)` | Sends `value1, value2, ..., |` on the given port. The values are joined with `, ` and a trailing `, |` for the `vz-socket-receiver`. Minimum 2 arguments (port + at least one value). |
 | `Socket.stop` | `(port)` | Closes the socket on the given port. |
 
 Socket events are handled via the `receive` keyword as `ReceiveMessage` Vizzy events:

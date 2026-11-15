@@ -1056,8 +1056,8 @@ on start() {
     CHECK(xml.find("style=\"SentSockets\"") != std::string::npos);
     // Port is the first parameter
     CHECK(xml.find("<Constant number=\"10809\" />") != std::string::npos);
-    // Values joined with "|" and a trailing "|"
-    CHECK(xml.find("<Constant text=\"data|\" />") != std::string::npos);
+    // Values joined with ", " and a trailing ", |"
+    CHECK(xml.find("<Constant text=\"data, |\" />") != std::string::npos);
     CHECK(xml.find("</SentSockets>") != std::string::npos);
 }
 
@@ -1072,7 +1072,7 @@ on start() {
     CHECK(xml.find("<SentSockets id=\"") != std::string::npos);
     CHECK(xml.find("style=\"SentSockets\"") != std::string::npos);
     CHECK(xml.find("<Constant number=\"10809\" />") != std::string::npos);
-    CHECK(xml.find("<Constant text=\"a|b|c|\" />") != std::string::npos);
+    CHECK(xml.find("<Constant text=\"a, b, c, |\" />") != std::string::npos);
     CHECK(xml.find("</SentSockets>") != std::string::npos);
 }
 
