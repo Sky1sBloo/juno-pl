@@ -92,9 +92,9 @@ on message(a, b) {
 }
 
 receive 10809(port, data) {
-    // fires when a message is received on port 10809; `data` holds the
-    // message at data[2] (port occupies data[1]). The port number is
-    // written as a constant on the ReceiveMessage event block.
+    // fires when a message is received on port 10809. Parameters resolve
+    // through Vizzy's `data` list like custom events: port is data[1],
+    // data is data[2], etc.
 }
 ```
 

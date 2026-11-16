@@ -367,7 +367,7 @@ Parser::parseReceiveSocket(TokenList &tokens) {
     }
     node.port = portToken->value;
 
-    // Parameters
+    // Parameters (resolve through Vizzy's `data` list like events)
     auto params = parseParam(tokens);
     if (!params) {
         recoverTo(TokenType::OP_SEMICOLON);
