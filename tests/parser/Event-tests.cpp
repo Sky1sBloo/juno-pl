@@ -33,7 +33,7 @@ TEST_CASE("Parser Event - basic") {
 
 TEST_CASE("Parser Event - with params") {
     JunoPL::Tests::FileHandlerTest fileHandler;
-    fileHandler.setSourceCode("program test; on receive(msg, sender) { }");
+    fileHandler.setSourceCode("program test; on myReceive(msg, sender) { }");
 
     JunoPL::Lexer lexer;
     auto lexOutput = lexer.tokenize(fileHandler);
@@ -47,10 +47,36 @@ TEST_CASE("Parser Event - with params") {
     REQUIRE(parseOutput.root->body.size() == 1);
 
     const auto &event = std::get<JunoPL::EventNode>(parseOutput.root->body.at(0));
-    CHECK(event.identifier == "receive");
+    CHECK(event.identifier == "myReceive");
     REQUIRE(event.params.size() == 2);
     CHECK(event.params[0] == "msg");
     CHECK(event.params[1] == "sender");
+}
+
+TEST_CASE("Parser Receive - basic") {
+    JunoPL::Tests::FileHandlerTest fileHandler;
+    fileHandler.setSourceCode("program test; receive 10809(port, data) { }");
+
+    JunoPL::Lexer lexer;
+    auto lexOutput = lexer.tokenize(fileHandler);
+    REQUIRE(lexOutput.errors.empty());
+
+    JunoPL::Parser parser;
+    auto parseOutput = parser.parse(lexOutput.tokens);
+
+    CHECK(parseOutput.errors.empty());
+    REQUIRE(parseOutput.root);
+    REQUIRE(parseOutput.root->body.size() == 1);
+    REQUIRE(std::holds_alternative<JunoPL::ReceiveSocketNode>(
+        parseOutput.root->body.at(0)));
+
+    const auto &recv =
+        std::get<JunoPL::ReceiveSocketNode>(parseOutput.root->body.at(0));
+    CHECK(recv.port == "10809");
+    REQUIRE(recv.params.size() == 2);
+    CHECK(recv.params[0] == "port");
+    CHECK(recv.params[1] == "data");
+    CHECK(recv.body.body.empty());
 }
 
 TEST_CASE("Parser Event - with body") {

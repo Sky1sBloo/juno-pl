@@ -48,7 +48,7 @@ std::unordered_map<std::string, TokenType, string_hash, std::equal_to<>>
         {"craft", TokenType::K_CRAFT},     {"nearby", TokenType::K_NEARBY},
         {"var", TokenType::K_VAR},         {"list", TokenType::K_LIST},
         {"inline", TokenType::K_INLINE},   {"true", TokenType::TRUE},
-        {"false", TokenType::FALSE}};
+        {"false", TokenType::FALSE},       {"receive", TokenType::K_RECEIVE}};
 
 std::unordered_map<std::string, TokenType, string_hash, std::equal_to<>>
     operatorMap = {{"+", TokenType::OP_PLUS},

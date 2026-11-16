@@ -30,6 +30,10 @@ std::vector<Diagnostic> SemanticAnalyzer::analyze(const RootNode &root) {
                 [](const EventNode &) {
                     // event names are not referenced by other Juno code
                 },
+                [](const ReceiveSocketNode &) {
+                    // receive socket handler names are not referenced by
+                    // other Juno code
+                },
                 [this](const FunctionNode &func) {
                     declare(Symbol{func.identifier, Symbol::Kind::VALUE,
                                    func.params.size(), func.loc});
@@ -65,6 +69,15 @@ std::vector<Diagnostic> SemanticAnalyzer::analyze(const RootNode &root) {
                                        event.loc});
                     }
                     visitBody(event.body);
+                    popScope();
+                },
+                [this](const ReceiveSocketNode &recv) {
+                    pushScope();
+                    for (const auto &param : recv.params) {
+                        declare(Symbol{param, Symbol::Kind::VALUE, 0,
+                                       recv.loc});
+                    }
+                    visitBody(recv.body);
                     popScope();
                 },
                 [this](const FunctionNode &func) {

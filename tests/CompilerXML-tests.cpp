@@ -550,25 +550,6 @@ on update() {
           std::string::npos);
 }
 
-TEST_CASE("Compiler XML - numeric literal accepted as event param") {
-    const auto xml = compileSource(R"(
-program test;
-
-on socketReceive(10809, data) {
-    do Game.display(data);
-})");
-
-    // Numeric literal port is written as the constant text on the event block
-    CHECK(xml.find("<Event event=\"ReceiveMessage\" id=\"0\" "
-                   "style=\"receive-msg\"") != std::string::npos);
-    CHECK(xml.find("<Constant canReplace=\"false\" text=\"10809\" />") !=
-          std::string::npos);
-    // data is read from Vizzy's data list at position 2 (port is position 1)
-    CHECK(xml.find("<ListOp op=\"get\" style=\"list-get\">") !=
-          std::string::npos);
-    CHECK(xml.find("<Constant number=\"2\" />") != std::string::npos);
-}
-
 TEST_CASE("Compiler XML - list declaration keeps Items container") {
     const auto xml = compileSource(R"(
 program test;
@@ -1063,19 +1044,50 @@ on start() {
     CHECK(xml.find("</StartSockets>") != std::string::npos);
 }
 
-TEST_CASE("Compiler XML - Socket.send maps to SentSockets") {
+TEST_CASE("Compiler XML - Socket.send maps to SentSockets with port last") {
     const auto xml = compileSource(R"(
 program test;
 
 on start() {
-    do Socket.send("data", 10809);
+    do Socket.send(10809, "data");
 })");
 
     CHECK(xml.find("<SentSockets id=\"") != std::string::npos);
     CHECK(xml.find("style=\"SentSockets\"") != std::string::npos);
+    // Values joined via ListOp create, port last
+    CHECK(xml.find("<ListOp op=\"create\" style=\"list-create\">") !=
+          std::string::npos);
+    CHECK(xml.find("<StringOp op=\"join\" style=\"join\">") !=
+          std::string::npos);
     CHECK(xml.find("<Constant text=\"data\" />") != std::string::npos);
+    CHECK(xml.find("<Constant text=\", |\" />") != std::string::npos);
     CHECK(xml.find("<Constant number=\"10809\" />") != std::string::npos);
     CHECK(xml.find("</SentSockets>") != std::string::npos);
+    CHECK(xml.find("<SetVariable") == std::string::npos);
+}
+
+TEST_CASE("Compiler XML - Socket.send joins multiple values with comma pipe") {
+    const auto xml = compileSource(R"(
+program test;
+
+on start() {
+    do Socket.send(10809, "a", "b", "c");
+})");
+
+    CHECK(xml.find("<SentSockets id=\"") != std::string::npos);
+    CHECK(xml.find("style=\"SentSockets\"") != std::string::npos);
+    CHECK(xml.find("<ListOp op=\"create\" style=\"list-create\">") !=
+          std::string::npos);
+    CHECK(xml.find("<StringOp op=\"join\" style=\"join\">") !=
+          std::string::npos);
+    CHECK(xml.find("<Constant text=\"a\" />") != std::string::npos);
+    CHECK(xml.find("<Constant text=\"b\" />") != std::string::npos);
+    CHECK(xml.find("<Constant text=\"c\" />") != std::string::npos);
+    CHECK(xml.find("<Constant text=\", \" />") != std::string::npos);
+    CHECK(xml.find("<Constant text=\", |\" />") != std::string::npos);
+    CHECK(xml.find("<Constant number=\"10809\" />") != std::string::npos);
+    CHECK(xml.find("</SentSockets>") != std::string::npos);
+    CHECK(xml.find("<SetVariable") == std::string::npos);
 }
 
 TEST_CASE("Compiler XML - Socket.stop maps to StopSockets") {
@@ -1092,30 +1104,20 @@ on start() {
     CHECK(xml.find("</StopSockets>") != std::string::npos);
 }
 
-TEST_CASE("Compiler XML - socketReceive event writes port as constant") {
+TEST_CASE("Compiler XML - receive event maps to ReceiveMessage with port constant") {
     const auto xml = compileSource(R"(
 program test;
 
-on socketReceive(port, data) {
-    x = 1;
+receive 10809(port, data) {
+    do Game.display(data);
 })");
 
     CHECK(xml.find("<Event event=\"ReceiveMessage\" id=\"0\" "
                    "style=\"receive-msg\"") != std::string::npos);
-    CHECK(xml.find("<Constant canReplace=\"false\" text=\"port\" />") !=
+    CHECK(xml.find("<Constant canReplace=\"false\" text=\"10809\" />") !=
           std::string::npos);
-}
-
-TEST_CASE("Compiler XML - socketError event writes socket error constant") {
-    const auto xml = compileSource(R"(
-program test;
-
-on socketError(data) {
-    x = 1;
-})");
-
-    CHECK(xml.find("<Event event=\"ReceiveMessage\" id=\"0\" "
-                   "style=\"receive-msg\"") != std::string::npos);
-    CHECK(xml.find("<Constant canReplace=\"false\" text=\"socket error\" />") !=
+    // data is read from Vizzy's data list at position 2 (port is position 1)
+    CHECK(xml.find("<ListOp op=\"get\" style=\"list-get\">") !=
           std::string::npos);
+    CHECK(xml.find("<Constant number=\"2\" />") != std::string::npos);
 }

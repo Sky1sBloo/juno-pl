@@ -161,15 +161,14 @@ Vizzy's `StartSockets`, `SentSockets`, and `StopSockets` blocks.
 | Function | Signature | Description |
 |----------|-----------|-------------|
 | `Socket.start` | `(port, bufferSize)` | Opens a socket on the given port with the given buffer size. |
-| `Socket.send` | `(data, port)` | Sends data on the given port. |
+| `Socket.send` | `(port, value1, value2, ...)` | Sends `value1, value2, ..., |` on the given port. The values are joined with `, ` and a trailing `, |` for the `vz-socket-receiver`. Minimum 2 arguments (port + at least one value). |
 | `Socket.stop` | `(port)` | Closes the socket on the given port. |
 
-Socket events are handled as `ReceiveMessage` Vizzy events:
+Socket events are handled via the `receive` keyword as `ReceiveMessage` Vizzy events:
 
 | Event | Signature | Description |
 |-------|-----------|-------------|
-| `on socketReceive(port, data)` | — | Fires when a message is received on `port`; `data` holds the message. |
-| `on socketError(data)` | — | Fires on a socket error; `data` holds the error message. |
+| `receive <port>(param1, param2, ...)` | — | Fires when a message is received on `port`; `port` is written as a constant on the ReceiveMessage block; params resolve through Vizzy's `data` list starting at `data[1]` (first param at `data[1]`, second at `data[2]`, etc.), matching custom event behavior. |
 
 ## List operations — `Lists` (instructions)
 

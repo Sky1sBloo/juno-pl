@@ -91,14 +91,10 @@ on message(a, b) {
     // called with emit message(<expr>, <expr>);
 }
 
-on socketReceive(port, data) {
-    // fires when a message is received on `port`; `data` holds the message.
-    // `port` is written as a constant on the ReceiveMessage event block.
-}
-
-on socketError(data) {
-    // fires on a socket error; `data` holds the error message.
-    // The event block carries a constant text "socket error".
+receive 10809(a, b) {
+    // fires when a message is received on port 10809. Parameters resolve
+    // through Vizzy's `data` list like custom events: a is data[1],
+    // b is data[2], etc.
 }
 ```
 

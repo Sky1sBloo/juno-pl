@@ -109,6 +109,18 @@ overrides the configured value but does not suppress that check.
 Used to communicate the script to other applications outside of the game. [vz-socket-receiver](https://github.com/Sky1sBloo/vz-socket-receiver)
 is a C# program that helps resolve types from this.
 
+When enabled, `Socket.start(port, bufferSize)`, `Socket.send(port, value1, value2, ...)`,
+and `Socket.stop(port)` instructions compile to Vizzy's `StartSockets`,
+`SentSockets`, and `StopSockets` blocks. Socket events use the `receive`
+keyword instead of `on`:
+
+```
+receive 10809(a, b) {
+    do Game.display(a);
+    do Game.display(b);
+}
+```
+
 ### Generating a project
 
 ```

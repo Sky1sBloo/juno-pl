@@ -319,12 +319,33 @@ void Compiler::emitDoInstruction(const DoInstruction &instr,
                 emitExpression(*p, el);
             }
         } else if (instr.identifier == "send") {
+            // Socket.send(port, valueA, valueB, ...) - port is last,
+            // ListOp create with StringOp join directly inside SentSockets
             auto el = parent.append_child("SentSockets");
             el.append_attribute("id") = nextId().c_str();
             el.append_attribute("style") = "SentSockets";
-            for (const auto &p : instr.params) {
-                emitExpression(*p, el);
+
+            // ListOp create holding the StringOp join of values + ", |"
+            {
+                auto listOp = el.append_child("ListOp");
+                listOp.append_attribute("op") = "create";
+                listOp.append_attribute("style") = "list-create";
+                auto join = listOp.append_child("StringOp");
+                join.append_attribute("op") = "join";
+                join.append_attribute("style") = "join";
+                for (std::size_t k = 1; k < instr.params.size(); ++k) {
+                    if (k > 1) {
+                        auto sep = join.append_child("Constant");
+                        sep.append_attribute("text") = ", ";
+                    }
+                    emitExpression(*instr.params[k], join);
+                }
+                auto trailing = join.append_child("Constant");
+                trailing.append_attribute("text") = ", |";
             }
+
+            // Port is emitted last
+            emitExpression(*instr.params[0], el);
         } else if (instr.identifier == "stop") {
             auto el = parent.append_child("StopSockets");
             el.append_attribute("id") = nextId().c_str();

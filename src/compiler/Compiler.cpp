@@ -63,10 +63,6 @@ std::pair<std::string, std::string> eventName(const std::string &junoEvent) {
         return {"PartExplode", "part-explode"};
     if (junoEvent == "enterSOI")
         return {"ChangeSoi", "change-soi"};
-    if (junoEvent == "socketReceive")
-        return {"ReceiveMessage", "receive-msg"};
-    if (junoEvent == "socketError")
-        return {"ReceiveMessage", "receive-msg"};
     // Any other event is a custom Vizzy ReceiveMessage broadcast
     return {"ReceiveMessage", "receive-msg"};
 }
@@ -241,21 +237,12 @@ std::expected<std::string, std::string> Compiler::compileAST(const RootNode &roo
 
                     // Vizzy emits a text constant child for receive-msg
                     // events (e.g. on update() => ReceiveMessage with
-                    // Constant text="update"). Socket events carry the port
-                    // (or "socket error") as that constant instead.
+                    // Constant text="update").
                     if (xmlStyle == "receive-msg") {
                         auto c = el.append_child("Constant");
                         c.append_attribute("canReplace") = "false";
-                        if (event.identifier == "socketError") {
-                            c.append_attribute("text") = "socket error";
-                        } else if (event.identifier == "socketReceive" &&
-                                   !event.params.empty()) {
-                            c.append_attribute("text") =
-                                event.params.front().c_str();
-                        } else {
-                            c.append_attribute("text") =
-                                event.identifier.c_str();
-                        }
+                        c.append_attribute("text") =
+                            event.identifier.c_str();
                     }
 
                     mScopePath.push_back(event.identifier);
@@ -278,6 +265,34 @@ std::expected<std::string, std::string> Compiler::compileAST(const RootNode &roo
                     advanceThreadPos(1 + countThreadBlocks(event.body) +
                                      (isStart ? countTopLevelInitBlocks(root)
                                               : 0));
+                    mHandlerParams.clear();
+                    mScopePath.pop_back();
+                },
+                [&](const ReceiveSocketNode &recv) {
+                    hasThread = true;
+                    auto threadEl = prog.append_child("Instructions");
+                    auto el = threadEl.append_child("Event");
+                    el.append_attribute("event") = "ReceiveMessage";
+                    el.append_attribute("id") = nextId().c_str();
+                    el.append_attribute("style") = "receive-msg";
+                    el.append_attribute("pos") = nextThreadPos().c_str();
+
+                    // Port is written as a constant on the ReceiveMessage
+                    // block (e.g. receive 10809(...) => text="10809").
+                    auto c = el.append_child("Constant");
+                    c.append_attribute("canReplace") = "false";
+                    c.append_attribute("text") = recv.port.c_str();
+
+                    mScopePath.push_back(recv.port);
+
+                    // Parameters are delivered through Vizzy's built-in
+                    // data list, indexed by position starting at 1
+                    for (std::size_t k = 0; k < recv.params.size(); ++k)
+                        mHandlerParams[recv.params[k]] =
+                            static_cast<int>(k) + 1;
+
+                    emitBody(recv.body, threadEl, nextId);
+                    advanceThreadPos(1 + countThreadBlocks(recv.body));
                     mHandlerParams.clear();
                     mScopePath.pop_back();
                 },
