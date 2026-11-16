@@ -115,8 +115,9 @@ and `Socket.stop(port)` instructions compile to Vizzy's `StartSockets`,
 keyword instead of `on`:
 
 ```
-receive 10809(port, data) {
-    do Game.display(data);
+receive 10809(a, b) {
+    do Game.display(a);
+    do Game.display(b);
 }
 ```
 

@@ -168,7 +168,7 @@ Socket events are handled via the `receive` keyword as `ReceiveMessage` Vizzy ev
 
 | Event | Signature | Description |
 |-------|-----------|-------------|
-| `receive <port>(port, data)` | — | Fires when a message is received on `port`; `port` is written as a constant on the ReceiveMessage block; params resolve through Vizzy's `data` list starting at `data[1]` (port at `data[1]`, `data` at `data[2]`), matching custom event behavior. |
+| `receive <port>(param1, param2, ...)` | — | Fires when a message is received on `port`; `port` is written as a constant on the ReceiveMessage block; params resolve through Vizzy's `data` list starting at `data[1]` (first param at `data[1]`, second at `data[2]`, etc.), matching custom event behavior. |
 
 ## List operations — `Lists` (instructions)
 

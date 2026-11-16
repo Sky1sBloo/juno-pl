@@ -91,10 +91,10 @@ on message(a, b) {
     // called with emit message(<expr>, <expr>);
 }
 
-receive 10809(port, data) {
+receive 10809(a, b) {
     // fires when a message is received on port 10809. Parameters resolve
-    // through Vizzy's `data` list like custom events: port is data[1],
-    // data is data[2], etc.
+    // through Vizzy's `data` list like custom events: a is data[1],
+    // b is data[2], etc.
 }
 ```
 
